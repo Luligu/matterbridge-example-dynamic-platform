@@ -24,7 +24,6 @@ import {
   Matterbridge,
   MatterbridgeDevice,
   MatterbridgeDynamicPlatform,
-  MatterbridgePlatform,
 } from '../../matterbridge/dist/index.js'; 
 import { AnsiLogger, REVERSE, REVERSEOFF } from 'node-ansi-logger';
 
