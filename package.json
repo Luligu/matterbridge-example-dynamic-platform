@@ -1,5 +1,5 @@
 {
-  "name": "matterbridge-example-dynamicplatform",
+  "name": "matterbridge-example-dynamic-platform",
   "version": "1.0.0",
   "description": "Matterbridge dynamic platform plugin example",
   "author": "https://github.com/Luligu",
@@ -9,10 +9,10 @@
   "types": "dist/index.d.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Luligu/matterbridge-example-dynamicplatform"
+    "url": "https://github.com/Luligu/matterbridge-example-dynamic-platform"
   },
   "bugs": {
-    "url": "https://github.com/Luligu/matterbridge-example-dynamicplatform/issues"
+    "url": "https://github.com/Luligu/matterbridge-example-dynamic-platform/issues"
   },
   "keywords": [
     "matterbridge",
