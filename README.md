@@ -1,2 +1,2 @@
 # Matterbridge
-Matterbridge accessory platform example plugin
+Matterbridge dynamic platform example plugin
