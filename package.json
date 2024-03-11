@@ -47,9 +47,9 @@
     "matterbridge:disable": "matterbridge -disable .\\",
     "matterbridge:list": "matterbridge -list",
     "dev:link": "npm link --save-dev matterbridge",
-    "dev:unlink": "npm uninstall matterbridge && npm unlink matterbridge",
     "dev:install": "npm install --save-dev matterbridge",
-    "install": "npm link matterbridge && npm run build"
+    "dev:unlink": "npm uninstall matterbridge && npm unlink matterbridge",
+    "install": "node link-matterbridge-script.js && npm run build"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^1.6.3",
