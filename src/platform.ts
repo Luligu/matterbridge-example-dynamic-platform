@@ -84,12 +84,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
   }
   override async onConfigure() {
-    this.log.info('onConfigure called');
+    this.log.debug('onConfigure called');
     if (!this.cover) return;
     const coverCluster = this.cover.getClusterServer(WindowCoveringCluster.with(WindowCovering.Feature.Lift, WindowCovering.Feature.PositionAwareLift));
     if (coverCluster && coverCluster.getCurrentPositionLiftPercent100thsAttribute) {
       const position = coverCluster.getCurrentPositionLiftPercent100thsAttribute();
       if (position === null) return;
+      this.log.debug(`**onConfigure called. Current PositionLiftPercent100ths is ${position}. Set target and status.`);
       coverCluster.setTargetPositionLiftPercent100thsAttribute(position);
       coverCluster.setOperationalStatusAttribute({
         global: WindowCovering.MovementStatus.Stopped,
