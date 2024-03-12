@@ -51,6 +51,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   }
   override async onConfigure() {
     this.log.debug('onConfigure called');
+
     if (!this.cover) return;
     const coverCluster = this.cover.getClusterServer(WindowCoveringCluster.with(WindowCovering.Feature.Lift, WindowCovering.Feature.PositionAwareLift));
     if (coverCluster && coverCluster.getCurrentPositionLiftPercent100thsAttribute) {
