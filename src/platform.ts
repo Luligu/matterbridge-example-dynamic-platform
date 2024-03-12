@@ -23,27 +23,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.cover.createDefaultWindowCoveringClusterServer();
     await this.registerDevice(this.cover);
 
-    setInterval(
-      () => {
-        if (!this.cover) return;
-        const coverCluster = this.cover.getClusterServer(WindowCoveringCluster.with(WindowCovering.Feature.Lift, WindowCovering.Feature.PositionAwareLift));
-        if (coverCluster && coverCluster.getCurrentPositionLiftPercent100thsAttribute) {
-          let position = coverCluster.getCurrentPositionLiftPercent100thsAttribute();
-          if (position === null) return;
-          position = position >= 9000 ? 0 : position + 1000;
-          coverCluster.setTargetPositionLiftPercent100thsAttribute(position);
-          coverCluster.setCurrentPositionLiftPercent100thsAttribute(position);
-          coverCluster.setOperationalStatusAttribute({
-            global: WindowCovering.MovementStatus.Stopped,
-            lift: WindowCovering.MovementStatus.Stopped,
-            tilt: WindowCovering.MovementStatus.Stopped,
-          });
-          this.log.info(`Set PositionLiftPercent100ths to ${position}`);
-        }
-      },
-      60 * 1000 + 500,
-    );
-
     this.cover.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
@@ -58,20 +37,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 2', '0x23480564', 0xfff1, 'Luligu', 'Dynamic device 2');
     this.light.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     this.light.createDefaultOnOffClusterServer();
-    this.registerDevice(this.light);
-
-    setInterval(
-      () => {
-        if (!this.light) return;
-        const lightCluster = this.light.getClusterServer(OnOffCluster);
-        if (lightCluster) {
-          const status = lightCluster.getOnOffAttribute();
-          lightCluster.setOnOffAttribute(!status);
-          this.log.info(`Set onOff to ${!status}`);
-        }
-      },
-      60 * 1000 + 200,
-    );
+    await this.registerDevice(this.light);
 
     this.light.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -98,6 +64,40 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         tilt: WindowCovering.MovementStatus.Stopped,
       });
     }
+
+    setInterval(
+      () => {
+        if (!this.cover) return;
+        const coverCluster = this.cover.getClusterServer(WindowCoveringCluster.with(WindowCovering.Feature.Lift, WindowCovering.Feature.PositionAwareLift));
+        if (coverCluster && coverCluster.getCurrentPositionLiftPercent100thsAttribute) {
+          let position = coverCluster.getCurrentPositionLiftPercent100thsAttribute();
+          if (position === null) return;
+          position = position >= 9000 ? 0 : position + 1000;
+          coverCluster.setTargetPositionLiftPercent100thsAttribute(position);
+          coverCluster.setCurrentPositionLiftPercent100thsAttribute(position);
+          coverCluster.setOperationalStatusAttribute({
+            global: WindowCovering.MovementStatus.Stopped,
+            lift: WindowCovering.MovementStatus.Stopped,
+            tilt: WindowCovering.MovementStatus.Stopped,
+          });
+          this.log.info(`Set PositionLiftPercent100ths to ${position}`);
+        }
+      },
+      60 * 1000 + 500,
+    );
+
+    setInterval(
+      () => {
+        if (!this.light) return;
+        const lightCluster = this.light.getClusterServer(OnOffCluster);
+        if (lightCluster) {
+          const status = lightCluster.getOnOffAttribute();
+          lightCluster.setOnOffAttribute(!status);
+          this.log.info(`Set onOff to ${!status}`);
+        }
+      },
+      60 * 1000 + 200,
+    );
   }
 
   override async onShutdown(reason?: string) {
