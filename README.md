@@ -11,3 +11,5 @@
 ---
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
+
+See the guidelines on [Matterbridge](https://github.com/Luligu/matterbridge) for more information.
