@@ -1,4 +1,4 @@
-import { DeviceTypes, OnOffCluster, WindowCovering, WindowCoveringCluster } from 'matterbridge';
+import { DeviceTypes, LevelControlCluster, OnOffCluster, WindowCovering, WindowCoveringCluster } from 'matterbridge';
 
 import { Matterbridge, MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { AnsiLogger } from 'node-ansi-logger';
@@ -39,6 +39,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 2', '0x23480564', 0xfff1, 'Luligu', 'Dynamic device 2');
     this.light.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     this.light.createDefaultOnOffClusterServer();
+    this.light.createDefaultLevelControlClusterServer();
     await this.registerDevice(this.light);
 
     this.light.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
@@ -92,11 +93,20 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightInterval = setInterval(
       () => {
         if (!this.light) return;
-        const lightCluster = this.light.getClusterServer(OnOffCluster);
-        if (lightCluster) {
-          const status = lightCluster.getOnOffAttribute();
-          lightCluster.setOnOffAttribute(!status);
+        const lightOnOffCluster = this.light.getClusterServer(OnOffCluster);
+        if (lightOnOffCluster) {
+          const status = lightOnOffCluster.getOnOffAttribute();
+          lightOnOffCluster.setOnOffAttribute(!status);
           this.log.info(`Set onOff to ${!status}`);
+        }
+        const lightLevelControlCluster = this.light.getClusterServer(LevelControlCluster);
+        if (lightLevelControlCluster) {
+          let level = lightLevelControlCluster.getCurrentLevelAttribute();
+          if (level === null) return;
+          level += 10;
+          if (level > 254) level = 0;
+          lightLevelControlCluster.setCurrentLevelAttribute(level);
+          this.log.info(`Set currentLevel to ${level}`);
         }
       },
       60 * 1000 + 200,
