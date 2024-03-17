@@ -116,6 +116,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   override async onShutdown(reason?: string) {
     this.log.info('onShutdown called with reason:', reason ?? 'none');
     clearInterval(this.coverInterval);
-    clearInterval(this.lightInterval);
+    await this.unregisterAllDevices();
   }
 }
