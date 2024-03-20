@@ -1,4 +1,4 @@
-import { DeviceTypes, LevelControlCluster, OnOffCluster, WindowCovering, WindowCoveringCluster } from 'matterbridge';
+import { ColorControl, ColorControlCluster, DeviceTypes, LevelControlCluster, OnOffCluster, WindowCovering, WindowCoveringCluster } from 'matterbridge';
 
 import { Matterbridge, MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { AnsiLogger } from 'node-ansi-logger';
@@ -16,6 +16,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   override async onStart(reason?: string) {
     this.log.info('onStart called with reason:', reason ?? 'none');
 
+    // Create a window covering device
     this.cover = new MatterbridgeDevice(DeviceTypes.WINDOW_COVERING);
     this.cover.createDefaultIdentifyClusterServer();
     this.cover.createDefaultGroupsClusterServer();
@@ -32,6 +33,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.log.info(`Command goToLiftPercentage called liftPercent100thsValue:${liftPercent100thsValue}`);
     });
 
+    // Create a light device
     this.light = new MatterbridgeDevice(DeviceTypes.ON_OFF_LIGHT);
     this.light.createDefaultIdentifyClusterServer();
     this.light.createDefaultGroupsClusterServer();
@@ -40,6 +42,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     this.light.createDefaultOnOffClusterServer();
     this.light.createDefaultLevelControlClusterServer();
+    this.light.createDefaultColorControlClusterServer();
     await this.registerDevice(this.light);
 
     this.light.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
@@ -67,6 +70,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         lift: WindowCovering.MovementStatus.Stopped,
         tilt: WindowCovering.MovementStatus.Stopped,
       });
+      this.log.info(`Set cover initial currentPositionLiftPercent100ths and targetPositionLiftPercent100ths to ${position} and operationalStatus to Stopped.`);
     }
 
     this.coverInterval = setInterval(
@@ -84,29 +88,38 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             lift: WindowCovering.MovementStatus.Stopped,
             tilt: WindowCovering.MovementStatus.Stopped,
           });
-          this.log.info(`Set PositionLiftPercent100ths to ${position}`);
+          this.log.info(`Set cover positionLiftPercent100ths to ${position}`);
         }
       },
       60 * 1000 + 500,
     );
 
+    // Set light to off and level to 0
+    this.light?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
+    this.light?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(0);
+    this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentHueAttribute(0);
+    this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentSaturationAttribute(128);
+    this.log.info('Set light initial onOff to false, currentLevel to 0, hue to 0 and saturation to 50%.');
+
     this.lightInterval = setInterval(
       () => {
         if (!this.light) return;
-        const lightOnOffCluster = this.light.getClusterServer(OnOffCluster);
-        if (lightOnOffCluster) {
-          const status = lightOnOffCluster.getOnOffAttribute();
-          lightOnOffCluster.setOnOffAttribute(!status);
-          this.log.info(`Set onOff to ${!status}`);
-        }
         const lightLevelControlCluster = this.light.getClusterServer(LevelControlCluster);
         if (lightLevelControlCluster) {
           let level = lightLevelControlCluster.getCurrentLevelAttribute();
           if (level === null) return;
           level += 10;
-          if (level > 254) level = 0;
+          if (level > 254) {
+            level = 0;
+            this.light.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
+            this.log.info('Set light onOff to false');
+            return;
+          } else {
+            this.light.getClusterServer(OnOffCluster)?.setOnOffAttribute(true);
+            this.log.info('Set light onOff to true');
+          }
           lightLevelControlCluster.setCurrentLevelAttribute(level);
-          this.log.info(`Set currentLevel to ${level}`);
+          this.log.info(`Set light currentLevel to ${level}`);
         }
       },
       60 * 1000 + 200,
