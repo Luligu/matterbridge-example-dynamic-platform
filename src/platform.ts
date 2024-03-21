@@ -213,19 +213,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Set cover to target = current position and status to stopped (current position is persisted in the cluster)
-    if (!this.cover) return;
-    const coverCluster = this.cover.getClusterServer(WindowCoveringCluster.with(WindowCovering.Feature.Lift, WindowCovering.Feature.PositionAwareLift));
-    if (coverCluster && coverCluster.getCurrentPositionLiftPercent100thsAttribute) {
-      const position = coverCluster.getCurrentPositionLiftPercent100thsAttribute();
-      if (position === null) return;
-      coverCluster.setTargetPositionLiftPercent100thsAttribute(position);
-      coverCluster.setOperationalStatusAttribute({
-        global: WindowCovering.MovementStatus.Stopped,
-        lift: WindowCovering.MovementStatus.Stopped,
-        tilt: WindowCovering.MovementStatus.Stopped,
-      });
-      this.log.info(`Set cover initial currentPositionLiftPercent100ths and targetPositionLiftPercent100ths to ${position} and operationalStatus to Stopped.`);
-    }
+    this.cover?.setWindowCoveringTargetAsCurrentAndStopped();
+    this.log.debug('Set cover initial targetPositionLiftPercent100ths = currentPositionLiftPercent100ths and operationalStatus to Stopped.');
 
     this.coverInterval = setInterval(
       () => {
