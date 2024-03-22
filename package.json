@@ -9,7 +9,7 @@
   "types": "dist/index.d.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Luligu/matterbridge-example-dynamic-platform"
+    "url": "git+https://github.com/Luligu/matterbridge-example-dynamic-platform.git"
   },
   "bugs": {
     "url": "https://github.com/Luligu/matterbridge-example-dynamic-platform/issues"
