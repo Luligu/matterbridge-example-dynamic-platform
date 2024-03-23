@@ -1,6 +1,6 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Matterbridge dynamic platform plugin example",
   "author": "https://github.com/Luligu",
   "license": "MIT",
@@ -49,7 +49,7 @@
     "dev:link": "npm link --save-dev matterbridge",
     "dev:install": "npm install --save-dev matterbridge",
     "dev:unlink": "npm uninstall matterbridge && npm unlink matterbridge",
-    "install": "node link-matterbridge-script.js && npm run build"
+    "install": "npm run dev:unlink && node link-matterbridge-script.js && npm run build"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^1.7.0",
