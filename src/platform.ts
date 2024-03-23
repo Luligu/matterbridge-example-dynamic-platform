@@ -1,4 +1,4 @@
-import { ColorControl, ColorControlCluster, DeviceTypes, LevelControlCluster, OnOffCluster, WindowCovering, WindowCoveringCluster, onOffSwitch } from 'matterbridge';
+import { ColorControl, ColorControlCluster, DeviceTypes, LevelControlCluster, OnOffCluster, PlatformConfig, WindowCovering, WindowCoveringCluster, onOffSwitch } from 'matterbridge';
 
 import { Matterbridge, MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { AnsiLogger } from 'node-ansi-logger';
@@ -13,8 +13,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   outletInterval: NodeJS.Timeout | undefined;
   coverInterval: NodeJS.Timeout | undefined;
 
-  constructor(matterbridge: Matterbridge, log: AnsiLogger) {
-    super(matterbridge, log);
+  constructor(matterbridge: Matterbridge, log: AnsiLogger, config: PlatformConfig) {
+    super(matterbridge, log, config);
   }
 
   override async onStart(reason?: string) {
