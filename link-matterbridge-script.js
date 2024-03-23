@@ -1,4 +1,3 @@
-// link-script.js
 import { exec } from 'child_process';
 
 const command = process.platform === 'win32' ? 'npm link matterbridge' : 'sudo npm link matterbridge';
