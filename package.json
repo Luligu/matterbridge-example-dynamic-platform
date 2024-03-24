@@ -1,6 +1,6 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Matterbridge dynamic platform plugin example",
   "author": "https://github.com/Luligu",
   "license": "MIT",
@@ -18,7 +18,9 @@
     "matterbridge",
     "homebridge",
     "matter",
-    "matter.js"
+    "matter.js",
+    "example",
+    "plugin"
   ],
   "engines": {
     "node": "^18.19.0 || ^20.11.0"
@@ -53,7 +55,7 @@
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^1.7.0",
-    "@tsconfig/node-lts": "^20.1.1",
+    "@tsconfig/node-lts": "^20.1.2",
     "@types/node": "^20.11.30",
     "@typescript-eslint/eslint-plugin": "^7.3.1",
     "@typescript-eslint/parser": "^7.3.1",
