@@ -1,4 +1,20 @@
-import { ColorControl, ColorControlCluster, DeviceTypes, LevelControlCluster, OnOffCluster, PlatformConfig, WindowCovering, WindowCoveringCluster, onOffSwitch } from 'matterbridge';
+import {
+  ColorControl,
+  ColorControlCluster,
+  DeviceTypes,
+  DoorLock,
+  DoorLockCluster,
+  FlowMeasurement,
+  LevelControlCluster,
+  OnOffCluster,
+  PlatformConfig,
+  TemperatureMeasurement,
+  Thermostat,
+  ThermostatCluster,
+  WindowCovering,
+  WindowCoveringCluster,
+  onOffSwitch,
+} from 'matterbridge';
 
 import { Matterbridge, MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { AnsiLogger } from 'node-ansi-logger';
@@ -8,10 +24,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   light: MatterbridgeDevice | undefined;
   outlet: MatterbridgeDevice | undefined;
   cover: MatterbridgeDevice | undefined;
+  lock: MatterbridgeDevice | undefined;
+  thermo: MatterbridgeDevice | undefined;
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
   outletInterval: NodeJS.Timeout | undefined;
   coverInterval: NodeJS.Timeout | undefined;
+  lockInterval: NodeJS.Timeout | undefined;
+  thermoInterval: NodeJS.Timeout | undefined;
 
   constructor(matterbridge: Matterbridge, log: AnsiLogger, config: PlatformConfig) {
     super(matterbridge, log, config);
@@ -148,6 +168,74 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.log.debug(`Command goToLiftPercentage called. Attributes: operationalStatus: ${operationalStatus?.getLocal().lift}`);
       },
     );
+
+    // Create a lock device
+    this.lock = new MatterbridgeDevice(DeviceTypes.DOOR_LOCK);
+    this.lock.createDefaultIdentifyClusterServer();
+    this.lock.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 5', '0x96352164', 0xfff1, 'Luligu', 'Dynamic device 5');
+    this.lock.createDefaultPowerSourceRechargeableBatteryClusterServer(30);
+    this.lock.createDefaultDoorLockClusterServer();
+    await this.registerDevice(this.lock);
+
+    this.lock.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.lock.addCommandHandler('lockDoor', async () => {
+      this.lock?.getClusterServer(DoorLockCluster)?.setLockStateAttribute(DoorLock.LockState.Locked);
+      this.log.info('Command lockDoor called');
+    });
+    this.lock.addCommandHandler('unlockDoor', async () => {
+      this.lock?.getClusterServer(DoorLockCluster)?.setLockStateAttribute(DoorLock.LockState.Unlocked);
+      this.log.info('Command unlockDoor called');
+    });
+
+    // Create a thermostat device
+    this.thermo = new MatterbridgeDevice(DeviceTypes.THERMOSTAT);
+    this.thermo.createDefaultIdentifyClusterServer();
+    this.thermo.createDefaultGroupsClusterServer();
+    this.thermo.createDefaultScenesClusterServer();
+    this.thermo.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 6', '0x96382164', 0xfff1, 'Luligu', 'Dynamic device 6');
+    this.thermo.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+    this.thermo.createDefaultThermostatClusterServer(20, 18, 22);
+
+    const flowChild = this.thermo.addChildDeviceTypeWithClusterServer([DeviceTypes.FLOW_SENSOR], [FlowMeasurement.Cluster.id]);
+    flowChild.getClusterServer(FlowMeasurement.Cluster)?.setMeasuredValueAttribute(1 * 10);
+
+    const tempChild = this.thermo.addChildDeviceTypeWithClusterServer([DeviceTypes.TEMPERATURE_SENSOR], [TemperatureMeasurement.Cluster.id]);
+    tempChild.getClusterServer(TemperatureMeasurement.Cluster)?.setMeasuredValueAttribute(41 * 100);
+
+    await this.registerDevice(this.thermo);
+
+    this.thermo.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.thermo.addCommandHandler('setpointRaiseLower', async ({ request: { mode, amount }, attributes }) => {
+      const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
+      this.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
+      if (mode === Thermostat.SetpointAdjustMode.Heat && attributes.occupiedHeatingSetpoint) {
+        const setpoint = attributes.occupiedHeatingSetpoint?.getLocal() / 100 + amount / 10;
+        attributes.occupiedHeatingSetpoint.setLocal(setpoint * 100);
+        this.log.info('Set occupiedHeatingSetpoint:', setpoint);
+      }
+      if (mode === Thermostat.SetpointAdjustMode.Cool && attributes.occupiedCoolingSetpoint) {
+        const setpoint = attributes.occupiedCoolingSetpoint.getLocal() / 100 + amount / 10;
+        attributes.occupiedCoolingSetpoint.setLocal(setpoint * 100);
+        this.log.info('Set occupiedCoolingSetpoint:', setpoint);
+      }
+    });
+    const thermostat = this.thermo.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode));
+    if (thermostat) {
+      thermostat.subscribeSystemModeAttribute(async (value) => {
+        const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
+        this.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+      });
+      thermostat.subscribeOccupiedHeatingSetpointAttribute(async (value) => {
+        this.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
+      });
+      thermostat.subscribeOccupiedCoolingSetpointAttribute(async (value) => {
+        this.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
+      });
+    }
   }
 
   override async onConfigure() {
@@ -236,6 +324,37 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       60 * 1000 + 400,
     );
+
+    // Set lock to Locked
+    this.lock?.getClusterServer(DoorLockCluster)?.setLockStateAttribute(DoorLock.LockState.Locked);
+    this.log.info('Set lock initial lockState to Locked');
+
+    this.lockInterval = setInterval(
+      () => {
+        if (!this.lock) return;
+        const status = this.lock.getClusterServer(DoorLockCluster)?.getLockStateAttribute();
+        this.lock.getClusterServer(DoorLockCluster)?.setLockStateAttribute(status === DoorLock.LockState.Locked ? DoorLock.LockState.Unlocked : DoorLock.LockState.Locked);
+        this.log.info(`Set lock lockState to ${status === DoorLock.LockState.Locked ? 'Locked' : 'Unlocked'}`);
+      },
+      60 * 1000 + 700,
+    );
+
+    // Set local to 16°C
+    this.thermo?.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))?.setLocalTemperatureAttribute(1600);
+    this.log.info('Set thermo initial localTemeperature to 16°C');
+
+    this.thermoInterval = setInterval(
+      () => {
+        if (!this.thermo) return;
+        const cluster = this.thermo.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode));
+        if (!cluster) return;
+        let local = cluster.getLocalTemperatureAttribute() ?? 1600;
+        local = local >= 2300 ? 1600 : local + 100;
+        cluster.setLocalTemperatureAttribute(local);
+        this.log.info(`Set thermo localTemeperature to ${local / 100}°C`);
+      },
+      60 * 1000 + 700,
+    );
   }
 
   override async onShutdown(reason?: string) {
@@ -244,6 +363,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     clearInterval(this.lightInterval);
     clearInterval(this.outletInterval);
     clearInterval(this.coverInterval);
-    await this.unregisterAllDevices();
+    clearInterval(this.lockInterval);
+    clearInterval(this.thermoInterval);
+    if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices();
   }
 }

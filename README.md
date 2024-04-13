@@ -12,8 +12,14 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes a switch with onOff, a light with onOff-levelControl-colorControl, an outlet with onOff and a WindoweCovering device.
+It exposes:
+- a switch with onOff cluster
+- a light with onOff-levelControl-colorControl clusters
+- an outlet with onOff cluster
+- a cover with windowCovering cluster
+- a lock with doorLock cluster
+- a thermo with thermostat cluster and 2 sub endpoints with flowMeasurement cluster and temperatureMeasurement cluster (to show how to create a composed device with sub enpoints)
 
-All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices).
+All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices) and how to subscribe to attributes.
 
 See the guidelines on [Matterbridge](https://github.com/Luligu/matterbridge/blob/main/README.md) for more information.
