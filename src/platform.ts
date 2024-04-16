@@ -351,7 +351,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         let local = cluster.getLocalTemperatureAttribute() ?? 1600;
         local = local >= 2300 ? 1600 : local + 100;
         cluster.setLocalTemperatureAttribute(local);
-        this.log.info(`Set thermo localTemeperature to ${local / 100}°C`);
+        this.log.info(`Set thermo localTemperature to ${local / 100}°C`);
       },
       60 * 1000 + 700,
     );
