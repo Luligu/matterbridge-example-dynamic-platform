@@ -8,6 +8,7 @@ import {
   LevelControlCluster,
   OnOffCluster,
   PlatformConfig,
+  RelativeHumidityMeasurement,
   TemperatureMeasurement,
   Thermostat,
   ThermostatCluster,
@@ -204,6 +205,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const tempChild = this.thermo.addChildDeviceTypeWithClusterServer([DeviceTypes.TEMPERATURE_SENSOR], [TemperatureMeasurement.Cluster.id]);
     tempChild.getClusterServer(TemperatureMeasurement.Cluster)?.setMeasuredValueAttribute(41 * 100);
 
+    const humidityChild = this.thermo.addChildDeviceTypeWithClusterServer([DeviceTypes.HUMIDITY_SENSOR], [RelativeHumidityMeasurement.Cluster.id]);
+    humidityChild.getClusterServer(RelativeHumidityMeasurement.Cluster)?.setMeasuredValueAttribute(80 * 100);
+
     await this.registerDevice(this.thermo);
 
     this.thermo.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
@@ -341,7 +345,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Set local to 16°C
     this.thermo?.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))?.setLocalTemperatureAttribute(1600);
-    this.log.info('Set thermo initial localTemeperature to 16°C');
+    this.log.info('Set thermo initial localTemperature to 16°C');
 
     this.thermoInterval = setInterval(
       () => {
