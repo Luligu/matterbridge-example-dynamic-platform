@@ -212,6 +212,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.thermo.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.log.info(`Command identify called identifyTime:${identifyTime}`);
+      // if (this.thermo) logEndpoint(this.thermo);
     });
     this.thermo.addCommandHandler('setpointRaiseLower', async ({ request: { mode, amount }, attributes }) => {
       const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
