@@ -1,7 +1,7 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "1.0.13",
-  "description": "Matterbridge dynamic platform plugin example",
+  "version": "1.0.14",
+  "description": "Matterbridge dynamic plugin",
   "author": "https://github.com/Luligu",
   "license": "MIT",
   "type": "module",
@@ -46,7 +46,7 @@
     "deepClean": "rimraf tsconfig.tsbuildinfo package-lock.json ./dist ./node_modules",
     "prepublishOnly": "npm run lint && npm run cleanBuild",
     "checkDependencies": "npx npm-check-updates",
-    "updateDependencies": "npx npm-check-updates -u",
+    "updateDependencies": "npx npm-check-updates -u && npm install & npm run cleanBuild",
     "matterbridge:add": "matterbridge -add .\\",
     "matterbridge:remove": "matterbridge -remove .\\",
     "matterbridge:enable": "matterbridge -enable .\\",
@@ -58,15 +58,16 @@
     "install": "node link-matterbridge-script.js"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^2.1.0",
+    "@stylistic/eslint-plugin": "^2.3.0",
     "@tsconfig/node-lts": "^20.1.3",
-    "@types/node": "^20.12.13",
-    "@typescript-eslint/eslint-plugin": "^7.11.0",
-    "@typescript-eslint/parser": "^7.11.0",
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
-    "prettier": "^3.2.5",
-    "typescript": "^5.4.5"
+    "matterbridge": "file:../matterbridge",
+    "prettier": "^3.3.2",
+    "typescript": "^5.5.3"
   },
   "dependencies": {
     "node-ansi-logger": "^1.9.5"
