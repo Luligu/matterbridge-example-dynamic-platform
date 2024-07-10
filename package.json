@@ -37,6 +37,7 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests",
     "test:verbose": "node --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests --verbose",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --passWithNoTests --coverage",
     "lint": "eslint --max-warnings=0 .",
     "lint:fix": "eslint --fix --max-warnings=0 .",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",

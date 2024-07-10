@@ -137,8 +137,10 @@ web_modules/
 .pnp.*
 
 # jest
-jest.config.mjs
 __test__
+*.test.ts
+coverage/
+jest.config.*
 
 # git
 .gitattributes
@@ -147,7 +149,9 @@ __test__
 .eslintrc
 .eslintrc.json
 .eslintignore
+eslint.config.*
 
 # prettier
 .prettierignore
 .prettierrc.json
+prettier.config.*
