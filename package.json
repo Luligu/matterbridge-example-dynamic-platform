@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
-  "types": "dist/index.d.js",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Luligu/matterbridge-example-dynamic-platform.git"
