@@ -23,6 +23,9 @@ import { AnsiLogger } from 'matterbridge/logger';
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   switch: MatterbridgeDevice | undefined;
   light: MatterbridgeDevice | undefined;
+  lightXY: MatterbridgeDevice | undefined;
+  lightHS: MatterbridgeDevice | undefined;
+  lightCT: MatterbridgeDevice | undefined;
   outlet: MatterbridgeDevice | undefined;
   cover: MatterbridgeDevice | undefined;
   lock: MatterbridgeDevice | undefined;
@@ -47,7 +50,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.switch.createDefaultIdentifyClusterServer();
     this.switch.createDefaultGroupsClusterServer();
     this.switch.createDefaultScenesClusterServer();
-    this.switch.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 3', '0x23452164', 0xfff1, 'Luligu', 'Dynamic device 3');
+    this.switch.createDefaultBridgedDeviceBasicInformationClusterServer('Switch', '0x23452164', 0xfff1, 'Luligu', 'Matterbridge Switch');
     this.switch.createDefaultOnOffClusterServer();
     this.switch.addDeviceType(powerSource);
     this.switch.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
@@ -66,14 +69,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device
-    this.light = new MatterbridgeDevice(DeviceTypes.ON_OFF_LIGHT);
+    this.light = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT);
     this.light.createDefaultIdentifyClusterServer();
     this.light.createDefaultGroupsClusterServer();
     this.light.createDefaultScenesClusterServer();
-    this.light.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 2', '0x23480564', 0xfff1, 'Luligu', 'Dynamic device 2');
+    this.light.createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, HS and CT)', '0x23480564', 0xfff1, 'Luligu', 'Matterbridge Light');
     this.light.createDefaultOnOffClusterServer();
     this.light.createDefaultLevelControlClusterServer();
-    this.light.createDefaultColorControlClusterServer();
+    this.light.createDefaultCompleteColorControlClusterServer();
     this.light.addDeviceType(powerSource);
     this.light.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     await this.registerDevice(this.light);
@@ -97,6 +100,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.light?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(level);
       this.log.debug(`Command moveToLevelWithOnOff called request: ${level} attributes: ${currentLevel?.getLocal()}`);
     });
+    this.light.addCommandHandler('moveToColor', async ({ request: { colorX, colorY }, attributes: { currentX, currentY } }) => {
+      this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.Xy))?.setCurrentXAttribute(colorX);
+      this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.Xy))?.setCurrentYAttribute(colorY);
+      this.log.debug(
+        `Command moveToColor called request: X ${colorX / 65536} Y ${colorY / 65536} attributes: X ${(currentX?.getLocal() ?? 0) / 65536} Y ${(currentY?.getLocal() ?? 0) / 65536}`,
+      );
+    });
     this.light.addCommandHandler('moveToHueAndSaturation', async ({ request: { hue, saturation }, attributes: { currentHue, currentSaturation } }) => {
       this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentHueAttribute(hue);
       this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentSaturationAttribute(saturation);
@@ -104,8 +114,144 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         `Command moveToHueAndSaturation called request: hue ${hue} saturation ${saturation} attributes: hue ${currentHue?.getLocal()} saturation ${currentSaturation?.getLocal()}`,
       );
     });
+    this.light.addCommandHandler('moveToHue', async ({ request: { hue }, attributes: { currentHue, currentSaturation } }) => {
+      this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentHueAttribute(hue);
+      this.log.debug(`Command moveToHue called request: hue ${hue} attributes: hue ${currentHue?.getLocal()} saturation ${currentSaturation?.getLocal()}`);
+    });
+    this.light.addCommandHandler('moveToSaturation', async ({ request: { saturation }, attributes: { currentHue, currentSaturation } }) => {
+      this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentSaturationAttribute(saturation);
+      this.log.debug(`Command moveToSaturation called request: saturation ${saturation} attributes: hue ${currentHue?.getLocal()} saturation ${currentSaturation?.getLocal()}`);
+    });
     this.light.addCommandHandler('moveToColorTemperature', async ({ request, attributes }) => {
       this.light?.getClusterServer(ColorControl.Complete)?.setColorTemperatureMiredsAttribute(request.colorTemperatureMireds);
+      this.log.debug(`Command moveToColorTemperature called request: ${request.colorTemperatureMireds} attributes: ${attributes.colorTemperatureMireds?.getLocal()}`);
+    });
+
+    // Create a light device with HS color control
+    this.lightHS = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT);
+    this.lightHS.createDefaultIdentifyClusterServer();
+    this.lightHS.createDefaultGroupsClusterServer();
+    this.lightHS.createDefaultScenesClusterServer();
+    this.lightHS.createDefaultBridgedDeviceBasicInformationClusterServer('Light (HS)', '0x25097564', 0xfff1, 'Luligu', 'Matterbridge Light');
+    this.lightHS.createDefaultOnOffClusterServer();
+    this.lightHS.createDefaultLevelControlClusterServer();
+    this.lightHS.createDefaultCompleteColorControlClusterServer();
+    this.lightHS.configureColorControlCluster(true, false, false, ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
+    this.lightHS.addDeviceType(powerSource);
+    this.lightHS.createDefaultPowerSourceWiredClusterServer();
+    await this.registerDevice(this.lightHS);
+
+    this.lightHS.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.lightHS.addCommandHandler('on', async () => {
+      this.lightHS?.getClusterServer(OnOffCluster)?.setOnOffAttribute(true);
+      this.log.info('Command on called');
+    });
+    this.lightHS.addCommandHandler('off', async () => {
+      this.lightHS?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
+      this.log.info('Command off called');
+    });
+    this.lightHS.addCommandHandler('moveToLevel', async ({ request: { level }, attributes: { currentLevel } }) => {
+      this.lightHS?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(level);
+      this.log.debug(`Command moveToLevel called request: ${level} attributes: ${currentLevel?.getLocal()}`);
+    });
+    this.lightHS.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level }, attributes: { currentLevel } }) => {
+      this.lightHS?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(level);
+      this.log.debug(`Command moveToLevelWithOnOff called request: ${level} attributes: ${currentLevel?.getLocal()}`);
+    });
+    this.lightHS.addCommandHandler('moveToHueAndSaturation', async ({ request: { hue, saturation }, attributes: { currentHue, currentSaturation } }) => {
+      this.lightHS?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentHueAttribute(hue);
+      this.lightHS?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentSaturationAttribute(saturation);
+      this.log.debug(
+        `Command moveToHueAndSaturation called request: hue ${hue} saturation ${saturation} attributes: hue ${currentHue?.getLocal()} saturation ${currentSaturation?.getLocal()}`,
+      );
+    });
+    this.lightHS.addCommandHandler('moveToHue', async ({ request: { hue }, attributes: { currentHue, currentSaturation } }) => {
+      this.lightHS?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentHueAttribute(hue);
+      this.log.debug(`Command moveToHue called request: hue ${hue} attributes: hue ${currentHue?.getLocal()} saturation ${currentSaturation?.getLocal()}`);
+    });
+    this.lightHS.addCommandHandler('moveToSaturation', async ({ request: { saturation }, attributes: { currentHue, currentSaturation } }) => {
+      this.lightHS?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentSaturationAttribute(saturation);
+      this.log.debug(`Command moveToSaturation called request: saturation ${saturation} attributes: hue ${currentHue?.getLocal()} saturation ${currentSaturation?.getLocal()}`);
+    });
+
+    // Create a light device with XY color control
+    this.lightXY = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT);
+    this.lightXY.createDefaultIdentifyClusterServer();
+    this.lightXY.createDefaultGroupsClusterServer();
+    this.lightXY.createDefaultScenesClusterServer();
+    this.lightXY.createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY)', '0x23497564', 0xfff1, 'Luligu', 'Matterbridge Light');
+    this.lightXY.createDefaultOnOffClusterServer();
+    this.lightXY.createDefaultLevelControlClusterServer();
+    this.lightXY.createDefaultCompleteColorControlClusterServer();
+    this.lightXY.configureColorControlCluster(false, true, false, ColorControl.ColorMode.CurrentXAndCurrentY);
+    this.lightXY.addDeviceType(powerSource);
+    this.lightXY.createDefaultPowerSourceWiredClusterServer();
+    await this.registerDevice(this.lightXY);
+
+    this.lightXY.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.lightXY.addCommandHandler('on', async () => {
+      this.lightXY?.getClusterServer(OnOffCluster)?.setOnOffAttribute(true);
+      this.log.info('Command on called');
+    });
+    this.lightXY.addCommandHandler('off', async () => {
+      this.lightXY?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
+      this.log.info('Command off called');
+    });
+    this.lightXY.addCommandHandler('moveToLevel', async ({ request: { level }, attributes: { currentLevel } }) => {
+      this.lightXY?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(level);
+      this.log.debug(`Command moveToLevel called request: ${level} attributes: ${currentLevel?.getLocal()}`);
+    });
+    this.lightXY.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level }, attributes: { currentLevel } }) => {
+      this.lightXY?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(level);
+      this.log.debug(`Command moveToLevelWithOnOff called request: ${level} attributes: ${currentLevel?.getLocal()}`);
+    });
+    this.lightXY.addCommandHandler('moveToColor', async ({ request: { colorX, colorY }, attributes: { currentX, currentY } }) => {
+      this.lightXY?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.Xy))?.setCurrentXAttribute(colorX);
+      this.lightXY?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.Xy))?.setCurrentYAttribute(colorY);
+      this.log.debug(
+        `Command moveToColor called request: X ${colorX / 65536} Y ${colorY / 65536} attributes: X ${(currentX?.getLocal() ?? 0) / 65536} Y ${(currentY?.getLocal() ?? 0) / 65536}`,
+      );
+    });
+
+    // Create a light device with CT color control
+    this.lightCT = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT);
+    this.lightCT.createDefaultIdentifyClusterServer();
+    this.lightCT.createDefaultGroupsClusterServer();
+    this.lightCT.createDefaultScenesClusterServer();
+    this.lightCT.createDefaultBridgedDeviceBasicInformationClusterServer('Light (CT)', '0x23480749', 0xfff1, 'Luligu', 'Matterbridge Light');
+    this.lightCT.createDefaultOnOffClusterServer();
+    this.lightCT.createDefaultLevelControlClusterServer();
+    this.lightCT.createDefaultCompleteColorControlClusterServer();
+    this.lightCT.configureColorControlCluster(false, false, true, ColorControl.ColorMode.ColorTemperatureMireds);
+    this.lightCT.addDeviceType(powerSource);
+    this.lightCT.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
+    await this.registerDevice(this.lightCT);
+
+    this.lightCT.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.lightCT.addCommandHandler('on', async () => {
+      this.lightCT?.getClusterServer(OnOffCluster)?.setOnOffAttribute(true);
+      this.log.info('Command on called');
+    });
+    this.lightCT.addCommandHandler('off', async () => {
+      this.lightCT?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
+      this.log.info('Command off called');
+    });
+    this.lightCT.addCommandHandler('moveToLevel', async ({ request: { level }, attributes: { currentLevel } }) => {
+      this.lightCT?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(level);
+      this.log.debug(`Command moveToLevel called request: ${level} attributes: ${currentLevel?.getLocal()}`);
+    });
+    this.lightCT.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level }, attributes: { currentLevel } }) => {
+      this.lightCT?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(level);
+      this.log.debug(`Command moveToLevelWithOnOff called request: ${level} attributes: ${currentLevel?.getLocal()}`);
+    });
+    this.lightCT.addCommandHandler('moveToColorTemperature', async ({ request, attributes }) => {
+      this.lightCT?.getClusterServer(ColorControl.Complete)?.setColorTemperatureMiredsAttribute(request.colorTemperatureMireds);
       this.log.debug(`Command moveToColorTemperature called request: ${request.colorTemperatureMireds} attributes: ${attributes.colorTemperatureMireds?.getLocal()}`);
     });
 
@@ -114,7 +260,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.outlet.createDefaultIdentifyClusterServer();
     this.outlet.createDefaultGroupsClusterServer();
     this.outlet.createDefaultScenesClusterServer();
-    this.outlet.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 4', '0x29252164', 0xfff1, 'Luligu', 'Dynamic device 4');
+    this.outlet.createDefaultBridgedDeviceBasicInformationClusterServer('Outlet', '0x29252164', 0xfff1, 'Luligu', 'Matterbridge Outlet');
     this.outlet.createDefaultOnOffClusterServer();
     this.outlet.addDeviceType(powerSource);
     this.outlet.createDefaultPowerSourceWiredClusterServer();
@@ -133,11 +279,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a window covering device
+    // Matter uses 10000 = fully closed   0 = fully opened
     this.cover = new MatterbridgeDevice(DeviceTypes.WINDOW_COVERING);
     this.cover.createDefaultIdentifyClusterServer();
     this.cover.createDefaultGroupsClusterServer();
     this.cover.createDefaultScenesClusterServer();
-    this.cover.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 1', '0x01020564', 0xfff1, 'Luligu', 'Dynamic device 1');
+    this.cover.createDefaultBridgedDeviceBasicInformationClusterServer('Cover', '0x01020564', 0xfff1, 'Luligu', 'Matterbridge Cover');
     this.cover.createDefaultWindowCoveringClusterServer();
     this.cover.addDeviceType(powerSource);
     this.cover.createDefaultPowerSourceRechargeableBatteryClusterServer(86);
@@ -155,14 +302,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     this.cover.addCommandHandler('downOrClose', async ({ attributes: { currentPositionLiftPercent100ths, targetPositionLiftPercent100ths, operationalStatus } }) => {
-      this.cover?.setWindowCoveringCurrentTargetStatus(0, 0, WindowCovering.MovementStatus.Stopped);
+      this.cover?.setWindowCoveringCurrentTargetStatus(10000, 10000, WindowCovering.MovementStatus.Stopped);
       this.log.info(
         `Command downOrClose called: current ${currentPositionLiftPercent100ths?.getLocal()} target ${targetPositionLiftPercent100ths?.getLocal()} status ${operationalStatus?.getLocal().lift}`,
       );
     });
 
     this.cover.addCommandHandler('upOrOpen', async ({ attributes: { currentPositionLiftPercent100ths, targetPositionLiftPercent100ths, operationalStatus } }) => {
-      this.cover?.setWindowCoveringCurrentTargetStatus(10000, 10000, WindowCovering.MovementStatus.Stopped);
+      this.cover?.setWindowCoveringCurrentTargetStatus(0, 0, WindowCovering.MovementStatus.Stopped);
       this.log.info(
         `Command upOrOpen called: current ${currentPositionLiftPercent100ths?.getLocal()} target ${targetPositionLiftPercent100ths?.getLocal()} status ${operationalStatus?.getLocal().lift}`,
       );
@@ -181,7 +328,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Create a lock device
     this.lock = new MatterbridgeDevice(DeviceTypes.DOOR_LOCK);
     this.lock.createDefaultIdentifyClusterServer();
-    this.lock.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 5', '0x96352164', 0xfff1, 'Luligu', 'Dynamic device 5');
+    this.lock.createDefaultBridgedDeviceBasicInformationClusterServer('Lock', '0x96352164', 0xfff1, 'Luligu', 'Matterbridge Lock');
     this.lock.createDefaultDoorLockClusterServer();
     this.lock.addDeviceType(powerSource);
     this.lock.createDefaultPowerSourceRechargeableBatteryClusterServer(30);
@@ -204,7 +351,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermo.createDefaultIdentifyClusterServer();
     this.thermo.createDefaultGroupsClusterServer();
     this.thermo.createDefaultScenesClusterServer();
-    this.thermo.createDefaultBridgedDeviceBasicInformationClusterServer('Bridged device 6', '0x96382164', 0xfff1, 'Luligu', 'Dynamic device 6');
+    this.thermo.createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat', '0x96382164', 0xfff1, 'Luligu', 'Matterbridge Thermostat');
     this.thermo.createDefaultThermostatClusterServer(20, 18, 22);
     this.thermo.addDeviceType(powerSource);
     this.thermo.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
@@ -227,12 +374,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermo.addCommandHandler('setpointRaiseLower', async ({ request: { mode, amount }, attributes }) => {
       const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
       this.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
-      if (mode === Thermostat.SetpointAdjustMode.Heat && attributes.occupiedHeatingSetpoint) {
+      if (mode === /* Thermostat.SetpointRaiseLowerMode.Heat*/ 0 && attributes.occupiedHeatingSetpoint) {
         const setpoint = attributes.occupiedHeatingSetpoint?.getLocal() / 100 + amount / 10;
         attributes.occupiedHeatingSetpoint.setLocal(setpoint * 100);
         this.log.info('Set occupiedHeatingSetpoint:', setpoint);
       }
-      if (mode === Thermostat.SetpointAdjustMode.Cool && attributes.occupiedCoolingSetpoint) {
+      if (mode === /* Thermostat.SetpointRaiseLowerMode.Cool*/ 1 && attributes.occupiedCoolingSetpoint) {
         const setpoint = attributes.occupiedCoolingSetpoint.getLocal() / 100 + amount / 10;
         attributes.occupiedCoolingSetpoint.setLocal(setpoint * 100);
         this.log.info('Set occupiedCoolingSetpoint:', setpoint);
@@ -275,6 +422,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(0);
     this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentHueAttribute(0);
     this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentSaturationAttribute(128);
+    this.light?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
     this.log.info('Set light initial onOff to false, currentLevel to 0, hue to 0 and saturation to 50%.');
 
     this.lightInterval = setInterval(
@@ -300,6 +448,29 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       60 * 1000 + 200,
     );
+
+    // Set light XY to off, level to 0 and XY to red
+    this.lightXY?.getClusterServer(OnOffCluster)?.setOnOffAttribute(true);
+    this.lightXY?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(254);
+    this.lightXY?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.Xy))?.setCurrentXAttribute(0.7006 * 65536);
+    this.lightXY?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.Xy))?.setCurrentYAttribute(0.2993 * 65536);
+    this.lightXY?.configureColorControlMode(ColorControl.ColorMode.CurrentXAndCurrentY);
+    this.log.info('Set light XY initial onOff to true, currentLevel to 254, X to 0.7006 and Y to 0.2993.');
+
+    // Set light HS to off, level to 0 and hue to 0 and saturation to 50% (pink color)
+    this.lightHS?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
+    this.lightHS?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(0);
+    this.lightHS?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentHueAttribute(0);
+    this.lightHS?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentSaturationAttribute(128);
+    this.lightHS?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
+    this.log.info('Set light HS initial onOff to false, currentLevel to 0, hue to 0 and saturation to 50%.');
+
+    // Set light CT to off, level to 0 and hue to 0 and saturation to 50% (pink color)
+    this.lightCT?.getClusterServer(OnOffCluster)?.setOnOffAttribute(true);
+    this.lightCT?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(128);
+    this.lightCT?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.ColorTemperature))?.setColorTemperatureMiredsAttribute(250);
+    this.lightCT?.configureColorControlMode(ColorControl.ColorMode.ColorTemperatureMireds);
+    this.log.info('Set light CT initial onOff to true, currentLevel to 128, colorTemperatureMireds to 250.');
 
     // Set outlet to off
     this.outlet?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
@@ -355,8 +526,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Set local to 16°C
-    this.thermo?.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))?.setLocalTemperatureAttribute(1600);
-    this.log.info('Set thermo initial localTemperature to 16°C');
+    const clusterThermo = this.thermo?.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode));
+    clusterThermo?.setLocalTemperatureAttribute(1600);
+    clusterThermo?.setSystemModeAttribute(Thermostat.SystemMode.Auto);
+    this.log.info('Set thermostat initial localTemperature to 16°C and mode Auto');
 
     this.thermoInterval = setInterval(
       () => {
@@ -364,9 +537,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         const cluster = this.thermo.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode));
         if (!cluster) return;
         let local = cluster.getLocalTemperatureAttribute() ?? 1600;
-        local = local >= 2300 ? 1600 : local + 100;
+        local = local >= 2500 ? 1600 : local + 100;
         cluster.setLocalTemperatureAttribute(local);
-        this.log.info(`Set thermo localTemperature to ${local / 100}°C`);
+        this.log.info(`Set thermostat localTemperature to ${local / 100}°C`);
       },
       60 * 1000 + 700,
     );

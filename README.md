@@ -18,7 +18,10 @@ Matterbridge dynamic platform example plugin is a template to develop your own p
 It exposes:
 
 - a switch with onOff cluster
-- a light with onOff-levelControl-colorControl clusters
+- a light with onOff, levelControl and colorControl (with XY, HS and CT) clusters
+- a light with onOff, levelControl and colorControl (with HS only) clusters
+- a light with onOff, levelControl and colorControl (with XY only) clusters
+- a light with onOff, levelControl and colorControl (with CT only) clusters
 - an outlet with onOff cluster
 - a cover with windowCovering cluster
 - a lock with doorLock cluster
