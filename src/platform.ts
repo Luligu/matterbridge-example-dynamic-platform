@@ -1,24 +1,39 @@
 import {
+  BooleanStateCluster,
+  BooleanStateConfiguration,
+  CarbonMonoxideConcentrationMeasurement,
+  ClusterId,
   ColorControl,
   ColorControlCluster,
   DeviceTypes,
   DoorLock,
   DoorLockCluster,
+  Endpoint,
+  FanControl,
+  FanControlCluster,
   FlowMeasurement,
   LevelControlCluster,
   OnOffCluster,
   PlatformConfig,
   RelativeHumidityMeasurement,
+  SmokeCoAlarm,
+  SmokeCoAlarmCluster,
   TemperatureMeasurement,
   Thermostat,
   ThermostatCluster,
   WindowCovering,
   WindowCoveringCluster,
+  bridgedNode,
   onOffSwitch,
   powerSource,
+  rainSensor,
+  smokeCoAlarm,
+  waterFreezeDetector,
+  waterLeakDetector,
 } from 'matterbridge';
 import { Matterbridge, MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
-import { AnsiLogger } from 'matterbridge/logger';
+import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
+import { AnsiLogger, db, hk, or } from 'matterbridge/logger';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   switch: MatterbridgeDevice | undefined;
@@ -30,12 +45,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   cover: MatterbridgeDevice | undefined;
   lock: MatterbridgeDevice | undefined;
   thermo: MatterbridgeDevice | undefined;
+  fan: MatterbridgeDevice | undefined;
+  waterLeak: MatterbridgeDevice | undefined;
+  waterFreeze: MatterbridgeDevice | undefined;
+  rain: MatterbridgeDevice | undefined;
+  smoke: MatterbridgeDevice | undefined;
+
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
   outletInterval: NodeJS.Timeout | undefined;
   coverInterval: NodeJS.Timeout | undefined;
   lockInterval: NodeJS.Timeout | undefined;
   thermoInterval: NodeJS.Timeout | undefined;
+  fanInterval: NodeJS.Timeout | undefined;
+  waterLeakInterval: NodeJS.Timeout | undefined;
+  waterFreezeInterval: NodeJS.Timeout | undefined;
+  rainInterval: NodeJS.Timeout | undefined;
+  smokeInterval: NodeJS.Timeout | undefined;
 
   constructor(matterbridge: Matterbridge, log: AnsiLogger, config: PlatformConfig) {
     super(matterbridge, log, config);
@@ -46,7 +72,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.log.info('onStart called with reason:', reason ?? 'none');
 
     // Create a switch device
-    this.switch = new MatterbridgeDevice(onOffSwitch);
+    this.switch = new MatterbridgeDevice(onOffSwitch, undefined, this.config.debug as boolean);
+    this.switch.log.logName = 'Switch';
     this.switch.createDefaultIdentifyClusterServer();
     this.switch.createDefaultGroupsClusterServer();
     this.switch.createDefaultScenesClusterServer();
@@ -69,7 +96,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device
-    this.light = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT);
+    this.light = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT, undefined, this.config.debug as boolean);
+    this.light.log.logName = 'Light (XY, HS and CT)';
     this.light.createDefaultIdentifyClusterServer();
     this.light.createDefaultGroupsClusterServer();
     this.light.createDefaultScenesClusterServer();
@@ -128,7 +156,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with HS color control
-    this.lightHS = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT);
+    this.lightHS = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT, undefined, this.config.debug as boolean);
+    this.lightHS.log.logName = 'Light (HS)';
     this.lightHS.createDefaultIdentifyClusterServer();
     this.lightHS.createDefaultGroupsClusterServer();
     this.lightHS.createDefaultScenesClusterServer();
@@ -177,7 +206,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with XY color control
-    this.lightXY = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT);
+    this.lightXY = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT, undefined, this.config.debug as boolean);
+    this.lightXY.log.logName = 'Light (XY)';
     this.lightXY.createDefaultIdentifyClusterServer();
     this.lightXY.createDefaultGroupsClusterServer();
     this.lightXY.createDefaultScenesClusterServer();
@@ -218,7 +248,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with CT color control
-    this.lightCT = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT);
+    this.lightCT = new MatterbridgeDevice(DeviceTypes.COLOR_TEMPERATURE_LIGHT, undefined, this.config.debug as boolean);
+    this.lightCT.log.logName = 'Light (CT)';
     this.lightCT.createDefaultIdentifyClusterServer();
     this.lightCT.createDefaultGroupsClusterServer();
     this.lightCT.createDefaultScenesClusterServer();
@@ -256,7 +287,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create an outlet device
-    this.outlet = new MatterbridgeDevice(DeviceTypes.ON_OFF_PLUGIN_UNIT);
+    this.outlet = new MatterbridgeDevice(DeviceTypes.ON_OFF_PLUGIN_UNIT, undefined, this.config.debug as boolean);
+    this.outlet.log.logName = 'Outlet';
     this.outlet.createDefaultIdentifyClusterServer();
     this.outlet.createDefaultGroupsClusterServer();
     this.outlet.createDefaultScenesClusterServer();
@@ -280,7 +312,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Create a window covering device
     // Matter uses 10000 = fully closed   0 = fully opened
-    this.cover = new MatterbridgeDevice(DeviceTypes.WINDOW_COVERING);
+    this.cover = new MatterbridgeDevice(DeviceTypes.WINDOW_COVERING, undefined, this.config.debug as boolean);
+    this.cover.log.logName = 'Cover';
     this.cover.createDefaultIdentifyClusterServer();
     this.cover.createDefaultGroupsClusterServer();
     this.cover.createDefaultScenesClusterServer();
@@ -326,7 +359,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Create a lock device
-    this.lock = new MatterbridgeDevice(DeviceTypes.DOOR_LOCK);
+    this.lock = new MatterbridgeDevice(DeviceTypes.DOOR_LOCK, undefined, this.config.debug as boolean);
+    this.lock.log.logName = 'Lock';
     this.lock.createDefaultIdentifyClusterServer();
     this.lock.createDefaultBridgedDeviceBasicInformationClusterServer('Lock', '0x96352164', 0xfff1, 'Luligu', 'Matterbridge Lock');
     this.lock.createDefaultDoorLockClusterServer();
@@ -347,7 +381,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a thermostat device
-    this.thermo = new MatterbridgeDevice(DeviceTypes.THERMOSTAT);
+    this.thermo = new MatterbridgeDevice(DeviceTypes.THERMOSTAT, undefined, this.config.debug as boolean);
+    this.thermo.log.logName = 'Thermostat';
     this.thermo.createDefaultIdentifyClusterServer();
     this.thermo.createDefaultGroupsClusterServer();
     this.thermo.createDefaultScenesClusterServer();
@@ -387,101 +422,215 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     const thermostat = this.thermo.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode));
     if (thermostat) {
-      thermostat.subscribeSystemModeAttribute(async (value) => {
-        const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
-        this.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
-      });
-      thermostat.subscribeOccupiedHeatingSetpointAttribute(async (value) => {
-        this.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
-      });
-      thermostat.subscribeOccupiedCoolingSetpointAttribute(async (value) => {
-        this.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
-      });
+      subscribeAttribute(
+        ThermostatCluster.id,
+        'systemMode',
+        async (value) => {
+          const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
+          this.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+        },
+        this.thermo.log,
+        this.thermo,
+      );
+      subscribeAttribute(
+        ThermostatCluster.id,
+        'occupiedHeatingSetpoint',
+        async (value) => {
+          this.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
+        },
+        this.thermo.log,
+        this.thermo,
+      );
+      subscribeAttribute(
+        ThermostatCluster.id,
+        'occupiedCoolingSetpoint',
+        async (value) => {
+          this.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
+        },
+        this.thermo.log,
+        this.thermo,
+      );
     }
+
+    // Create a fan device
+    this.fan = new MatterbridgeDevice([DeviceTypes.FAN, bridgedNode], undefined, this.config.debug as boolean);
+    this.fan.log.logName = 'Fan';
+    this.fan.createDefaultBridgedDeviceBasicInformationClusterServer('Fan', 'serial_980545631228', 0xfff1, 'Luligu', 'Matterbridge Fan', 2, '2.1.1');
+    this.fan.addDeviceTypeWithClusterServer([DeviceTypes.FAN], []);
+    await this.registerDevice(this.fan);
+    const fanCluster = this.fan.getClusterServer(FanControlCluster.with(FanControl.Feature.MultiSpeed, FanControl.Feature.Auto));
+    if (fanCluster) {
+      const fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
+      subscribeAttribute(
+        FanControlCluster.id,
+        'fanMode',
+        (newValue: FanControl.FanMode, oldValue: FanControl.FanMode) => {
+          this.log.info(`Fan mode changed from ${fanModeLookup[oldValue]} to ${fanModeLookup[newValue]}`);
+          if (newValue === FanControl.FanMode.Off) {
+            fanCluster.setPercentCurrentAttribute(0);
+          } else if (newValue === FanControl.FanMode.Low) {
+            fanCluster.setPercentCurrentAttribute(33);
+          } else if (newValue === FanControl.FanMode.Medium) {
+            fanCluster.setPercentCurrentAttribute(66);
+          } else if (newValue === FanControl.FanMode.High) {
+            fanCluster.setPercentCurrentAttribute(100);
+          } else if (newValue === FanControl.FanMode.On) {
+            fanCluster.setPercentCurrentAttribute(100);
+          } else if (newValue === FanControl.FanMode.Auto) {
+            fanCluster.setPercentCurrentAttribute(50);
+          }
+        },
+        this.fan.log,
+        this.fan,
+      );
+      subscribeAttribute(
+        FanControlCluster.id,
+        'percentSetting',
+        (newValue: number | null, oldValue: number | null) => {
+          this.log.info(`Percent setting changed from ${oldValue} to ${newValue}`);
+          if (newValue) fanCluster.setPercentCurrentAttribute(newValue);
+        },
+        this.fan.log,
+        this.fan,
+      );
+      subscribeAttribute(
+        FanControlCluster.id,
+        'speedSetting',
+        (newValue: number | null, oldValue: number | null) => {
+          this.log.info(`Speed setting changed from ${oldValue} to ${newValue}`);
+          if (newValue) fanCluster.setSpeedCurrentAttribute(newValue);
+        },
+        this.fan.log,
+        this.fan,
+      );
+    }
+
+    this.waterLeak = new MatterbridgeDevice([waterLeakDetector, bridgedNode], undefined, this.config.debug as boolean);
+    this.waterLeak.log.logName = 'Water leak detector';
+    this.waterLeak.createDefaultBridgedDeviceBasicInformationClusterServer('Water leak detector', 'serial_98745631222', 0xfff1, 'Luligu', 'Matterbridge WaterLeakDetector');
+    this.waterLeak.addDeviceTypeWithClusterServer([waterLeakDetector], [BooleanStateConfiguration.Cluster.id]);
+    this.waterLeak.getClusterServer(BooleanStateCluster)?.setStateValueAttribute(false);
+    await this.registerDevice(this.waterLeak);
+
+    this.waterFreeze = new MatterbridgeDevice([waterFreezeDetector, bridgedNode], undefined, this.config.debug as boolean);
+    this.waterFreeze.log.logName = 'Water freeze detector';
+    this.waterFreeze.createDefaultBridgedDeviceBasicInformationClusterServer('Water freeze detector', 'serial_98745631223', 0xfff1, 'Luligu', 'Matterbridge WaterFreezeDetector');
+    this.waterFreeze.addDeviceTypeWithClusterServer([waterFreezeDetector], [BooleanStateConfiguration.Cluster.id]);
+    this.waterFreeze.getClusterServer(BooleanStateCluster)?.setStateValueAttribute(false);
+    await this.registerDevice(this.waterFreeze);
+
+    this.rain = new MatterbridgeDevice([rainSensor, bridgedNode], undefined, this.config.debug as boolean);
+    this.rain.log.logName = 'Rain sensor';
+    this.rain.createDefaultBridgedDeviceBasicInformationClusterServer('Rain sensor', 'serial_98745631224', 0xfff1, 'Luligu', 'Matterbridge RainSensor');
+    this.rain.addDeviceTypeWithClusterServer([rainSensor], [BooleanStateConfiguration.Cluster.id]);
+    this.rain.getClusterServer(BooleanStateCluster)?.setStateValueAttribute(false);
+    await this.registerDevice(this.rain);
+
+    this.smoke = new MatterbridgeDevice([smokeCoAlarm, bridgedNode], undefined, this.config.debug as boolean);
+    this.smoke.log.logName = 'Smoke alarm sensor';
+    this.smoke.createDefaultBridgedDeviceBasicInformationClusterServer('Smoke alarm sensor', 'serial_94745631225', 0xfff1, 'Luligu', 'Matterbridge SmokeCoAlarm');
+    this.smoke.addDeviceTypeWithClusterServer([smokeCoAlarm], [CarbonMonoxideConcentrationMeasurement.Cluster.id]);
+    this.smoke.getClusterServer(SmokeCoAlarmCluster.with(SmokeCoAlarm.Feature.SmokeAlarm, SmokeCoAlarm.Feature.CoAlarm))?.setSmokeStateAttribute(SmokeCoAlarm.AlarmState.Normal);
+    this.smoke.getClusterServer(SmokeCoAlarmCluster.with(SmokeCoAlarm.Feature.SmokeAlarm, SmokeCoAlarm.Feature.CoAlarm))?.setCoStateAttribute(SmokeCoAlarm.AlarmState.Normal);
+    this.smoke.getClusterServer(CarbonMonoxideConcentrationMeasurement.Complete)?.setMeasuredValueAttribute(100);
+    await this.registerDevice(this.smoke);
   }
 
   override async onConfigure() {
     this.log.info('onConfigure called');
 
     // Set switch to off
-    this.switch?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
+    this.switch?.setAttribute(OnOffCluster.id, 'onOff', false, this.switch.log);
     this.log.info('Set switch initial onOff to false');
-
+    // Toggle switch onOff every minute
     this.switchInterval = setInterval(
       () => {
-        if (!this.switch) return;
-        const status = this.switch.getClusterServer(OnOffCluster)?.getOnOffAttribute();
-        this.switch.getClusterServer(OnOffCluster)?.setOnOffAttribute(!status);
-        this.log.info(`Set switch onOff to ${status}`);
+        const status = this.switch?.getAttribute(OnOffCluster.id, 'onOff', this.switch.log);
+        if (isValidBoolean(status)) {
+          this.switch?.setAttribute(OnOffCluster.id, 'onOff', !status, this.switch.log);
+          this.log.info(`Set switch onOff to ${!status}`);
+        }
       },
       60 * 1000 + 100,
     );
 
     // Set light to off, level to 0 and hue to 0 and saturation to 50% (pink color)
-    this.light?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
-    this.light?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(0);
-    this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentHueAttribute(0);
-    this.light?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentSaturationAttribute(128);
+    this.light?.setAttribute(OnOffCluster.id, 'onOff', false, this.light.log);
+    this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', 0, this.light.log);
+    this.light?.setAttribute(ColorControlCluster.id, 'currentHue', 0, this.light.log);
+    this.light?.setAttribute(ColorControlCluster.id, 'currentSaturation', 128, this.light.log);
     this.light?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
     this.log.info('Set light initial onOff to false, currentLevel to 0, hue to 0 and saturation to 50%.');
 
+    // Set light XY to true, level to 100% and XY to red
+    this.lightXY?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightXY.log);
+    this.lightXY?.setAttribute(LevelControlCluster.id, 'currentLevel', 254, this.lightXY.log);
+    this.lightXY?.setAttribute(ColorControlCluster.id, 'currentX', 0.7006 * 65536, this.lightXY.log);
+    this.lightXY?.setAttribute(ColorControlCluster.id, 'currentY', 0.2993 * 65536, this.lightXY.log);
+    this.lightXY?.configureColorControlMode(ColorControl.ColorMode.CurrentXAndCurrentY);
+    this.log.info('Set light XY initial onOff to true, currentLevel to 254, X to 0.7006 and Y to 0.2993.');
+
+    // Set light HS to off, level to 0 and hue to 0 and saturation to 50% (pink color)
+    this.lightHS?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightHS.log);
+    this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', 0, this.lightHS.log);
+    this.lightHS?.setAttribute(ColorControlCluster.id, 'currentHue', 0, this.lightHS.log);
+    this.lightHS?.setAttribute(ColorControlCluster.id, 'currentSaturation', 128, this.lightHS.log);
+    this.lightHS?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
+    this.log.info('Set light HS initial onOff to false, currentLevel to 0, hue to 0 and saturation to 50%.');
+
+    // Set light CT to true, level to 50% and colorTemperatureMireds to 250
+    this.lightCT?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightCT.log);
+    this.lightCT?.setAttribute(LevelControlCluster.id, 'currentLevel', 128, this.lightCT.log);
+    this.lightCT?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', 250, this.lightCT.log);
+    this.lightCT?.configureColorControlMode(ColorControl.ColorMode.ColorTemperatureMireds);
+    this.log.info('Set light CT initial onOff to true, currentLevel to 128, colorTemperatureMireds to 250.');
+
     this.lightInterval = setInterval(
       () => {
-        if (!this.light) return;
-        const lightLevelControlCluster = this.light.getClusterServer(LevelControlCluster);
-        if (lightLevelControlCluster) {
-          let level = lightLevelControlCluster.getCurrentLevelAttribute();
-          if (level === null) return;
+        const state = this.light?.getAttribute(OnOffCluster.id, 'onOff', this.light.log);
+        let level = this.light?.getAttribute(LevelControlCluster.id, 'currentLevel', this.light.log);
+        if (isValidBoolean(state) && isValidNumber(level, 0, 254)) {
           level += 10;
           if (level > 254) {
             level = 0;
-            this.light.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
+            this.light?.setAttribute(OnOffCluster.id, 'onOff', false, this.light?.log);
+            this.lightXY?.setAttribute(OnOffCluster.id, 'onOff', false, this.light?.log);
+            this.lightHS?.setAttribute(OnOffCluster.id, 'onOff', false, this.light?.log);
+            this.lightCT?.setAttribute(OnOffCluster.id, 'onOff', false, this.light?.log);
             this.log.info('Set light onOff to false');
-            return;
+            this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light.log);
+            this.lightXY?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light?.log);
+            this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light?.log);
+            this.lightCT?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light?.log);
+            this.log.info(`Set light currentLevel to ${level}`);
           } else {
-            this.light.getClusterServer(OnOffCluster)?.setOnOffAttribute(true);
+            this.light?.setAttribute(OnOffCluster.id, 'onOff', true, this.light.log);
+            this.lightXY?.setAttribute(OnOffCluster.id, 'onOff', true, this.light?.log);
+            this.lightHS?.setAttribute(OnOffCluster.id, 'onOff', true, this.light?.log);
+            this.lightCT?.setAttribute(OnOffCluster.id, 'onOff', true, this.light?.log);
             this.log.info('Set light onOff to true');
+            this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light.log);
+            this.lightXY?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light?.log);
+            this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light?.log);
+            this.lightCT?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light?.log);
+            this.log.info(`Set light currentLevel to ${level}`);
           }
-          lightLevelControlCluster.setCurrentLevelAttribute(level);
-          this.log.info(`Set light currentLevel to ${level}`);
         }
       },
       60 * 1000 + 200,
     );
 
-    // Set light XY to off, level to 0 and XY to red
-    this.lightXY?.getClusterServer(OnOffCluster)?.setOnOffAttribute(true);
-    this.lightXY?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(254);
-    this.lightXY?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.Xy))?.setCurrentXAttribute(0.7006 * 65536);
-    this.lightXY?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.Xy))?.setCurrentYAttribute(0.2993 * 65536);
-    this.lightXY?.configureColorControlMode(ColorControl.ColorMode.CurrentXAndCurrentY);
-    this.log.info('Set light XY initial onOff to true, currentLevel to 254, X to 0.7006 and Y to 0.2993.');
-
-    // Set light HS to off, level to 0 and hue to 0 and saturation to 50% (pink color)
-    this.lightHS?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
-    this.lightHS?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(0);
-    this.lightHS?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentHueAttribute(0);
-    this.lightHS?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.HueSaturation))?.setCurrentSaturationAttribute(128);
-    this.lightHS?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
-    this.log.info('Set light HS initial onOff to false, currentLevel to 0, hue to 0 and saturation to 50%.');
-
-    // Set light CT to off, level to 0 and hue to 0 and saturation to 50% (pink color)
-    this.lightCT?.getClusterServer(OnOffCluster)?.setOnOffAttribute(true);
-    this.lightCT?.getClusterServer(LevelControlCluster)?.setCurrentLevelAttribute(128);
-    this.lightCT?.getClusterServer(ColorControlCluster.with(ColorControl.Feature.ColorTemperature))?.setColorTemperatureMiredsAttribute(250);
-    this.lightCT?.configureColorControlMode(ColorControl.ColorMode.ColorTemperatureMireds);
-    this.log.info('Set light CT initial onOff to true, currentLevel to 128, colorTemperatureMireds to 250.');
-
     // Set outlet to off
-    this.outlet?.getClusterServer(OnOffCluster)?.setOnOffAttribute(false);
+    this.outlet?.setAttribute(OnOffCluster.id, 'onOff', false, this.outlet.log);
     this.log.info('Set outlet initial onOff to false');
-
+    // Toggle outlet onOff every minute
     this.outletInterval = setInterval(
       () => {
-        if (!this.outlet) return;
-        const status = this.outlet.getClusterServer(OnOffCluster)?.getOnOffAttribute();
-        this.outlet.getClusterServer(OnOffCluster)?.setOnOffAttribute(!status);
-        this.log.info(`Set outlet onOff to ${status}`);
+        const state = this.outlet?.getAttribute(OnOffCluster.id, 'onOff', this.outlet.log);
+        if (isValidBoolean(state)) {
+          this.outlet?.setAttribute(OnOffCluster.id, 'onOff', !state, this.outlet.log);
+          this.log.info(`Set outlet onOff to ${!state}`);
+        }
       },
       60 * 1000 + 300,
     );
@@ -489,22 +638,20 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Set cover to target = current position and status to stopped (current position is persisted in the cluster)
     this.cover?.setWindowCoveringTargetAsCurrentAndStopped();
     this.log.info('Set cover initial targetPositionLiftPercent100ths = currentPositionLiftPercent100ths and operationalStatus to Stopped.');
-
+    // Increment cover position every minute
     this.coverInterval = setInterval(
       () => {
-        if (!this.cover) return;
-        const coverCluster = this.cover.getClusterServer(WindowCoveringCluster.with(WindowCovering.Feature.Lift, WindowCovering.Feature.PositionAwareLift));
-        if (coverCluster && coverCluster.getCurrentPositionLiftPercent100thsAttribute) {
-          let position = coverCluster.getCurrentPositionLiftPercent100thsAttribute();
-          if (position === null) return;
+        let position = this.cover?.getAttribute(WindowCoveringCluster.id, 'currentPositionLiftPercent100ths', this.cover.log);
+        if (isValidNumber(position, 0, 10000)) {
           position = position > 9000 ? 0 : position + 1000;
-          coverCluster.setTargetPositionLiftPercent100thsAttribute(position);
-          coverCluster.setCurrentPositionLiftPercent100thsAttribute(position);
-          coverCluster.setOperationalStatusAttribute({
-            global: WindowCovering.MovementStatus.Stopped,
-            lift: WindowCovering.MovementStatus.Stopped,
-            tilt: WindowCovering.MovementStatus.Stopped,
-          });
+          this.cover?.setAttribute(WindowCoveringCluster.id, 'targetPositionLiftPercent100ths', position, this.cover.log);
+          this.cover?.setAttribute(WindowCoveringCluster.id, 'currentPositionLiftPercent100ths', position, this.cover.log);
+          this.cover?.setAttribute(
+            WindowCoveringCluster.id,
+            'operationalStatus',
+            { global: WindowCovering.MovementStatus.Stopped, lift: WindowCovering.MovementStatus.Stopped, tilt: WindowCovering.MovementStatus.Stopped },
+            this.cover.log,
+          );
           this.log.info(`Set cover current and target positionLiftPercent100ths to ${position} and operationalStatus to Stopped`);
         }
       },
@@ -512,36 +659,116 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Set lock to Locked
-    this.lock?.getClusterServer(DoorLockCluster)?.setLockStateAttribute(DoorLock.LockState.Locked);
+    this.lock?.setAttribute(DoorLockCluster.id, 'lockState', DoorLock.LockState.Locked, this.lock.log);
     this.log.info('Set lock initial lockState to Locked');
-
+    // Toggle lock every minute
     this.lockInterval = setInterval(
       () => {
-        if (!this.lock) return;
-        const status = this.lock.getClusterServer(DoorLockCluster)?.getLockStateAttribute();
-        this.lock.getClusterServer(DoorLockCluster)?.setLockStateAttribute(status === DoorLock.LockState.Locked ? DoorLock.LockState.Unlocked : DoorLock.LockState.Locked);
-        this.log.info(`Set lock lockState to ${status === DoorLock.LockState.Locked ? 'Locked' : 'Unlocked'}`);
+        const status = this.lock?.getAttribute(DoorLockCluster.id, 'lockState', this.lock.log);
+        if (isValidNumber(status, DoorLock.LockState.Locked, DoorLock.LockState.Unlocked)) {
+          this.lock?.setAttribute(DoorLockCluster.id, 'lockState', status === DoorLock.LockState.Locked ? DoorLock.LockState.Unlocked : DoorLock.LockState.Locked, this.lock.log);
+          this.log.info(`Set lock lockState to ${status === DoorLock.LockState.Locked ? 'Unlocked' : 'Locked'}`);
+        }
+      },
+      60 * 1000 + 500,
+    );
+
+    // Set local to 16°C
+    this.thermo?.setAttribute(ThermostatCluster.id, 'localTemperature', 1600, this.thermo.log);
+    this.thermo?.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Auto, this.thermo.log);
+    this.log.info('Set thermostat initial localTemperature to 16°C and mode Auto');
+    // Increment localTemperature every minute
+    this.thermoInterval = setInterval(
+      () => {
+        let temperature = this.thermo?.getAttribute(ThermostatCluster.id, 'localTemperature', this.thermo.log);
+        if (isValidNumber(temperature, 1600, 2400)) {
+          temperature = temperature + 100 >= 2400 ? 1600 : temperature + 100;
+          this.thermo?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermo.log);
+          this.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
+        }
+      },
+      60 * 1000 + 600,
+    );
+
+    // Set fan to auto
+    this.log.info('Set fan initial fanMode to Auto, percentCurrent to 50 and speedCurrent to 50');
+    this.fan?.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto, this.fan.log);
+    this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', 50, this.fan.log);
+    this.fan?.setAttribute(FanControlCluster.id, 'speedCurrent', 50, this.fan.log);
+    // Increment fan percentCurrent every minute
+    this.fanInterval = setInterval(
+      () => {
+        const mode = this.fan?.getAttribute(FanControlCluster.id, 'fanMode', this.fan.log);
+        let value = this.fan?.getAttribute(FanControlCluster.id, 'percentCurrent', this.fan.log);
+        if (isValidNumber(mode, FanControl.FanMode.Off, FanControl.FanMode.Auto) && mode === FanControl.FanMode.Auto && isValidNumber(value, 0, 100)) {
+          value = value + 10 >= 100 ? 0 : value + 10;
+          this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', value, this.fan.log);
+          this.log.info(`Set fan percentCurrent to ${value}`);
+        }
       },
       60 * 1000 + 700,
     );
 
-    // Set local to 16°C
-    const clusterThermo = this.thermo?.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode));
-    clusterThermo?.setLocalTemperatureAttribute(1600);
-    clusterThermo?.setSystemModeAttribute(Thermostat.SystemMode.Auto);
-    this.log.info('Set thermostat initial localTemperature to 16°C and mode Auto');
-
-    this.thermoInterval = setInterval(
+    // Set waterLeak to false
+    this.waterLeak?.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterLeak.log);
+    // Toggle waterLeak every minute
+    this.waterLeakInterval = setInterval(
       () => {
-        if (!this.thermo) return;
-        const cluster = this.thermo.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode));
-        if (!cluster) return;
-        let local = cluster.getLocalTemperatureAttribute() ?? 1600;
-        local = local >= 2500 ? 1600 : local + 100;
-        cluster.setLocalTemperatureAttribute(local);
-        this.log.info(`Set thermostat localTemperature to ${local / 100}°C`);
+        let value = this.waterLeak?.getAttribute(BooleanStateCluster.id, 'stateValue', this.waterLeak.log);
+        if (isValidBoolean(value)) {
+          value = !value;
+          this.waterLeak?.setAttribute(BooleanStateCluster.id, 'stateValue', value, this.waterLeak.log);
+          this.log.info(`Set waterLeak stateValue to ${value}`);
+        }
       },
-      60 * 1000 + 700,
+      60 * 1000 + 800,
+    );
+
+    // Set waterFreeze to false
+    this.waterFreeze?.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterFreeze.log);
+    // Toggle waterFreeze every minute
+    this.waterFreezeInterval = setInterval(
+      () => {
+        let value = this.waterFreeze?.getAttribute(BooleanStateCluster.id, 'stateValue', this.waterFreeze.log);
+        if (isValidBoolean(value)) {
+          value = !value;
+          this.waterFreeze?.setAttribute(BooleanStateCluster.id, 'stateValue', value, this.waterFreeze.log);
+          this.log.info(`Set waterFreeze stateValue to ${value}`);
+        }
+      },
+      60 * 1000 + 900,
+    );
+
+    // Set rain to false
+    this.rain?.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.rain.log);
+    // Toggle rain every minute
+    this.rainInterval = setInterval(
+      () => {
+        let value = this.rain?.getAttribute(BooleanStateCluster.id, 'stateValue', this.rain.log);
+        if (isValidBoolean(value)) {
+          value = !value;
+          this.rain?.setAttribute(BooleanStateCluster.id, 'stateValue', value, this.rain.log);
+          this.log.info(`Set rain stateValue to ${value}`);
+        }
+      },
+      60 * 1000 + 1000,
+    );
+
+    // Set smoke to Normal
+    this.smoke?.setAttribute(SmokeCoAlarmCluster.id, 'smokeState', SmokeCoAlarm.AlarmState.Normal, this.smoke.log);
+    this.smoke?.setAttribute(SmokeCoAlarmCluster.id, 'coState', SmokeCoAlarm.AlarmState.Normal, this.smoke.log);
+    // Toggle smoke every minute
+    this.smokeInterval = setInterval(
+      () => {
+        let value = this.smoke?.getAttribute(SmokeCoAlarmCluster.id, 'smokeState', this.smoke.log);
+        if (isValidNumber(value, SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Critical)) {
+          value = value === SmokeCoAlarm.AlarmState.Normal ? SmokeCoAlarm.AlarmState.Critical : SmokeCoAlarm.AlarmState.Normal;
+          this.smoke?.setAttribute(SmokeCoAlarmCluster.id, 'smokeState', value, this.smoke.log);
+          this.smoke?.setAttribute(SmokeCoAlarmCluster.id, 'coState', value, this.smoke.log);
+          this.log.info(`Set smoke smokeState and coState to ${value}`);
+        }
+      },
+      60 * 1000 + 1100,
     );
   }
 
@@ -553,6 +780,42 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     clearInterval(this.coverInterval);
     clearInterval(this.lockInterval);
     clearInterval(this.thermoInterval);
+    clearInterval(this.fanInterval);
+    clearInterval(this.waterLeakInterval);
+    clearInterval(this.waterFreezeInterval);
+    clearInterval(this.rainInterval);
+    clearInterval(this.smokeInterval);
     if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices();
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function subscribeAttribute(clusterId: ClusterId, attribute: string, listener: (newValue: any, oldValue: any) => void, log?: AnsiLogger, endpoint?: Endpoint): boolean {
+  // if (!endpoint) endpoint = this as Endpoint;
+  if (!endpoint) return false;
+
+  const clusterServer = endpoint.getClusterServerById(clusterId);
+  if (!clusterServer) {
+    log?.error(`subscribeAttribute error: Cluster ${clusterId} not found on endpoint ${endpoint.name}:${endpoint.number}`);
+    return false;
+  }
+  const capitalizedAttributeName = attribute.charAt(0).toUpperCase() + attribute.slice(1);
+  if (!clusterServer.isAttributeSupportedByName(attribute) && !clusterServer.isAttributeSupportedByName(capitalizedAttributeName)) {
+    if (log) log.error(`subscribeAttribute error: Attribute ${attribute} not found on Cluster ${clusterServer.name} on endpoint ${endpoint.name}:${endpoint.number}`);
+    return false;
+  }
+  // Find the subscribe method
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (!(clusterServer as any)[`subscribe${capitalizedAttributeName}Attribute`]) {
+    log?.error(
+      `subscribeAttribute error: subscribe${capitalizedAttributeName}Attribute not found on Cluster ${clusterServer.name} on endpoint ${endpoint.name}:${endpoint.number}`,
+    );
+    return false;
+  }
+  // Subscribe to the attribute
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
+  const subscribe = (clusterServer as any)[`subscribe${capitalizedAttributeName}Attribute`] as (listener: (newValue: any, oldValue: any) => void) => {};
+  subscribe(listener);
+  log?.info(`${db}Subscribe endpoint ${or}${endpoint.name}:${endpoint.number}${db} attribute ${hk}${clusterServer.name}.${capitalizedAttributeName}${db}`);
+  return true;
 }

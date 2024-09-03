@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-shelly and sponsoring it.
+
+## [1.0.18] - 2024-09-03
+
+### Added
+
+- [plugin] Added:
+- a fan with FanControl cluster
+- a rainSensor
+- a waterFreezeDetector
+- a waterLeakDetector
+- a smokeCoAlarm
+
+### Changed
+
+- [package]: Updated dependencies.
+
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
 </a>
