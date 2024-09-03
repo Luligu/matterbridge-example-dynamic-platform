@@ -9,11 +9,14 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [plugin] Added:
+- a light with onOff, levelControl and colorControl (with HS only) clusters
+- a light with onOff, levelControl and colorControl (with XY only) clusters
+- a light with onOff, levelControl and colorControl (with CT only) clusters
 - a fan with FanControl cluster
-- a rainSensor
-- a waterFreezeDetector
-- a waterLeakDetector
-- a smokeCoAlarm
+- a rainSensor device
+- a waterFreezeDetector device
+- a waterLeakDetector device
+- a smokeCoAlarm device
 
 ### Changed
 
