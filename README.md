@@ -18,15 +18,17 @@ Matterbridge dynamic platform example plugin is a template to develop your own p
 It exposes:
 
 - a switch with onOff cluster
+- a light with onOff
+- a light with onOff and levelControl (dimmer)
 - a light with onOff, levelControl and colorControl (with XY, HS and CT) clusters
 - a light with onOff, levelControl and colorControl (with HS only) clusters
 - a light with onOff, levelControl and colorControl (with XY only) clusters
 - a light with onOff, levelControl and colorControl (with CT only) clusters
-- an outlet with onOff cluster
+- an outlet (plug) with onOff cluster
 - a cover with windowCovering cluster
 - a lock with doorLock cluster
 - a thermo with thermostat cluster and 3 sub endpoints with flowMeasurement cluster, temperatureMeasurement cluster
-  and relativeHumidityMeasurement cluster (to show how to create a composed device with sub enpoints)
+  and relativeHumidityMeasurement cluster (to show how to create a composed device with sub endpoints)
 - a fan with FanControl cluster
 - a rainSensor device
 - a waterFreezeDetector device
