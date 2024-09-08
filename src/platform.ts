@@ -45,7 +45,7 @@ import {
 } from 'matterbridge';
 import { Matterbridge, MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
-import { AnsiLogger, db, er, hk, or } from 'matterbridge/logger';
+import { AnsiLogger, db, hk, or } from 'matterbridge/logger';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   switch: MatterbridgeDevice | undefined;
@@ -110,10 +110,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.switch?.setAttribute(OnOffCluster.id, 'onOff', false, this.switch.log, this.switch);
       this.switch?.log.info('Command off called');
     });
+    /*
     addCommandHandler(
       OnOffCluster.id,
       'on',
       async (data) => {
+        this.switch?.setAttribute(OnOffCluster.id, 'onOff', true, this.switch.log, this.switch);
         this.switch?.log.info(`Command on called with: ${data}`);
       },
       this.switch.log,
@@ -123,11 +125,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       OnOffCluster.id,
       'off',
       async (data) => {
+        this.switch?.setAttribute(OnOffCluster.id, 'onOff', false, this.switch.log, this.switch);
         this.switch?.log.info(`Command off called with: ${data}`);
       },
       this.switch.log,
       this.switch,
     );
+    */
 
     // Create a on off light device
     this.lightOnOff = new MatterbridgeDevice(DeviceTypes.ON_OFF_LIGHT, undefined, this.config.debug as boolean);
@@ -981,6 +985,8 @@ function subscribeAttribute(clusterId: ClusterId, attribute: string, listener: (
   return true;
 }
 
+/*
+
 interface MatterCommandData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   request: any;
@@ -1022,3 +1028,4 @@ function addCommandHandler(clusterId: ClusterId, command: string, handler: (data
   log?.error(`Command handler not found for endpoint ${or}${endpoint.name}:${endpoint.number}${er} ${hk}${clusterServer.name}.${command}${er}`);
   return false;
 }
+*/
