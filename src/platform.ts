@@ -178,7 +178,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.dimmer?.log.info('Command on called');
     });
     this.dimmer.addCommandHandler('off', async () => {
-      this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', true, this.dimmer.log, this.dimmer);
+      this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', false, this.dimmer.log, this.dimmer);
       this.dimmer?.log.info('Command off called');
     });
     this.dimmer.addCommandHandler('moveToLevel', async ({ request: { level }, attributes: { currentLevel } }) => {
