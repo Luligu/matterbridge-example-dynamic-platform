@@ -17,11 +17,6 @@ describe('TestPlatform', () => {
     mockConfig = {
       'name': 'matterbridge-test',
       'type': 'DynamicPlatform',
-      'noDevices': false,
-      'throwLoad': false,
-      'throwStart': false,
-      'throwConfigure': false,
-      'throwShutdown': false,
       'unregisterOnShutdown': false,
       'delayStart': false,
     } as PlatformConfig;
