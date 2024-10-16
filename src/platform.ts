@@ -5,13 +5,11 @@ import {
   BooleanStateConfiguration,
   CarbonDioxideConcentrationMeasurement,
   CarbonMonoxideConcentrationMeasurement,
-  ClusterId,
   ColorControl,
   ColorControlCluster,
   DeviceTypes,
   DoorLock,
   DoorLockCluster,
-  Endpoint,
   FanControl,
   FanControlCluster,
   FlowMeasurement,
@@ -45,7 +43,7 @@ import {
 } from 'matterbridge';
 import { Matterbridge, MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
-import { AnsiLogger, db, hk, or } from 'matterbridge/logger';
+import { AnsiLogger } from 'matterbridge/logger';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   switch: MatterbridgeDevice | undefined;
@@ -205,7 +203,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light.createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, HS and CT)', '0x23480564', 0xfff1, 'Luligu', 'Matterbridge Light');
     this.light.createDefaultOnOffClusterServer();
     this.light.createDefaultLevelControlClusterServer();
-    this.light.createDefaultCompleteColorControlClusterServer();
+    this.light.createDefaultColorControlClusterServer();
     this.light.addDeviceType(powerSource);
     this.light.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     await this.registerDevice(this.light);
@@ -267,7 +265,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightHS.createDefaultBridgedDeviceBasicInformationClusterServer('Light (HS)', '0x25097564', 0xfff1, 'Luligu', 'Matterbridge Light');
     this.lightHS.createDefaultOnOffClusterServer();
     this.lightHS.createDefaultLevelControlClusterServer();
-    this.lightHS.createDefaultCompleteColorControlClusterServer();
+    this.lightHS.createDefaultColorControlClusterServer();
     this.lightHS.configureColorControlCluster(true, false, false, ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
     this.lightHS.addDeviceType(powerSource);
     this.lightHS.createDefaultPowerSourceWiredClusterServer();
@@ -319,7 +317,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightXY.createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY)', '0x23497564', 0xfff1, 'Luligu', 'Matterbridge Light');
     this.lightXY.createDefaultOnOffClusterServer();
     this.lightXY.createDefaultLevelControlClusterServer();
-    this.lightXY.createDefaultCompleteColorControlClusterServer();
+    this.lightXY.createDefaultColorControlClusterServer();
     this.lightXY.configureColorControlCluster(false, true, false, ColorControl.ColorMode.CurrentXAndCurrentY);
     this.lightXY.addDeviceType(powerSource);
     this.lightXY.createDefaultPowerSourceWiredClusterServer();
@@ -361,7 +359,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightCT.createDefaultBridgedDeviceBasicInformationClusterServer('Light (CT)', '0x23480749', 0xfff1, 'Luligu', 'Matterbridge Light');
     this.lightCT.createDefaultOnOffClusterServer();
     this.lightCT.createDefaultLevelControlClusterServer();
-    this.lightCT.createDefaultCompleteColorControlClusterServer();
+    this.lightCT.createDefaultColorControlClusterServer();
     this.lightCT.configureColorControlCluster(false, false, true, ColorControl.ColorMode.ColorTemperatureMireds);
     this.lightCT.addDeviceType(powerSource);
     this.lightCT.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
@@ -526,7 +524,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     const thermostat = this.thermo.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode));
     if (thermostat) {
-      subscribeAttribute(
+      this.thermo.subscribeAttribute(
         ThermostatCluster.id,
         'systemMode',
         async (value) => {
@@ -536,7 +534,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.thermo.log,
         this.thermo,
       );
-      subscribeAttribute(
+      this.thermo.subscribeAttribute(
         ThermostatCluster.id,
         'occupiedHeatingSetpoint',
         async (value) => {
@@ -545,7 +543,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.thermo.log,
         this.thermo,
       );
-      subscribeAttribute(
+      this.thermo.subscribeAttribute(
         ThermostatCluster.id,
         'occupiedCoolingSetpoint',
         async (value) => {
@@ -565,7 +563,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const fanCluster = this.fan.getClusterServer(FanControlCluster.with(FanControl.Feature.MultiSpeed, FanControl.Feature.Auto));
     if (fanCluster) {
       const fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
-      subscribeAttribute(
+      this.thermo.subscribeAttribute(
         FanControlCluster.id,
         'fanMode',
         (newValue: FanControl.FanMode, oldValue: FanControl.FanMode) => {
@@ -587,7 +585,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.fan.log,
         this.fan,
       );
-      subscribeAttribute(
+      this.thermo.subscribeAttribute(
         FanControlCluster.id,
         'percentSetting',
         (newValue: number | null, oldValue: number | null) => {
@@ -597,7 +595,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.fan.log,
         this.fan,
       );
-      subscribeAttribute(
+      this.thermo.subscribeAttribute(
         FanControlCluster.id,
         'speedSetting',
         (newValue: number | null, oldValue: number | null) => {
@@ -959,79 +957,3 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices();
   }
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function subscribeAttribute(clusterId: ClusterId, attribute: string, listener: (newValue: any, oldValue: any) => void, log?: AnsiLogger, endpoint?: Endpoint): boolean {
-  // if (!endpoint) endpoint = this as Endpoint;
-  if (!endpoint) return false;
-
-  const clusterServer = endpoint.getClusterServerById(clusterId);
-  if (!clusterServer) {
-    log?.error(`subscribeAttribute error: Cluster ${clusterId} not found on endpoint ${endpoint.name}:${endpoint.number}`);
-    return false;
-  }
-  const capitalizedAttributeName = attribute.charAt(0).toUpperCase() + attribute.slice(1);
-  if (!clusterServer.isAttributeSupportedByName(attribute) && !clusterServer.isAttributeSupportedByName(capitalizedAttributeName)) {
-    if (log) log.error(`subscribeAttribute error: Attribute ${attribute} not found on Cluster ${clusterServer.name} on endpoint ${endpoint.name}:${endpoint.number}`);
-    return false;
-  }
-  // Find the subscribe method
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (!(clusterServer as any)[`subscribe${capitalizedAttributeName}Attribute`]) {
-    log?.error(
-      `subscribeAttribute error: subscribe${capitalizedAttributeName}Attribute not found on Cluster ${clusterServer.name} on endpoint ${endpoint.name}:${endpoint.number}`,
-    );
-    return false;
-  }
-  // Subscribe to the attribute
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-  const subscribe = (clusterServer as any)[`subscribe${capitalizedAttributeName}Attribute`] as (listener: (newValue: any, oldValue: any) => void) => {};
-  subscribe(listener);
-  log?.info(`${db}Subscribe endpoint ${or}${endpoint.name}:${endpoint.number}${db} attribute ${hk}${clusterServer.name}.${capitalizedAttributeName}${db}`);
-  return true;
-}
-
-/*
-
-interface MatterCommandData {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  request: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  attributes: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  events: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  message: any;
-  endpoint: Endpoint;
-}
-
-function addCommandHandler(clusterId: ClusterId, command: string, handler: (data: MatterCommandData) => void, log?: AnsiLogger, endpoint?: Endpoint): boolean {
-  // if (!endpoint) endpoint = this as Endpoint;
-  if (!endpoint) return false;
-
-  const clusterServer = endpoint.getClusterServerById(clusterId);
-  if (!clusterServer) {
-    log?.error(`addCommandHandler error: Cluster ${clusterId} not found on endpoint ${endpoint.name}:${endpoint.number}`);
-    return false;
-  }
-  if (!clusterServer.isCommandSupportedByName(command)) {
-    if (log) log.error(`addCommandHandler error: Command ${command} not found on Cluster ${clusterServer.name} on endpoint ${endpoint.name}:${endpoint.number}`);
-    return false;
-  }
-  // Find the command
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const commands = (clusterServer as any).commands as object;
-  for (const [key, value] of Object.entries(commands)) {
-    // console.log(`Key "${key}": ${debugStringify(value)}`);
-    if (key === command) {
-      value.handler = handler;
-      log?.info(`${db}Command handler added for endpoint ${or}${endpoint.name}:${endpoint.number}${db} ${hk}${clusterServer.name}.${command}${db}`);
-      return true;
-    }
-  }
-  log?.error(`Command handler not found for endpoint ${or}${endpoint.name}:${endpoint.number}${er} ${hk}${clusterServer.name}.${command}${er}`);
-  return false;
-}
-*/

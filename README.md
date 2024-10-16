@@ -35,7 +35,6 @@ It exposes:
 - a waterLeakDetector device
 - a smokeCoAlarm device
 
-
 All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices) and how to subscribe to attributes.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
