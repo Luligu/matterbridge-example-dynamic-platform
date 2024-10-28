@@ -36,6 +36,9 @@ jobs:
       - name: Install matterbridge
         run: npm install -g matterbridge --omit=dev
 
+      - name: Verify matterbridge
+        run: npm list -g matterbridge
+
       - name: Install dependencies
         run: npm ci
   
