@@ -87,11 +87,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
   async createMutableDevice(definition: DeviceTypeDefinition | AtLeastOne<DeviceTypeDefinition>, options: EndpointOptions = {}, debug = false): Promise<MatterbridgeDevice> {
     let device: MatterbridgeDevice;
-    const data = await import('matterbridge');
-    if ('edge' in this.matterbridge && this.matterbridge.edge === true && 'MatterbridgeEndpoint' in data) {
-      // Dynamically resolve the MatterbridgeEndpoint class
+    const matterbridge = await import('matterbridge');
+    if ('edge' in this.matterbridge && this.matterbridge.edge === true && 'MatterbridgeEndpoint' in matterbridge) {
+      // Dynamically resolve the MatterbridgeEndpoint class from the imported module and instantiate it without throwing a TypeScript error for old versions of Matterbridge
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      device = new (data as any).MatterbridgeEndpoint(definition, options, debug) as unknown as MatterbridgeDevice;
+      device = new (matterbridge as any).MatterbridgeEndpoint(definition, options, debug) as MatterbridgeDevice;
     } else device = new MatterbridgeDevice(definition, options, debug);
     return device;
   }
