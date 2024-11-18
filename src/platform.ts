@@ -90,7 +90,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const data = await import('matterbridge');
     if ('edge' in this.matterbridge && this.matterbridge.edge === true && 'MatterbridgeEndpoint' in data) {
       // Dynamically resolve the MatterbridgeEndpoint class
-      device = new data.MatterbridgeEndpoint(definition, options, debug) as unknown as MatterbridgeDevice;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      device = new (data as any).MatterbridgeEndpoint(definition, options, debug) as unknown as MatterbridgeDevice;
     } else device = new MatterbridgeDevice(definition, options, debug);
     return device;
   }
