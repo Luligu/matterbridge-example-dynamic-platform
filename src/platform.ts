@@ -20,7 +20,6 @@ import {
   FlowMeasurementCluster,
   FormaldehydeConcentrationMeasurement,
   LevelControlCluster,
-  MatterbridgeEndpoint,
   NitrogenDioxideConcentrationMeasurement,
   OnOffCluster,
   OzoneConcentrationMeasurement,
@@ -86,11 +85,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   smokeInterval: NodeJS.Timeout | undefined;
   airQualityInterval: NodeJS.Timeout | undefined;
 
-  createMutableDevice(definition: DeviceTypeDefinition | AtLeastOne<DeviceTypeDefinition>, options: EndpointOptions = {}, debug = false): MatterbridgeDevice {
-    let device: MatterbridgeDevice | MatterbridgeEndpoint;
-    if ('edge' in this.matterbridge && this.matterbridge.edge === true) device = new MatterbridgeEndpoint(definition, options, debug);
-    else device = new MatterbridgeDevice(definition, options, debug);
-    return device as unknown as MatterbridgeDevice;
+  async createMutableDevice(definition: DeviceTypeDefinition | AtLeastOne<DeviceTypeDefinition>, options: EndpointOptions = {}, debug = false): Promise<MatterbridgeDevice> {
+    let device: MatterbridgeDevice;
+    if ('edge' in this.matterbridge && this.matterbridge.edge === true) {
+      // Dynamically resolve the MatterbridgeEndpoint class
+      const { MatterbridgeEndpoint } = await import('matterbridge');
+      device = new MatterbridgeEndpoint(definition, options, debug) as unknown as MatterbridgeDevice;
+    } else device = new MatterbridgeDevice(definition, options, debug);
+    return device;
   }
 
   constructor(matterbridge: Matterbridge, log: AnsiLogger, config: PlatformConfig) {
@@ -110,7 +112,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.log.info('onStart called with reason:', reason ?? 'none');
 
     // Create a switch device
-    this.switch = this.createMutableDevice([onOffSwitch, bridgedNode], { uniqueStorageKey: 'Switch' }, this.config.debug as boolean);
+    this.switch = await this.createMutableDevice([onOffSwitch, bridgedNode], { uniqueStorageKey: 'Switch' }, this.config.debug as boolean);
     this.switch.log.logName = 'Switch';
     this.switch.createDefaultIdentifyClusterServer();
     this.switch.createDefaultGroupsClusterServer();
@@ -134,7 +136,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a on off light device
-    this.lightOnOff = this.createMutableDevice([DeviceTypes.ON_OFF_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (on/off)' }, this.config.debug as boolean);
+    this.lightOnOff = await this.createMutableDevice([DeviceTypes.ON_OFF_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (on/off)' }, this.config.debug as boolean);
     this.lightOnOff.log.logName = 'Light (on/off)';
     this.lightOnOff.createDefaultIdentifyClusterServer();
     this.lightOnOff.createDefaultGroupsClusterServer();
@@ -158,7 +160,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a dimmer device
-    this.dimmer = this.createMutableDevice([DeviceTypes.DIMMABLE_LIGHT, bridgedNode], { uniqueStorageKey: 'Dimmer' }, this.config.debug as boolean);
+    this.dimmer = await this.createMutableDevice([DeviceTypes.DIMMABLE_LIGHT, bridgedNode], { uniqueStorageKey: 'Dimmer' }, this.config.debug as boolean);
     this.dimmer.log.logName = 'Dimmer';
     this.dimmer.createDefaultIdentifyClusterServer();
     this.dimmer.createDefaultGroupsClusterServer();
@@ -191,7 +193,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device
-    this.light = this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (XY, HS and CT)' }, this.config.debug as boolean);
+    this.light = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (XY, HS and CT)' }, this.config.debug as boolean);
     this.light.log.logName = 'Light (XY, HS and CT)';
     this.light.createDefaultIdentifyClusterServer();
     this.light.createDefaultGroupsClusterServer();
@@ -251,7 +253,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with HS color control
-    this.lightHS = this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (HS)' }, this.config.debug as boolean);
+    this.lightHS = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (HS)' }, this.config.debug as boolean);
     this.lightHS.log.logName = 'Light (HS)';
     this.lightHS.createDefaultIdentifyClusterServer();
     this.lightHS.createDefaultGroupsClusterServer();
@@ -303,7 +305,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with XY color control
-    this.lightXY = this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (XY)' }, this.config.debug as boolean);
+    this.lightXY = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (XY)' }, this.config.debug as boolean);
     this.lightXY.log.logName = 'Light (XY)';
     this.lightXY.createDefaultIdentifyClusterServer();
     this.lightXY.createDefaultGroupsClusterServer();
@@ -343,7 +345,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with CT color control
-    this.lightCT = this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (CT)' }, this.config.debug as boolean);
+    this.lightCT = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (CT)' }, this.config.debug as boolean);
     this.lightCT.log.logName = 'Light (CT)';
     this.lightCT.createDefaultIdentifyClusterServer();
     this.lightCT.createDefaultGroupsClusterServer();
@@ -382,7 +384,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create an outlet device
-    this.outlet = this.createMutableDevice([DeviceTypes.ON_OFF_PLUGIN_UNIT, bridgedNode], { uniqueStorageKey: 'Outlet' }, this.config.debug as boolean);
+    this.outlet = await this.createMutableDevice([DeviceTypes.ON_OFF_PLUGIN_UNIT, bridgedNode], { uniqueStorageKey: 'Outlet' }, this.config.debug as boolean);
     this.outlet.log.logName = 'Outlet';
     this.outlet.createDefaultIdentifyClusterServer();
     this.outlet.createDefaultGroupsClusterServer();
@@ -407,7 +409,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Create a window covering device
     // Matter uses 10000 = fully closed   0 = fully opened
-    this.cover = this.createMutableDevice([DeviceTypes.WINDOW_COVERING, bridgedNode], { uniqueStorageKey: 'Cover' }, this.config.debug as boolean);
+    this.cover = await this.createMutableDevice([DeviceTypes.WINDOW_COVERING, bridgedNode], { uniqueStorageKey: 'Cover' }, this.config.debug as boolean);
     this.cover.log.logName = 'Cover';
     this.cover.createDefaultIdentifyClusterServer();
     this.cover.createDefaultGroupsClusterServer();
@@ -467,7 +469,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a lock device
-    this.lock = this.createMutableDevice([DeviceTypes.DOOR_LOCK, bridgedNode], { uniqueStorageKey: 'Lock' }, this.config.debug as boolean);
+    this.lock = await this.createMutableDevice([DeviceTypes.DOOR_LOCK, bridgedNode], { uniqueStorageKey: 'Lock' }, this.config.debug as boolean);
     this.lock.log.logName = 'Lock';
     this.lock.createDefaultIdentifyClusterServer();
     this.lock.createDefaultBridgedDeviceBasicInformationClusterServer('Lock', '0x96352164', 0xfff1, 'Luligu', 'Matterbridge Lock');
@@ -489,7 +491,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a thermostat device
-    this.thermo = this.createMutableDevice([DeviceTypes.THERMOSTAT, bridgedNode], { uniqueStorageKey: 'Thermostat' }, this.config.debug as boolean);
+    this.thermo = await this.createMutableDevice([DeviceTypes.THERMOSTAT, bridgedNode], { uniqueStorageKey: 'Thermostat' }, this.config.debug as boolean);
     this.thermo.log.logName = 'Thermostat';
     this.thermo.createDefaultIdentifyClusterServer();
     this.thermo.createDefaultGroupsClusterServer();
@@ -557,7 +559,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Create a fan device
-    this.fan = this.createMutableDevice([DeviceTypes.FAN, bridgedNode], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean);
+    this.fan = await this.createMutableDevice([DeviceTypes.FAN, bridgedNode], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean);
     this.fan.log.logName = 'Fan';
     this.fan.createDefaultBridgedDeviceBasicInformationClusterServer('Fan', 'serial_980545631228', 0xfff1, 'Luligu', 'Matterbridge Fan', 2, '2.1.1');
     this.fan.addDeviceTypeWithClusterServer([DeviceTypes.FAN], []);
@@ -607,28 +609,28 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.fan,
     );
 
-    this.waterLeak = this.createMutableDevice([waterLeakDetector, bridgedNode], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean);
+    this.waterLeak = await this.createMutableDevice([waterLeakDetector, bridgedNode], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean);
     this.waterLeak.log.logName = 'Water leak detector';
     this.waterLeak.createDefaultBridgedDeviceBasicInformationClusterServer('Water leak detector', 'serial_98745631222', 0xfff1, 'Luligu', 'Matterbridge WaterLeakDetector');
     this.waterLeak.addDeviceTypeWithClusterServer([waterLeakDetector], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.waterLeak);
     await this.waterLeak.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterLeak.log);
 
-    this.waterFreeze = this.createMutableDevice([waterFreezeDetector, bridgedNode], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean);
+    this.waterFreeze = await this.createMutableDevice([waterFreezeDetector, bridgedNode], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean);
     this.waterFreeze.log.logName = 'Water freeze detector';
     this.waterFreeze.createDefaultBridgedDeviceBasicInformationClusterServer('Water freeze detector', 'serial_98745631223', 0xfff1, 'Luligu', 'Matterbridge WaterFreezeDetector');
     this.waterFreeze.addDeviceTypeWithClusterServer([waterFreezeDetector], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.waterFreeze);
     await this.waterFreeze.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterFreeze.log);
 
-    this.rain = this.createMutableDevice([rainSensor, bridgedNode], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean);
+    this.rain = await this.createMutableDevice([rainSensor, bridgedNode], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean);
     this.rain.log.logName = 'Rain sensor';
     this.rain.createDefaultBridgedDeviceBasicInformationClusterServer('Rain sensor', 'serial_98745631224', 0xfff1, 'Luligu', 'Matterbridge RainSensor');
     this.rain.addDeviceTypeWithClusterServer([rainSensor], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.rain);
     await this.rain.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.rain.log);
 
-    this.smoke = this.createMutableDevice([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean);
+    this.smoke = await this.createMutableDevice([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean);
     this.smoke.log.logName = 'Smoke alarm sensor';
     this.smoke.createDefaultBridgedDeviceBasicInformationClusterServer('Smoke alarm sensor', 'serial_94745631225', 0xfff1, 'Luligu', 'Matterbridge SmokeCoAlarm');
     this.smoke.addDeviceTypeWithClusterServer([smokeCoAlarm], [CarbonMonoxideConcentrationMeasurement.Cluster.id]);
@@ -638,7 +640,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.smoke.setAttribute(CarbonMonoxideConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.smoke.log);
 
     // Create an airQuality device
-    this.airQuality = this.createMutableDevice([airQualitySensor, bridgedNode], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean);
+    this.airQuality = await this.createMutableDevice([airQualitySensor, bridgedNode], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean);
     this.airQuality.log.logName = 'Air quality Sensor';
     this.airQuality.createDefaultBridgedDeviceBasicInformationClusterServer('Air quality sensor', 'serial_987484318322', 0xfff1, 'Luligu', 'Matterbridge Air Quality Sensor');
     this.airQuality.addDeviceTypeWithClusterServer(
