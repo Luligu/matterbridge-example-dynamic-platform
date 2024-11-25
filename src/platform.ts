@@ -756,7 +756,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge WaterFreezeDetector',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
