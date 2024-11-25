@@ -125,7 +125,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Switch',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -159,7 +159,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Light on/off',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -193,7 +193,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Dimmer',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -236,7 +236,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Light',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -306,7 +306,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Light',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -368,7 +368,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Light',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -418,7 +418,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Light',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -467,7 +467,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Outlet',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -502,7 +502,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Cover',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -563,7 +563,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lock = await this.createMutableDevice([DeviceTypes.DOOR_LOCK, bridgedNode], { uniqueStorageKey: 'Lock' }, this.config.debug as boolean);
     this.lock.log.logName = 'Lock';
     this.lock.createDefaultIdentifyClusterServer();
-    this.lock.createDefaultBridgedDeviceBasicInformationClusterServer('Lock', '0x96352164', 0xfff1, 'Matterbridge', 'Matterbridge Lock');
+    this.lock.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Lock',
+      '0x96352164',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Lock',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version === '' ? 'Unknown' : this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.lock.createDefaultDoorLockClusterServer();
     this.lock.addDeviceType(powerSource);
     this.lock.createDefaultPowerSourceRechargeableBatteryClusterServer(30);
@@ -594,7 +604,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Thermostat',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -669,7 +679,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Fan',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -729,7 +739,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge WaterLeakDetector',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -763,7 +773,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge RainSensor',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -780,7 +790,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge SmokeCoAlarm',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
@@ -800,7 +810,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'Matterbridge',
       'Matterbridge Air Quality Sensor',
       parseInt(this.version.replace(/\D/g, '')),
-      this.version,
+      this.version === '' ? 'Unknown' : this.version,
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
