@@ -100,9 +100,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('1.6.0')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('1.6.2')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "1.6.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
+        `This plugin requires Matterbridge version >= "1.6.2". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
       );
     }
 
@@ -118,7 +118,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.switch.createDefaultIdentifyClusterServer();
     this.switch.createDefaultGroupsClusterServer();
     this.switch.createDefaultScenesClusterServer();
-    this.switch.createDefaultBridgedDeviceBasicInformationClusterServer('Switch', '0x23452164', 0xfff1, 'Luligu', 'Matterbridge Switch');
+    this.switch.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Switch',
+      '0x23452164',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Switch',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.switch.createDefaultOnOffClusterServer();
     this.switch.addDeviceType(powerSource);
     this.switch.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
@@ -142,7 +152,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightOnOff.createDefaultIdentifyClusterServer();
     this.lightOnOff.createDefaultGroupsClusterServer();
     this.lightOnOff.createDefaultScenesClusterServer();
-    this.lightOnOff.createDefaultBridgedDeviceBasicInformationClusterServer('Light (on/off)', '0x2342375564', 0xfff1, 'Luligu', 'Matterbridge Light on/off');
+    this.lightOnOff.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Light (on/off)',
+      '0x2342375564',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Light on/off',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.lightOnOff.createDefaultOnOffClusterServer();
     this.lightOnOff.addDeviceType(powerSource);
     this.lightOnOff.createDefaultPowerSourceWiredClusterServer();
@@ -166,7 +186,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.dimmer.createDefaultIdentifyClusterServer();
     this.dimmer.createDefaultGroupsClusterServer();
     this.dimmer.createDefaultScenesClusterServer();
-    this.dimmer.createDefaultBridgedDeviceBasicInformationClusterServer('Dimmer', '0x234554564', 0xfff1, 'Luligu', 'Matterbridge Dimmer');
+    this.dimmer.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Dimmer',
+      '0x234554564',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Dimmer',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.dimmer.createDefaultOnOffClusterServer();
     this.dimmer.createDefaultLevelControlClusterServer();
     this.dimmer.addDeviceType(powerSource);
@@ -199,7 +229,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light.createDefaultIdentifyClusterServer();
     this.light.createDefaultGroupsClusterServer();
     this.light.createDefaultScenesClusterServer();
-    this.light.createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, HS and CT)', '0x23480564', 0xfff1, 'Luligu', 'Matterbridge Light');
+    this.light.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Light (XY, HS and CT)',
+      '0x23480564',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Light',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.light.createDefaultOnOffClusterServer();
     this.light.createDefaultLevelControlClusterServer();
     this.light.createDefaultColorControlClusterServer();
@@ -259,7 +299,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightHS.createDefaultIdentifyClusterServer();
     this.lightHS.createDefaultGroupsClusterServer();
     this.lightHS.createDefaultScenesClusterServer();
-    this.lightHS.createDefaultBridgedDeviceBasicInformationClusterServer('Light (HS)', '0x25097564', 0xfff1, 'Luligu', 'Matterbridge Light');
+    this.lightHS.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Light (HS)',
+      '0x25097564',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Light',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.lightHS.createDefaultOnOffClusterServer();
     this.lightHS.createDefaultLevelControlClusterServer();
     this.lightHS.createDefaultColorControlClusterServer();
@@ -311,7 +361,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightXY.createDefaultIdentifyClusterServer();
     this.lightXY.createDefaultGroupsClusterServer();
     this.lightXY.createDefaultScenesClusterServer();
-    this.lightXY.createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY)', '0x23497564', 0xfff1, 'Luligu', 'Matterbridge Light');
+    this.lightXY.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Light (XY)',
+      '0x23497564',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Light',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.lightXY.createDefaultOnOffClusterServer();
     this.lightXY.createDefaultLevelControlClusterServer();
     this.lightXY.createDefaultColorControlClusterServer();
@@ -351,7 +411,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightCT.createDefaultIdentifyClusterServer();
     this.lightCT.createDefaultGroupsClusterServer();
     this.lightCT.createDefaultScenesClusterServer();
-    this.lightCT.createDefaultBridgedDeviceBasicInformationClusterServer('Light (CT)', '0x23480749', 0xfff1, 'Luligu', 'Matterbridge Light');
+    this.lightCT.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Light (CT)',
+      '0x23480749',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Light',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.lightCT.createDefaultOnOffClusterServer();
     this.lightCT.createDefaultLevelControlClusterServer();
     this.lightCT.createDefaultColorControlClusterServer();
@@ -390,7 +460,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.outlet.createDefaultIdentifyClusterServer();
     this.outlet.createDefaultGroupsClusterServer();
     this.outlet.createDefaultScenesClusterServer();
-    this.outlet.createDefaultBridgedDeviceBasicInformationClusterServer('Outlet', '0x29252164', 0xfff1, 'Luligu', 'Matterbridge Outlet');
+    this.outlet.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Outlet',
+      '0x29252164',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Outlet',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.outlet.createDefaultOnOffClusterServer();
     this.outlet.addDeviceType(powerSource);
     this.outlet.createDefaultPowerSourceWiredClusterServer();
@@ -415,7 +495,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.cover.createDefaultIdentifyClusterServer();
     this.cover.createDefaultGroupsClusterServer();
     this.cover.createDefaultScenesClusterServer();
-    this.cover.createDefaultBridgedDeviceBasicInformationClusterServer('Cover', '0x01020564', 0xfff1, 'Luligu', 'Matterbridge Cover');
+    this.cover.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Cover',
+      '0x01020564',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Cover',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.cover.createDefaultWindowCoveringClusterServer();
     this.cover.addDeviceType(powerSource);
     this.cover.createDefaultPowerSourceRechargeableBatteryClusterServer(86);
@@ -473,7 +563,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lock = await this.createMutableDevice([DeviceTypes.DOOR_LOCK, bridgedNode], { uniqueStorageKey: 'Lock' }, this.config.debug as boolean);
     this.lock.log.logName = 'Lock';
     this.lock.createDefaultIdentifyClusterServer();
-    this.lock.createDefaultBridgedDeviceBasicInformationClusterServer('Lock', '0x96352164', 0xfff1, 'Luligu', 'Matterbridge Lock');
+    this.lock.createDefaultBridgedDeviceBasicInformationClusterServer('Lock', '0x96352164', 0xfff1, 'Matterbridge', 'Matterbridge Lock');
     this.lock.createDefaultDoorLockClusterServer();
     this.lock.addDeviceType(powerSource);
     this.lock.createDefaultPowerSourceRechargeableBatteryClusterServer(30);
@@ -497,7 +587,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermo.createDefaultIdentifyClusterServer();
     this.thermo.createDefaultGroupsClusterServer();
     this.thermo.createDefaultScenesClusterServer();
-    this.thermo.createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat', '0x96382164', 0xfff1, 'Luligu', 'Matterbridge Thermostat');
+    this.thermo.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Thermostat',
+      '0x96382164',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Thermostat',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.thermo.createDefaultThermostatClusterServer(20, 18, 22);
     this.thermo.addDeviceType(powerSource);
     this.thermo.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
@@ -562,7 +662,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Create a fan device
     this.fan = await this.createMutableDevice([DeviceTypes.FAN, bridgedNode], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean);
     this.fan.log.logName = 'Fan';
-    this.fan.createDefaultBridgedDeviceBasicInformationClusterServer('Fan', 'serial_980545631228', 0xfff1, 'Luligu', 'Matterbridge Fan', 2, '2.1.1');
+    this.fan.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Fan',
+      'serial_980545631228',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Fan',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.fan.addDeviceTypeWithClusterServer([DeviceTypes.FAN], []);
     await this.registerDevice(this.fan);
 
@@ -612,28 +722,68 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.waterLeak = await this.createMutableDevice([waterLeakDetector, bridgedNode], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean);
     this.waterLeak.log.logName = 'Water leak detector';
-    this.waterLeak.createDefaultBridgedDeviceBasicInformationClusterServer('Water leak detector', 'serial_98745631222', 0xfff1, 'Luligu', 'Matterbridge WaterLeakDetector');
+    this.waterLeak.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Water leak detector',
+      'serial_98745631222',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge WaterLeakDetector',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.waterLeak.addDeviceTypeWithClusterServer([waterLeakDetector], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.waterLeak);
     await this.waterLeak.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterLeak.log);
 
     this.waterFreeze = await this.createMutableDevice([waterFreezeDetector, bridgedNode], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean);
     this.waterFreeze.log.logName = 'Water freeze detector';
-    this.waterFreeze.createDefaultBridgedDeviceBasicInformationClusterServer('Water freeze detector', 'serial_98745631223', 0xfff1, 'Luligu', 'Matterbridge WaterFreezeDetector');
+    this.waterFreeze.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Water freeze detector',
+      'serial_98745631223',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge WaterFreezeDetector',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.waterFreeze.addDeviceTypeWithClusterServer([waterFreezeDetector], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.waterFreeze);
     await this.waterFreeze.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterFreeze.log);
 
     this.rain = await this.createMutableDevice([rainSensor, bridgedNode], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean);
     this.rain.log.logName = 'Rain sensor';
-    this.rain.createDefaultBridgedDeviceBasicInformationClusterServer('Rain sensor', 'serial_98745631224', 0xfff1, 'Luligu', 'Matterbridge RainSensor');
+    this.rain.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Rain sensor',
+      'serial_98745631224',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge RainSensor',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.rain.addDeviceTypeWithClusterServer([rainSensor], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.rain);
     await this.rain.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.rain.log);
 
     this.smoke = await this.createMutableDevice([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean);
     this.smoke.log.logName = 'Smoke alarm sensor';
-    this.smoke.createDefaultBridgedDeviceBasicInformationClusterServer('Smoke alarm sensor', 'serial_94745631225', 0xfff1, 'Luligu', 'Matterbridge SmokeCoAlarm');
+    this.smoke.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Smoke alarm sensor',
+      'serial_94745631225',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge SmokeCoAlarm',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.smoke.addDeviceTypeWithClusterServer([smokeCoAlarm], [CarbonMonoxideConcentrationMeasurement.Cluster.id]);
     await this.registerDevice(this.smoke);
     await this.smoke.setAttribute(SmokeCoAlarmCluster.id, 'smokeState', SmokeCoAlarm.AlarmState.Normal, this.smoke.log);
@@ -643,7 +793,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Create an airQuality device
     this.airQuality = await this.createMutableDevice([airQualitySensor, bridgedNode], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean);
     this.airQuality.log.logName = 'Air quality Sensor';
-    this.airQuality.createDefaultBridgedDeviceBasicInformationClusterServer('Air quality sensor', 'serial_987484318322', 0xfff1, 'Luligu', 'Matterbridge Air Quality Sensor');
+    this.airQuality.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Air quality sensor',
+      'serial_987484318322',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Air Quality Sensor',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
     this.airQuality.addDeviceTypeWithClusterServer(
       [airQualitySensor],
       [
