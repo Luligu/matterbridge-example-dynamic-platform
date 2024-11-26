@@ -30,7 +30,7 @@ describe('TestPlatform', () => {
   let mockMatterbridge: Matterbridge;
   let mockLog: AnsiLogger;
   let mockConfig: PlatformConfig;
-  let testPlatform: ExampleMatterbridgeDynamicPlatform;
+  let dynamicPlatform: ExampleMatterbridgeDynamicPlatform;
 
   let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
   let loggerLogSpy: jest.SpiedFunction<(level: LogLevel, message: string, ...parameters: any[]) => void>;
@@ -103,20 +103,20 @@ describe('TestPlatform', () => {
   });
 
   it('should initialize platform with config name', () => {
-    testPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig);
+    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig);
     expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
   });
 
   it('should call onStart in edge mode', async () => {
     mockMatterbridge.edge = true;
-    await testPlatform.onStart('Test reason');
+    await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
   }, 60000);
 
   it('should call onConfigure in edge mode', async () => {
     jest.useFakeTimers();
 
-    await testPlatform.onConfigure();
+    await dynamicPlatform.onConfigure();
     expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
 
     jest.advanceTimersByTime(60 * 1000);
@@ -124,19 +124,19 @@ describe('TestPlatform', () => {
   });
 
   it('should call onShutdown  in edge mode', async () => {
-    await testPlatform.onShutdown('Test reason');
+    await dynamicPlatform.onShutdown('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
     mockMatterbridge.edge = false;
   });
 
   it('should call onStart with reason', async () => {
-    await testPlatform.onStart('Test reason');
+    await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
     // Invoke command handlers
-    for (const [key, device] of Array.from(testPlatform.bridgedDevices)) {
+    for (const [key, device] of Array.from(dynamicPlatform.bridgedDevices)) {
       const identify = device.getClusterServer(IdentifyCluster);
       expect(identify).toBeDefined();
       if (identify) await invokeCommands(identify as unknown as ClusterServerObj);
@@ -214,7 +214,7 @@ describe('TestPlatform', () => {
   it('should call onConfigure', async () => {
     jest.useFakeTimers();
 
-    await testPlatform.onConfigure();
+    await dynamicPlatform.onConfigure();
     expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
 
     // Simulate multiple interval executions
@@ -227,7 +227,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
-    await testPlatform.onShutdown('Test reason');
+    await dynamicPlatform.onShutdown('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
   });
 });
