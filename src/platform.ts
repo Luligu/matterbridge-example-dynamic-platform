@@ -85,6 +85,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   smokeInterval: NodeJS.Timeout | undefined;
   airQualityInterval: NodeJS.Timeout | undefined;
 
+  bridgedDevices = new Map<string, MatterbridgeDevice>();
+
   async createMutableDevice(definition: DeviceTypeDefinition | AtLeastOne<DeviceTypeDefinition>, options: EndpointOptions = {}, debug = false): Promise<MatterbridgeDevice> {
     let device: MatterbridgeDevice;
     const matterbridge = await import('matterbridge');
@@ -133,6 +135,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.switch.addDeviceType(powerSource);
     this.switch.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
     await this.registerDevice(this.switch);
+    this.bridgedDevices.set(this.switch.deviceName ?? '', this.switch);
 
     this.switch.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -167,6 +170,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightOnOff.addDeviceType(powerSource);
     this.lightOnOff.createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.lightOnOff);
+    this.bridgedDevices.set(this.lightOnOff.deviceName ?? '', this.lightOnOff);
 
     this.lightOnOff.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightOnOff?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -202,6 +206,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.dimmer.addDeviceType(powerSource);
     this.dimmer.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     await this.registerDevice(this.dimmer);
+    this.bridgedDevices.set(this.dimmer.deviceName ?? '', this.dimmer);
 
     this.dimmer.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.dimmer?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -246,6 +251,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light.addDeviceType(powerSource);
     this.light.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     await this.registerDevice(this.light);
+    this.bridgedDevices.set(this.light.deviceName ?? '', this.light);
 
     this.light.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.light?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -317,6 +323,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightHS.addDeviceType(powerSource);
     this.lightHS.createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.lightHS);
+    this.bridgedDevices.set(this.lightHS.deviceName ?? '', this.lightHS);
 
     this.lightHS.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightHS?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -379,6 +386,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightXY.addDeviceType(powerSource);
     this.lightXY.createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.lightXY);
+    this.bridgedDevices.set(this.lightXY.deviceName ?? '', this.lightXY);
 
     this.lightXY.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightXY?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -429,6 +437,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightCT.addDeviceType(powerSource);
     this.lightCT.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     await this.registerDevice(this.lightCT);
+    this.bridgedDevices.set(this.lightCT.deviceName ?? '', this.lightCT);
 
     this.lightCT.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightCT?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -475,6 +484,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.outlet.addDeviceType(powerSource);
     this.outlet.createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.outlet);
+    this.bridgedDevices.set(this.outlet.deviceName ?? '', this.outlet);
 
     this.outlet.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.outlet?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -510,6 +520,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.cover.addDeviceType(powerSource);
     this.cover.createDefaultPowerSourceRechargeableBatteryClusterServer(86);
     await this.registerDevice(this.cover);
+    this.bridgedDevices.set(this.cover.deviceName ?? '', this.cover);
 
     this.cover.subscribeAttribute(
       WindowCoveringCluster.id,
@@ -578,6 +589,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lock.addDeviceType(powerSource);
     this.lock.createDefaultPowerSourceRechargeableBatteryClusterServer(30);
     await this.registerDevice(this.lock);
+    this.bridgedDevices.set(this.lock.deviceName ?? '', this.lock);
 
     this.lock.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lock?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -622,6 +634,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     humidityChild.getClusterServer(RelativeHumidityMeasurement.Cluster)?.setMeasuredValueAttribute(80 * 100);
 
     await this.registerDevice(this.thermo);
+    this.bridgedDevices.set(this.thermo.deviceName ?? '', this.thermo);
 
     this.thermo.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.thermo?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -685,6 +698,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.fan.addDeviceTypeWithClusterServer([DeviceTypes.FAN], []);
     await this.registerDevice(this.fan);
+    this.bridgedDevices.set(this.fan.deviceName ?? '', this.fan);
 
     const fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
     this.fan.subscribeAttribute(
@@ -762,6 +776,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.waterFreeze.addDeviceTypeWithClusterServer([waterFreezeDetector], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.waterFreeze);
+    this.bridgedDevices.set(this.waterFreeze.deviceName ?? '', this.waterFreeze);
+
     await this.waterFreeze.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterFreeze.log);
 
     this.rain = await this.createMutableDevice([rainSensor, bridgedNode], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean);
@@ -779,6 +795,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.rain.addDeviceTypeWithClusterServer([rainSensor], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.rain);
+    this.bridgedDevices.set(this.rain.deviceName ?? '', this.rain);
     await this.rain.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.rain.log);
 
     this.smoke = await this.createMutableDevice([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean);
@@ -796,6 +813,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.smoke.addDeviceTypeWithClusterServer([smokeCoAlarm], [CarbonMonoxideConcentrationMeasurement.Cluster.id]);
     await this.registerDevice(this.smoke);
+    this.bridgedDevices.set(this.smoke.deviceName ?? '', this.smoke);
     await this.smoke.setAttribute(SmokeCoAlarmCluster.id, 'smokeState', SmokeCoAlarm.AlarmState.Normal, this.smoke.log);
     await this.smoke.setAttribute(SmokeCoAlarmCluster.id, 'coState', SmokeCoAlarm.AlarmState.Normal, this.smoke.log);
     await this.smoke.setAttribute(CarbonMonoxideConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.smoke.log);
@@ -832,6 +850,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       ],
     );
     await this.registerDevice(this.airQuality);
+    this.bridgedDevices.set(this.airQuality.deviceName ?? '', this.airQuality);
     await this.airQuality.setAttribute(AirQuality.Cluster.id, 'airQuality', AirQuality.AirQualityEnum.Good, this.airQuality.log);
     await this.airQuality.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 2150, this.airQuality.log);
     await this.airQuality.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', 5500, this.airQuality.log);

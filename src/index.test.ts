@@ -9,7 +9,7 @@ describe('initializePlugin', () => {
   let mockLog: AnsiLogger;
   let mockConfig: PlatformConfig;
 
-  beforeEach(() => {
+  beforeAll(() => {
     mockMatterbridge = {
       addBridgedDevice: jest.fn(),
       matterbridgeDirectory: '',
