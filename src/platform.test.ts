@@ -51,6 +51,7 @@ describe('TestPlatform', () => {
   beforeAll(() => {
     mockMatterbridge = {
       addBridgedDevice: jest.fn(),
+      addBridgedEndpoint: jest.fn(),
       matterbridgeDirectory: '',
       matterbridgePluginDirectory: 'temp',
       systemInformation: { ipv4Address: undefined },
