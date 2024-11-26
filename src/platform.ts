@@ -104,7 +104,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Verify that Matterbridge is the correct version
     if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('1.6.2')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "1.6.2". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
+        `This plugin requires Matterbridge version >= "1.6.2". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -930,7 +930,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         let level = this.light?.getAttribute(LevelControlCluster.id, 'currentLevel', this.light.log);
         if (isValidBoolean(state) && isValidNumber(level, 0, 254)) {
           level += 10;
-          if (level > 254) {
+          if (level >= 250) {
             level = 0;
             await this.lightOnOff?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightOnOff.log);
             await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', false, this.dimmer.log);

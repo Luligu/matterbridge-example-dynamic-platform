@@ -16,6 +16,8 @@ import {
   DoorLock,
   ThermostatCluster,
   Thermostat,
+  FanControl,
+  FanControlCluster,
 } from 'matterbridge';
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { ExampleMatterbridgeDynamicPlatform } from './platform';
@@ -74,6 +76,14 @@ describe('TestPlatform', () => {
     });
   });
 
+  it('should throw error in load when version is not valid', () => {
+    mockMatterbridge.matterbridgeVersion = '1.5.0';
+    expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
+      'This plugin requires Matterbridge version >= "1.6.2". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+    );
+    mockMatterbridge.matterbridgeVersion = '1.6.2';
+  });
+
   it('should initialize platform with config name', () => {
     testPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig);
     expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
@@ -118,7 +128,10 @@ describe('TestPlatform', () => {
       if (device.hasClusterServer(WindowCoveringCluster.with(WindowCovering.Feature.Lift, WindowCovering.Feature.PositionAwareLift))) {
         const windowCovering = device.getClusterServer(WindowCoveringCluster.with(WindowCovering.Feature.Lift, WindowCovering.Feature.PositionAwareLift));
         expect(windowCovering).toBeDefined();
-        if (windowCovering) await invokeCommands(windowCovering as unknown as ClusterServerObj, { liftPercent100thsValue: 5000 });
+        if (windowCovering) {
+          await invokeCommands(windowCovering as unknown as ClusterServerObj, { liftPercent100thsValue: 5000 });
+          device.setAttribute(WindowCoveringCluster.id, 'mode', { motorDirectionReversed: false, calibrationMode: false, maintenanceMode: false, ledFeedback: false });
+        }
       }
 
       if (device.hasClusterServer(DoorLockCluster)) {
@@ -127,10 +140,33 @@ describe('TestPlatform', () => {
         if (windowCovering) await invokeCommands(windowCovering as unknown as ClusterServerObj);
       }
 
+      if (device.hasClusterServer(FanControlCluster)) {
+        const fan = device.getClusterServer(FanControlCluster);
+        expect(fan).toBeDefined();
+        if (fan) {
+          await invokeCommands(fan as unknown as ClusterServerObj);
+          device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Off);
+          device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Low);
+          device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
+          device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.High);
+          device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.On);
+          device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto);
+
+          device.setAttribute(FanControlCluster.id, 'percentSetting', 50);
+          device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
+        }
+      }
+
       if (device.hasClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))) {
         const windowCovering = device.getClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode));
         expect(windowCovering).toBeDefined();
-        if (windowCovering) await invokeCommands(windowCovering as unknown as ClusterServerObj, { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 10 });
+        if (windowCovering) {
+          await invokeCommands(windowCovering as unknown as ClusterServerObj, { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 10 });
+          device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Cool);
+          device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Heat);
+          device.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', 2400);
+          device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1800);
+        }
       }
     }
   });
@@ -142,9 +178,9 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
 
     // Simulate multiple interval executions
-    for (let i = 0; i < 50; i++) {
-      jest.advanceTimersByTime(60 * 1000);
-      await Promise.resolve(); // Allow pending promises to resolve
+    for (let i = 0; i < 200; i++) {
+      jest.advanceTimersByTime(30 * 1000);
+      await Promise.resolve();
     }
 
     jest.useRealTimers();
