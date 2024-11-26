@@ -890,7 +890,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Set light on/off to off
     await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', false, this.dimmer.log);
-    const minLevel = this.dimmer?.getAttribute(LevelControlCluster.id, 'currentLevel', this.dimmer.log) | 0;
+    const minLevel = this.dimmer?.getAttribute(LevelControlCluster.id, 'minLevel', this.dimmer.log) | 0;
     await this.dimmer?.setAttribute(LevelControlCluster.id, 'currentLevel', minLevel, this.dimmer.log);
     this.dimmer?.log.info(`Set dimmer initial onOff to false, currentLevel to ${minLevel}.`);
 
