@@ -18,10 +18,13 @@ import {
   Thermostat,
   FanControl,
   FanControlCluster,
+  MatterbridgeDevice,
+  MatterbridgeEndpoint,
 } from 'matterbridge';
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { ExampleMatterbridgeDynamicPlatform } from './platform';
 import { jest } from '@jest/globals';
+import { wait } from 'matterbridge/utils';
 
 describe('TestPlatform', () => {
   let mockMatterbridge: Matterbridge;
@@ -50,8 +53,13 @@ describe('TestPlatform', () => {
 
   beforeAll(() => {
     mockMatterbridge = {
-      addBridgedDevice: jest.fn(),
-      addBridgedEndpoint: jest.fn(),
+      addBridgedDevice: jest.fn(async (pluginName: string, device: MatterbridgeDevice) => {
+        // console.error('addBridgedDevice called');
+      }),
+      addBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {
+        device.number = 100;
+        // console.error('addBridgedEndpoint called');
+      }),
       matterbridgeDirectory: '',
       matterbridgePluginDirectory: 'temp',
       systemInformation: { ipv4Address: undefined },
@@ -77,6 +85,15 @@ describe('TestPlatform', () => {
     });
   });
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    loggerLogSpy.mockRestore();
+    consoleLogSpy.mockRestore();
+  });
+
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
@@ -90,10 +107,32 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
   });
 
+  it('should call onStart in edge mode', async () => {
+    mockMatterbridge.edge = true;
+    await testPlatform.onStart('Test reason');
+    expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
+  }, 60000);
+
+  it('should call onConfigure in edge mode', async () => {
+    jest.useFakeTimers();
+
+    await testPlatform.onConfigure();
+    expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
+
+    jest.advanceTimersByTime(60 * 1000);
+    jest.useRealTimers();
+  });
+
+  it('should call onShutdown  in edge mode', async () => {
+    await testPlatform.onShutdown('Test reason');
+    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
+    mockMatterbridge.edge = false;
+  });
+
   it('should call onStart with reason', async () => {
     await testPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-  });
+  }, 60000);
 
   it('should execute the commandHandlers', async () => {
     // Invoke command handlers
