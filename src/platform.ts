@@ -20,6 +20,7 @@ import {
   FlowMeasurementCluster,
   FormaldehydeConcentrationMeasurement,
   LevelControlCluster,
+  MatterbridgeEndpoint,
   NitrogenDioxideConcentrationMeasurement,
   OnOffCluster,
   OzoneConcentrationMeasurement,
@@ -89,12 +90,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
   async createMutableDevice(definition: DeviceTypeDefinition | AtLeastOne<DeviceTypeDefinition>, options: EndpointOptions = {}, debug = false): Promise<MatterbridgeDevice> {
     let device: MatterbridgeDevice;
-    const matterbridge = await import('matterbridge');
-    if ('edge' in this.matterbridge && this.matterbridge.edge === true && 'MatterbridgeEndpoint' in matterbridge) {
-      // Dynamically resolve the MatterbridgeEndpoint class from the imported module and instantiate it without throwing a TypeScript error for old versions of Matterbridge
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      device = new (matterbridge as any).MatterbridgeEndpoint(definition, options, debug) as MatterbridgeDevice;
-    } else device = new MatterbridgeDevice(definition, options, debug);
+    if (this.matterbridge.edge === true) device = new MatterbridgeEndpoint(definition, options, debug) as unknown as MatterbridgeDevice;
+    else device = new MatterbridgeDevice(definition, options, debug);
     return device;
   }
 
@@ -102,9 +99,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('1.6.2')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('1.6.6')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "1.6.2". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "1.6.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -318,8 +315,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.lightHS.createDefaultOnOffClusterServer();
     this.lightHS.createDefaultLevelControlClusterServer();
-    this.lightHS.createDefaultColorControlClusterServer();
-    await this.lightHS.configureColorControlCluster(true, false, false, ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
+    this.lightHS.createHsColorControlClusterServer();
+    // await this.lightHS.configureColorControlCluster(true, false, false, ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
     this.lightHS.addDeviceType(powerSource);
     this.lightHS.createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.lightHS);
@@ -381,8 +378,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.lightXY.createDefaultOnOffClusterServer();
     this.lightXY.createDefaultLevelControlClusterServer();
-    this.lightXY.createDefaultColorControlClusterServer();
-    await this.lightXY.configureColorControlCluster(false, true, false, ColorControl.ColorMode.CurrentXAndCurrentY);
+    this.lightXY.createXyColorControlClusterServer();
+    // await this.lightXY.configureColorControlCluster(false, true, false, ColorControl.ColorMode.CurrentXAndCurrentY);
     this.lightXY.addDeviceType(powerSource);
     this.lightXY.createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.lightXY);
@@ -432,8 +429,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.lightCT.createDefaultOnOffClusterServer();
     this.lightCT.createDefaultLevelControlClusterServer();
-    this.lightCT.createDefaultColorControlClusterServer();
-    await this.lightCT.configureColorControlCluster(false, false, true, ColorControl.ColorMode.ColorTemperatureMireds);
+    this.lightCT.createCtColorControlClusterServer();
+    // await this.lightCT.configureColorControlCluster(false, false, true, ColorControl.ColorMode.ColorTemperatureMireds);
     this.lightCT.addDeviceType(powerSource);
     this.lightCT.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     await this.registerDevice(this.lightCT);
