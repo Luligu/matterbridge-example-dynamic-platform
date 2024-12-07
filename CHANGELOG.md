@@ -6,6 +6,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [1.1.1] - 2024-12-07
 
+- [package]: Added the Matter 1.3 airConditioner device.
 - [package]: Require matterbridge 1.6.6
 - [package]: Updated package.
 - [package]: Updated dependencies.

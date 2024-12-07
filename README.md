@@ -30,6 +30,7 @@ It exposes:
 - a lock with doorLock cluster
 - a thermo with thermostat cluster and 3 sub endpoints with flowMeasurement cluster, temperatureMeasurement cluster
   and relativeHumidityMeasurement cluster (to show how to create a composed device with sub endpoints)
+- an airConditioner device
 - a fan with FanControl cluster
 - a rainSensor device
 - a waterFreezeDetector device
