@@ -41,6 +41,7 @@ import {
   TypeFromPartialBitSchema,
   WindowCovering,
   WindowCoveringCluster,
+  airConditioner,
   airQualitySensor,
   bridgedNode,
   onOffSwitch,
@@ -72,6 +73,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   rain: MatterbridgeDevice | undefined;
   smoke: MatterbridgeDevice | undefined;
   airQuality: MatterbridgeDevice | undefined;
+  airConditioner: MatterbridgeDevice | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -85,6 +87,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   rainInterval: NodeJS.Timeout | undefined;
   smokeInterval: NodeJS.Timeout | undefined;
   airQualityInterval: NodeJS.Timeout | undefined;
+  airConditionerInterval: NodeJS.Timeout | undefined;
 
   bridgedDevices = new Map<string, MatterbridgeDevice>();
 
@@ -679,6 +682,45 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermo,
     );
 
+    // Create a airConditioning device
+    this.airConditioner = await this.createMutableDevice([airConditioner, bridgedNode], { uniqueStorageKey: 'Air conditioner' }, this.config.debug as boolean);
+    this.airConditioner.log.logName = 'Air conditioner';
+    this.airConditioner.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Air conditioner',
+      '0x96382864',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Air conditioner',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version === '' ? 'Unknown' : this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
+    this.airConditioner.createDefaultIdentifyClusterServer();
+    this.airConditioner.createDefaultOnOffClusterServer(true);
+    this.airConditioner.createDefaultThermostatClusterServer(20, 18, 22);
+    this.airConditioner.createDefaultFanControlClusterServer();
+    this.airConditioner.createDefaultTemperatureMeasurementClusterServer(20);
+    this.airConditioner.createDefaultRelativeHumidityMeasurementClusterServer(50);
+
+    this.airConditioner.addDeviceType(powerSource);
+    this.airConditioner.createDefaultPowerSourceWiredClusterServer();
+
+    await this.registerDevice(this.airConditioner);
+    this.bridgedDevices.set(this.airConditioner.deviceName ?? '', this.airConditioner);
+
+    this.airConditioner.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.airConditioner?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.airConditioner.addCommandHandler('on', async () => {
+      await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', true, this.airConditioner?.log);
+      this.outlet?.log.info('Command on called');
+    });
+    this.airConditioner.addCommandHandler('off', async () => {
+      await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', false, this.airConditioner?.log);
+      this.outlet?.log.info('Command off called');
+    });
+
     // Create a fan device
     this.fan = await this.createMutableDevice([DeviceTypes.FAN, bridgedNode], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean);
     this.fan.log.logName = 'Fan';
@@ -1052,6 +1094,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       60 * 1000 + 600,
     );
 
+    // Set airConditioner to on
+    await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', true, this.airConditioner.log);
+    // Increment airConditioner localTemperature every minute
+    this.airConditionerInterval = setInterval(
+      async () => {
+        let temperature = this.airConditioner?.getAttribute(ThermostatCluster.id, 'localTemperature', this.airConditioner.log);
+        if (isValidNumber(temperature, 1600, 2400)) {
+          temperature = temperature + 100 > 2400 ? 1600 : temperature + 100;
+          await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.airConditioner.log);
+          await this.airConditioner?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature, this.airConditioner.log);
+          await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner.log);
+          this.airConditioner?.log.info(`Set airConditioner localTemperature to ${temperature / 100}°C`);
+        }
+      },
+      60 * 1000 + 550,
+    );
+
     // Set fan to auto
     this.fan?.log.info('Set fan initial fanMode to Auto, percentCurrent and percentSetting to 50 and speedCurrent and speedSetting to 50');
     await this.fan?.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto, this.fan.log);
@@ -1166,6 +1225,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     clearInterval(this.rainInterval);
     clearInterval(this.smokeInterval);
     clearInterval(this.airQualityInterval);
+    clearInterval(this.airConditionerInterval);
     if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices();
   }
 }
