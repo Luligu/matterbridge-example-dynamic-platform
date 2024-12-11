@@ -301,12 +301,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Create a light device with HS color control
     this.lightHS = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (HS)' }, this.config.debug as boolean);
-    this.lightHS.log.logName = 'Light (HS)';
+    this.lightHS.log.logName = 'Light (HS, CT)';
     this.lightHS.createDefaultIdentifyClusterServer();
     this.lightHS.createDefaultGroupsClusterServer();
     this.lightHS.createDefaultScenesClusterServer();
     this.lightHS.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Light (HS)',
+      'Light (HS, CT)',
       '0x25097564',
       0xfff1,
       'Matterbridge',
@@ -361,15 +361,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         `Command moveToSaturation called request: saturation ${saturation} attributes: hue ${currentHue?.getLocal()} saturation ${currentSaturation?.getLocal()}`,
       );
     });
+    this.lightHS.addCommandHandler('moveToColorTemperature', async ({ request, attributes }) => {
+      await this.light?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', request.colorTemperatureMireds, this.light?.log, this.light);
+      this.light?.log.debug(`Command moveToColorTemperature called request: ${request.colorTemperatureMireds} attributes: ${attributes.colorTemperatureMireds?.getLocal()}`);
+    });
 
     // Create a light device with XY color control
     this.lightXY = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (XY)' }, this.config.debug as boolean);
-    this.lightXY.log.logName = 'Light (XY)';
+    this.lightXY.log.logName = 'Light (XY, CT)';
     this.lightXY.createDefaultIdentifyClusterServer();
     this.lightXY.createDefaultGroupsClusterServer();
     this.lightXY.createDefaultScenesClusterServer();
     this.lightXY.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Light (XY)',
+      'Light (XY, CT)',
       '0x23497564',
       0xfff1,
       'Matterbridge',
@@ -411,6 +415,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.lightXY?.setAttribute(ColorControlCluster.id, 'currentX', colorX, this.light?.log, this.light);
       await this.lightXY?.setAttribute(ColorControlCluster.id, 'currentY', colorY, this.light?.log, this.light);
       this.lightXY?.log.debug(`Command moveToColor called request: X ${colorX / 65536} Y ${colorY / 65536}`);
+    });
+    this.lightXY.addCommandHandler('moveToColorTemperature', async ({ request, attributes }) => {
+      await this.light?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', request.colorTemperatureMireds, this.light?.log, this.light);
+      this.light?.log.debug(`Command moveToColorTemperature called request: ${request.colorTemperatureMireds} attributes: ${attributes.colorTemperatureMireds?.getLocal()}`);
     });
 
     // Create a light device with CT color control
@@ -929,17 +937,16 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Set light on/off to off
     await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', false, this.dimmer.log);
-    const minLevel = this.dimmer?.getAttribute(LevelControlCluster.id, 'minLevel', this.dimmer.log) | 0;
-    await this.dimmer?.setAttribute(LevelControlCluster.id, 'currentLevel', minLevel, this.dimmer.log);
-    this.dimmer?.log.info(`Set dimmer initial onOff to false, currentLevel to ${minLevel}.`);
+    await this.dimmer?.setAttribute(LevelControlCluster.id, 'currentLevel', 1, this.dimmer.log);
+    this.dimmer?.log.info(`Set dimmer initial onOff to false, currentLevel to 1.`);
 
     // Set light to off, level to 0 and hue to 0 and saturation to 50% (pink color)
     await this.light?.setAttribute(OnOffCluster.id, 'onOff', false, this.light.log);
-    await this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', 0, this.light.log);
+    await this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', 1, this.light.log);
     await this.light?.setAttribute(ColorControlCluster.id, 'currentHue', 0, this.light.log);
     await this.light?.setAttribute(ColorControlCluster.id, 'currentSaturation', 128, this.light.log);
     await this.light?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
-    this.light?.log.info('Set light initial onOff to false, currentLevel to 0, hue to 0 and saturation to 50%.');
+    this.light?.log.info('Set light initial onOff to false, currentLevel to 1, hue to 0 and saturation to 50%.');
 
     // Set light XY to true, level to 100% and XY to red
     await this.lightXY?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightXY.log);
@@ -951,11 +958,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Set light HS to off, level to 0 and hue to 0 and saturation to 50% (pink color)
     await this.lightHS?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightHS.log);
-    await this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', 0, this.lightHS.log);
+    await this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', 1, this.lightHS.log);
     await this.lightHS?.setAttribute(ColorControlCluster.id, 'currentHue', 0, this.lightHS.log);
     await this.lightHS?.setAttribute(ColorControlCluster.id, 'currentSaturation', 128, this.lightHS.log);
     await this.lightHS?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
-    this.lightHS?.log.info('Set light HS initial onOff to false, currentLevel to 0, hue to 0 and saturation to 50%.');
+    this.lightHS?.log.info('Set light HS initial onOff to false, currentLevel to 1, hue to 0 and saturation to 50%.');
 
     // Set light CT to true, level to 50% and colorTemperatureMireds to 250
     await this.lightCT?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightCT.log);
@@ -971,7 +978,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         if (isValidBoolean(state) && isValidNumber(level, 0, 254)) {
           level += 10;
           if (level >= 250) {
-            level = 0;
+            level = 1;
             await this.lightOnOff?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightOnOff.log);
             await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', false, this.dimmer.log);
             await this.light?.setAttribute(OnOffCluster.id, 'onOff', false, this.light.log);
