@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
 
-## [1.1.1] - 2024-12-07
+## [1.1.2] - 2024-12-12
 
 - [package]: Added the Matter 1.3 airConditioner device.
 - [package]: Require matterbridge 1.6.6
