@@ -61,6 +61,7 @@ import {
   waterFreezeDetector,
   waterLeakDetector,
   LocationTag,
+  airPurifier,
 } from 'matterbridge';
 import { Matterbridge, /* MatterbridgeEndpoint as */ MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
@@ -87,6 +88,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   smoke: MatterbridgeDevice | undefined;
   airQuality: MatterbridgeDevice | undefined;
   airConditioner: MatterbridgeDevice | undefined;
+  airPurifier: MatterbridgeDevice | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -103,6 +105,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   airConditionerInterval: NodeJS.Timeout | undefined;
 
   bridgedDevices = new Map<string, MatterbridgeDevice>();
+
+  fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
 
   async createMutableDevice(definition: DeviceTypeDefinition | AtLeastOne<DeviceTypeDefinition>, options: EndpointOptions = {}, debug = false): Promise<MatterbridgeDevice> {
     let device: MatterbridgeDevice;
@@ -631,7 +635,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoAuto.createDefaultScenesClusterServer();
     this.thermoAuto.createDefaultBridgedDeviceBasicInformationClusterServer(
       'Thermostat (AutoMode)',
-      '0x96382164',
+      '0x96382164A',
       0xfff1,
       'Matterbridge',
       'Matterbridge Thermostat',
@@ -713,7 +717,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoHeat.createDefaultScenesClusterServer();
     this.thermoHeat.createDefaultBridgedDeviceBasicInformationClusterServer(
       'Thermostat (Heat)',
-      '0x96382164',
+      '0x96382164H',
       0xfff1,
       'Matterbridge',
       'Matterbridge Thermostat',
@@ -773,7 +777,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoCool.createDefaultScenesClusterServer();
     this.thermoCool.createDefaultBridgedDeviceBasicInformationClusterServer(
       'Thermostat (Cool)',
-      '0x96382164',
+      '0x96382164C',
       0xfff1,
       'Matterbridge',
       'Matterbridge Thermostat',
@@ -800,7 +804,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'systemMode',
       async (value) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
-        this.thermoAuto?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+        this.thermoCool?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
       },
       this.thermoCool.log,
     );
@@ -813,8 +817,76 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoCool.log,
     );
 
+    // Create a airPurifier device
+    this.airPurifier = await this.createMutableDevice(
+      [airPurifier, temperatureSensor, humiditySensor, bridgedNode],
+      { uniqueStorageKey: 'Air purifier' },
+      this.config.debug as boolean,
+    );
+    this.airPurifier.log.logName = 'Air purifier';
+    this.airPurifier.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Air purifier',
+      '0x96584864',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Air purifier',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version === '' ? 'Unknown' : this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
+    this.airPurifier.createDefaultIdentifyClusterServer();
+    this.airPurifier.createDefaultFanControlClusterServer();
+    this.airPurifier.createDefaultTemperatureMeasurementClusterServer(20 * 100);
+    this.airPurifier.createDefaultRelativeHumidityMeasurementClusterServer(50 * 100);
+
+    this.airPurifier.addDeviceType(powerSource);
+    this.airPurifier.createDefaultPowerSourceWiredClusterServer();
+
+    await this.registerDevice(this.airPurifier);
+    this.bridgedDevices.set(this.airPurifier.deviceName ?? '', this.airPurifier);
+
+    this.airPurifier.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.airPurifier?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    // Apple sends Off and High
+    this.airPurifier.subscribeAttribute(
+      FanControlCluster.id,
+      'fanMode',
+      async (newValue: FanControl.FanMode, oldValue: FanControl.FanMode) => {
+        this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]}`);
+        if (newValue === FanControl.FanMode.Off) {
+          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 0, this.airPurifier?.log);
+        } else if (newValue === FanControl.FanMode.Low) {
+          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 33, this.airPurifier?.log);
+        } else if (newValue === FanControl.FanMode.Medium) {
+          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 66, this.airPurifier?.log);
+        } else if (newValue === FanControl.FanMode.High) {
+          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 100, this.airPurifier?.log);
+        } else if (newValue === FanControl.FanMode.On) {
+          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 100, this.airPurifier?.log);
+        } else if (newValue === FanControl.FanMode.Auto) {
+          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 50, this.airPurifier?.log);
+        }
+      },
+      this.airPurifier.log,
+    );
+    this.airPurifier.subscribeAttribute(
+      FanControlCluster.id,
+      'percentSetting',
+      async (newValue: number | null, oldValue: number | null) => {
+        this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue}`);
+        if (isValidNumber(newValue, 0, 100)) await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', newValue, this.airPurifier?.log);
+      },
+      this.airPurifier.log,
+    );
+
     // Create a airConditioning device
-    this.airConditioner = await this.createMutableDevice([airConditioner, bridgedNode], { uniqueStorageKey: 'Air conditioner' }, this.config.debug as boolean);
+    this.airConditioner = await this.createMutableDevice(
+      [airConditioner, fanDevice, temperatureSensor, humiditySensor, bridgedNode],
+      { uniqueStorageKey: 'Air conditioner' },
+      this.config.debug as boolean,
+    );
     this.airConditioner.log.logName = 'Air conditioner';
     this.airConditioner.createDefaultBridgedDeviceBasicInformationClusterServer(
       'Air conditioner',
@@ -870,12 +942,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.registerDevice(this.fan);
     this.bridgedDevices.set(this.fan.deviceName ?? '', this.fan);
 
-    const fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
     this.fan.subscribeAttribute(
       FanControlCluster.id,
       'fanMode',
       async (newValue: FanControl.FanMode, oldValue: FanControl.FanMode) => {
-        this.fan?.log.info(`Fan mode changed from ${fanModeLookup[oldValue]} to ${fanModeLookup[newValue]}`);
+        this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]}`);
         if (newValue === FanControl.FanMode.Off) {
           await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', 0, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Low) {

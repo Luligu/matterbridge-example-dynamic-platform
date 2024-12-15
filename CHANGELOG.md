@@ -8,6 +8,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [package]: Added thermostat Heat only with two external temperature sensors (tagged like Indoor and Outdoor).
 - [package]: Added thermostat Cool only.
+- [package]: Added an airPurifier device with temperature and humidity sensor (supported by Apple Home).
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
@@ -16,7 +17,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [1.1.2] - 2024-12-12
 
-- [package]: Added the Matter 1.3 airConditioner device.
+- [package]: Added the Matter 1.3 airConditioner device (not supported by Apple Home).
 - [package]: Require matterbridge 1.6.6.
 - [package]: Added Jest test with 100% coverage.
 - [package]: Updated package.
