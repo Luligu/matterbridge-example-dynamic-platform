@@ -219,13 +219,13 @@ describe('TestPlatform', () => {
 
     // Simulate multiple interval executions
     for (let i = 0; i < 200; i++) {
-      jest.advanceTimersByTime(30 * 1000);
+      jest.advanceTimersByTime(61 * 1000);
       await Promise.resolve();
     }
-    expect(mockLog.info).toHaveBeenCalledTimes(192);
+    expect(mockLog.info).toHaveBeenCalledTimes(390);
 
     jest.useRealTimers();
-  });
+  }, 300000);
 
   it('should call onShutdown with reason', async () => {
     await dynamicPlatform.onShutdown('Test reason');

@@ -60,6 +60,7 @@ import {
   thermostatDevice,
   waterFreezeDetector,
   waterLeakDetector,
+  LocationTag,
 } from 'matterbridge';
 import { Matterbridge, /* MatterbridgeEndpoint as */ MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
@@ -398,7 +399,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightXY.createDefaultOnOffClusterServer();
     this.lightXY.createDefaultLevelControlClusterServer();
     this.lightXY.createXyColorControlClusterServer();
-    // await this.lightXY.configureColorControlCluster(false, true, false, ColorControl.ColorMode.CurrentXAndCurrentY);
     this.lightXY.addDeviceType(powerSource);
     this.lightXY.createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.lightXY);
@@ -726,6 +726,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoHeat.addDeviceType(powerSource);
     this.thermoHeat.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
 
+    const heatTempIN = this.thermoHeat.addChildDeviceType('TemperatureIN', [temperatureSensor], {
+      tagList: [{ mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null }],
+    });
+    heatTempIN.createDefaultIdentifyClusterServer();
+    heatTempIN.createDefaultTemperatureMeasurementClusterServer(21 * 100);
+
+    const heatTempOUT = this.thermoHeat.addChildDeviceType('TemperatureOUT', [temperatureSensor], {
+      tagList: [{ mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: null }],
+    });
+    heatTempOUT.createDefaultIdentifyClusterServer();
+    heatTempOUT.createDefaultTemperatureMeasurementClusterServer(15 * 100);
+
     await this.registerDevice(this.thermoHeat);
     this.bridgedDevices.set(this.thermoHeat.deviceName ?? '', this.thermoHeat);
 
@@ -770,7 +782,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
-    this.thermoCool.createDefaultThermostatClusterServer(20, 18, 22);
+    this.thermoCool.createDefaultCoolingThermostatClusterServer(20, 18, 22);
     this.thermoCool.addDeviceType(powerSource);
     this.thermoCool.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
 
@@ -902,6 +914,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.fan,
     );
 
+    /** ********************* Create a waterLeakDetector device ***********************/
     this.waterLeak = await this.createMutableDevice([waterLeakDetector, bridgedNode], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean);
     this.waterLeak.log.logName = 'Water leak detector';
     this.waterLeak.createDefaultBridgedDeviceBasicInformationClusterServer(
@@ -917,8 +930,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.waterLeak.addDeviceTypeWithClusterServer([waterLeakDetector], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.waterLeak);
+    this.bridgedDevices.set(this.waterLeak.deviceName ?? '', this.waterLeak);
     await this.waterLeak.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterLeak.log);
 
+    /** ********************* Create a waterFreezeDetector device ***********************/
     this.waterFreeze = await this.createMutableDevice([waterFreezeDetector, bridgedNode], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean);
     this.waterFreeze.log.logName = 'Water freeze detector';
     this.waterFreeze.createDefaultBridgedDeviceBasicInformationClusterServer(
@@ -935,9 +950,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.waterFreeze.addDeviceTypeWithClusterServer([waterFreezeDetector], [BooleanStateConfiguration.Cluster.id]);
     await this.registerDevice(this.waterFreeze);
     this.bridgedDevices.set(this.waterFreeze.deviceName ?? '', this.waterFreeze);
-
     await this.waterFreeze.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterFreeze.log);
 
+    /** ********************* Create a rainSensor device ***********************/
     this.rain = await this.createMutableDevice([rainSensor, bridgedNode], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean);
     this.rain.log.logName = 'Rain sensor';
     this.rain.createDefaultBridgedDeviceBasicInformationClusterServer(
@@ -956,6 +971,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.bridgedDevices.set(this.rain.deviceName ?? '', this.rain);
     await this.rain.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.rain.log);
 
+    /** ********************* Create a smokeCoAlarm device ***********************/
     this.smoke = await this.createMutableDevice([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean);
     this.smoke.log.logName = 'Smoke alarm sensor';
     this.smoke.createDefaultBridgedDeviceBasicInformationClusterServer(
@@ -1201,6 +1217,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           temperature = temperature + 100 > 2400 ? 1600 : temperature + 100;
           await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoAuto.log);
           await this.thermoHeat?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoHeat.log);
+          const tempIn = this.thermoHeat?.getChildEndpointByName('TemperatureIN') as MatterbridgeDevice | undefined;
+          await tempIn?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature - 50, this.thermoHeat?.log);
+          const tempOut = this.thermoHeat?.getChildEndpointByName('TemperatureOUT') as MatterbridgeDevice | undefined;
+          await tempOut?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature - 400, this.thermoHeat?.log);
+
           await this.thermoCool?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoCool.log);
           const temp = this.thermoAuto?.getChildEndpointByName('Temperature');
           await this.thermoAuto?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature, this.thermoAuto.log, temp);
