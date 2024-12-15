@@ -6,7 +6,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [1.1.3] - 2024-12-15
 
-- [package]: Added thermostat Heat only with two external temperature sensors (tagged like Indoor and Outdoor)
+- [package]: Added thermostat Heat only with two external temperature sensors (tagged like Indoor and Outdoor).
 - [package]: Added thermostat Cool only.
 - [package]: Updated dependencies.
 
@@ -17,7 +17,8 @@ If you like this project and find it useful, please consider giving it a star on
 ## [1.1.2] - 2024-12-12
 
 - [package]: Added the Matter 1.3 airConditioner device.
-- [package]: Require matterbridge 1.6.6
+- [package]: Require matterbridge 1.6.6.
+- [package]: Added Jest test with 100% coverage.
 - [package]: Updated package.
 - [package]: Updated dependencies.
 
