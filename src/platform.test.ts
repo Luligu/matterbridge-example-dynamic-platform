@@ -222,9 +222,10 @@ describe('TestPlatform', () => {
       jest.advanceTimersByTime(30 * 1000);
       await Promise.resolve();
     }
+    expect(mockLog.info).toHaveBeenCalledTimes(192);
 
     jest.useRealTimers();
-  }, 60000);
+  });
 
   it('should call onShutdown with reason', async () => {
     await dynamicPlatform.onShutdown('Test reason');

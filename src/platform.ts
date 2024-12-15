@@ -10,7 +10,6 @@ import {
   ColorControl,
   ColorControlCluster,
   DeviceTypeDefinition,
-  DeviceTypes,
   DoorLock,
   DoorLockCluster,
   EndpointOptions,
@@ -44,10 +43,21 @@ import {
   airConditioner,
   airQualitySensor,
   bridgedNode,
+  colorTemperatureLight,
+  coverDevice,
+  dimmableLight,
+  doorLockDevice,
+  fanDevice,
+  flowSensor,
+  humiditySensor,
+  onOffLight,
+  onOffOutlet,
   onOffSwitch,
   powerSource,
   rainSensor,
   smokeCoAlarm,
+  temperatureSensor,
+  thermostatDevice,
   waterFreezeDetector,
   waterLeakDetector,
 } from 'matterbridge';
@@ -66,7 +76,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   outlet: MatterbridgeDevice | undefined;
   cover: MatterbridgeDevice | undefined;
   lock: MatterbridgeDevice | undefined;
-  thermo: MatterbridgeDevice | undefined;
+  thermoAuto: MatterbridgeDevice | undefined;
+  thermoHeat: MatterbridgeDevice | undefined;
+  thermoCool: MatterbridgeDevice | undefined;
   fan: MatterbridgeDevice | undefined;
   waterLeak: MatterbridgeDevice | undefined;
   waterFreeze: MatterbridgeDevice | undefined;
@@ -150,7 +162,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a on off light device
-    this.lightOnOff = await this.createMutableDevice([DeviceTypes.ON_OFF_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (on/off)' }, this.config.debug as boolean);
+    this.lightOnOff = await this.createMutableDevice([onOffLight, bridgedNode], { uniqueStorageKey: 'Light (on/off)' }, this.config.debug as boolean);
     this.lightOnOff.log.logName = 'Light (on/off)';
     this.lightOnOff.createDefaultIdentifyClusterServer();
     this.lightOnOff.createDefaultGroupsClusterServer();
@@ -185,7 +197,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a dimmer device
-    this.dimmer = await this.createMutableDevice([DeviceTypes.DIMMABLE_LIGHT, bridgedNode], { uniqueStorageKey: 'Dimmer' }, this.config.debug as boolean);
+    this.dimmer = await this.createMutableDevice([dimmableLight, bridgedNode], { uniqueStorageKey: 'Dimmer' }, this.config.debug as boolean);
     this.dimmer.log.logName = 'Dimmer';
     this.dimmer.createDefaultIdentifyClusterServer();
     this.dimmer.createDefaultGroupsClusterServer();
@@ -229,7 +241,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device
-    this.light = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (XY, HS and CT)' }, this.config.debug as boolean);
+    this.light = await this.createMutableDevice([colorTemperatureLight, bridgedNode], { uniqueStorageKey: 'Light (XY, HS and CT)' }, this.config.debug as boolean);
     this.light.log.logName = 'Light (XY, HS and CT)';
     this.light.createDefaultIdentifyClusterServer();
     this.light.createDefaultGroupsClusterServer();
@@ -300,7 +312,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with HS color control
-    this.lightHS = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (HS)' }, this.config.debug as boolean);
+    this.lightHS = await this.createMutableDevice([colorTemperatureLight, bridgedNode], { uniqueStorageKey: 'Light (HS)' }, this.config.debug as boolean);
     this.lightHS.log.logName = 'Light (HS, CT)';
     this.lightHS.createDefaultIdentifyClusterServer();
     this.lightHS.createDefaultGroupsClusterServer();
@@ -367,7 +379,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with XY color control
-    this.lightXY = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (XY)' }, this.config.debug as boolean);
+    this.lightXY = await this.createMutableDevice([colorTemperatureLight, bridgedNode], { uniqueStorageKey: 'Light (XY)' }, this.config.debug as boolean);
     this.lightXY.log.logName = 'Light (XY, CT)';
     this.lightXY.createDefaultIdentifyClusterServer();
     this.lightXY.createDefaultGroupsClusterServer();
@@ -422,7 +434,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with CT color control
-    this.lightCT = await this.createMutableDevice([DeviceTypes.COLOR_TEMPERATURE_LIGHT, bridgedNode], { uniqueStorageKey: 'Light (CT)' }, this.config.debug as boolean);
+    this.lightCT = await this.createMutableDevice([colorTemperatureLight, bridgedNode], { uniqueStorageKey: 'Light (CT)' }, this.config.debug as boolean);
     this.lightCT.log.logName = 'Light (CT)';
     this.lightCT.createDefaultIdentifyClusterServer();
     this.lightCT.createDefaultGroupsClusterServer();
@@ -472,7 +484,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create an outlet device
-    this.outlet = await this.createMutableDevice([DeviceTypes.ON_OFF_PLUGIN_UNIT, bridgedNode], { uniqueStorageKey: 'Outlet' }, this.config.debug as boolean);
+    this.outlet = await this.createMutableDevice([onOffOutlet, bridgedNode], { uniqueStorageKey: 'Outlet' }, this.config.debug as boolean);
     this.outlet.log.logName = 'Outlet';
     this.outlet.createDefaultIdentifyClusterServer();
     this.outlet.createDefaultGroupsClusterServer();
@@ -508,7 +520,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Create a window covering device
     // Matter uses 10000 = fully closed   0 = fully opened
-    this.cover = await this.createMutableDevice([DeviceTypes.WINDOW_COVERING, bridgedNode], { uniqueStorageKey: 'Cover' }, this.config.debug as boolean);
+    this.cover = await this.createMutableDevice([coverDevice, bridgedNode], { uniqueStorageKey: 'Cover' }, this.config.debug as boolean);
     this.cover.log.logName = 'Cover';
     this.cover.createDefaultIdentifyClusterServer();
     this.cover.createDefaultGroupsClusterServer();
@@ -579,7 +591,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a lock device
-    this.lock = await this.createMutableDevice([DeviceTypes.DOOR_LOCK, bridgedNode], { uniqueStorageKey: 'Lock' }, this.config.debug as boolean);
+    this.lock = await this.createMutableDevice([doorLockDevice, bridgedNode], { uniqueStorageKey: 'Lock' }, this.config.debug as boolean);
     this.lock.log.logName = 'Lock';
     this.lock.createDefaultIdentifyClusterServer();
     this.lock.createDefaultBridgedDeviceBasicInformationClusterServer(
@@ -611,14 +623,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lock?.log.info('Command unlockDoor called');
     });
 
-    // Create a thermostat device
-    this.thermo = await this.createMutableDevice([DeviceTypes.THERMOSTAT, bridgedNode], { uniqueStorageKey: 'Thermostat' }, this.config.debug as boolean);
-    this.thermo.log.logName = 'Thermostat';
-    this.thermo.createDefaultIdentifyClusterServer();
-    this.thermo.createDefaultGroupsClusterServer();
-    this.thermo.createDefaultScenesClusterServer();
-    this.thermo.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Thermostat',
+    // Create a thermostat with AutoMode device
+    this.thermoAuto = await this.createMutableDevice([thermostatDevice, bridgedNode], { uniqueStorageKey: 'ThermostatAuto' }, this.config.debug as boolean);
+    this.thermoAuto.log.logName = 'Thermostat (AutoMode)';
+    this.thermoAuto.createDefaultIdentifyClusterServer();
+    this.thermoAuto.createDefaultGroupsClusterServer();
+    this.thermoAuto.createDefaultScenesClusterServer();
+    this.thermoAuto.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Thermostat (AutoMode)',
       '0x96382164',
       0xfff1,
       'Matterbridge',
@@ -628,66 +640,165 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
-    this.thermo.createDefaultThermostatClusterServer(20, 18, 22);
-    this.thermo.addDeviceType(powerSource);
-    this.thermo.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+    this.thermoAuto.createDefaultThermostatClusterServer(20, 18, 22);
+    this.thermoAuto.addDeviceType(powerSource);
+    this.thermoAuto.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
 
-    const flowChild = this.thermo.addChildDeviceTypeWithClusterServer('Flow', [DeviceTypes.FLOW_SENSOR], [FlowMeasurement.Cluster.id]);
+    const flowChild = this.thermoAuto.addChildDeviceTypeWithClusterServer('Flow', [flowSensor], [FlowMeasurement.Cluster.id]);
     flowChild.getClusterServer(FlowMeasurement.Cluster)?.setMeasuredValueAttribute(1 * 10);
 
-    const tempChild = this.thermo.addChildDeviceTypeWithClusterServer('Temperature', [DeviceTypes.TEMPERATURE_SENSOR], [TemperatureMeasurement.Cluster.id]);
+    const tempChild = this.thermoAuto.addChildDeviceTypeWithClusterServer('Temperature', [temperatureSensor], [TemperatureMeasurement.Cluster.id]);
     tempChild.getClusterServer(TemperatureMeasurement.Cluster)?.setMeasuredValueAttribute(41 * 100);
 
-    const humidityChild = this.thermo.addChildDeviceTypeWithClusterServer('Humidity', [DeviceTypes.HUMIDITY_SENSOR], [RelativeHumidityMeasurement.Cluster.id]);
+    const humidityChild = this.thermoAuto.addChildDeviceTypeWithClusterServer('Humidity', [humiditySensor], [RelativeHumidityMeasurement.Cluster.id]);
     humidityChild.getClusterServer(RelativeHumidityMeasurement.Cluster)?.setMeasuredValueAttribute(80 * 100);
 
-    await this.registerDevice(this.thermo);
-    this.bridgedDevices.set(this.thermo.deviceName ?? '', this.thermo);
+    await this.registerDevice(this.thermoAuto);
+    this.bridgedDevices.set(this.thermoAuto.deviceName ?? '', this.thermoAuto);
 
-    this.thermo.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
-      this.thermo?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    this.thermoAuto.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.thermoAuto?.log.info(`Command identify called identifyTime ${identifyTime}`);
     });
-    this.thermo.addCommandHandler('setpointRaiseLower', async ({ request: { mode, amount } }) => {
+    this.thermoAuto.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+      this.thermoAuto?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
+    });
+    this.thermoAuto.addCommandHandler('setpointRaiseLower', async ({ request: { mode, amount } }) => {
       const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
-      this.thermo?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
+      this.thermoAuto?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
       if (mode === Thermostat.SetpointRaiseLowerMode.Heat || mode === Thermostat.SetpointRaiseLowerMode.Both) {
-        const setpoint = this.thermo?.getAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', this.thermo?.log) / 100 + amount / 10;
-        await this.thermo?.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', setpoint * 100, this.thermo?.log);
-        this.thermo?.log.info('Set occupiedHeatingSetpoint:', setpoint);
+        const setpoint = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', this.thermoAuto?.log) / 100 + amount / 10;
+        await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', setpoint * 100, this.thermoAuto?.log);
+        this.thermoAuto?.log.info('Set occupiedHeatingSetpoint:', setpoint);
       }
       if (mode === Thermostat.SetpointRaiseLowerMode.Cool || mode === Thermostat.SetpointRaiseLowerMode.Both) {
-        const setpoint = this.thermo?.getAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', this.thermo?.log) / 100 + amount / 10;
-        await this.thermo?.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', setpoint * 100, this.thermo?.log);
-        this.thermo?.log.info('Set occupiedCoolingSetpoint:', setpoint);
+        const setpoint = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', this.thermoAuto?.log) / 100 + amount / 10;
+        await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', setpoint * 100, this.thermoAuto?.log);
+        this.thermoAuto?.log.info('Set occupiedCoolingSetpoint:', setpoint);
       }
     });
-    this.thermo.subscribeAttribute(
+    this.thermoAuto.subscribeAttribute(
       ThermostatCluster.id,
       'systemMode',
       async (value) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
-        this.thermo?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+        this.thermoAuto?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
       },
-      this.thermo.log,
-      this.thermo,
+      this.thermoAuto.log,
+      this.thermoAuto,
     );
-    this.thermo.subscribeAttribute(
+    this.thermoAuto.subscribeAttribute(
       ThermostatCluster.id,
       'occupiedHeatingSetpoint',
       async (value) => {
-        this.thermo?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
+        this.thermoAuto?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
       },
-      this.thermo.log,
-      this.thermo,
+      this.thermoAuto.log,
+      this.thermoAuto,
     );
-    this.thermo.subscribeAttribute(
+    this.thermoAuto.subscribeAttribute(
       ThermostatCluster.id,
       'occupiedCoolingSetpoint',
       async (value) => {
-        this.thermo?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
+        this.thermoAuto?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
       },
-      this.thermo.log,
-      this.thermo,
+      this.thermoAuto.log,
+      this.thermoAuto,
+    );
+
+    // Create a thermostat with Heat device
+    this.thermoHeat = await this.createMutableDevice([thermostatDevice, bridgedNode], { uniqueStorageKey: 'ThermostatHeat' }, this.config.debug as boolean);
+    this.thermoHeat.log.logName = 'Thermostat (Heat)';
+    this.thermoHeat.createDefaultIdentifyClusterServer();
+    this.thermoHeat.createDefaultGroupsClusterServer();
+    this.thermoHeat.createDefaultScenesClusterServer();
+    this.thermoHeat.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Thermostat (Heat)',
+      '0x96382164',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Thermostat',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version === '' ? 'Unknown' : this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
+    this.thermoHeat.createDefaultHeatingThermostatClusterServer(20, 18, 5, 35);
+    this.thermoHeat.addDeviceType(powerSource);
+    this.thermoHeat.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+
+    await this.registerDevice(this.thermoHeat);
+    this.bridgedDevices.set(this.thermoHeat.deviceName ?? '', this.thermoHeat);
+
+    this.thermoHeat.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.thermoHeat?.log.info(`Command identify called identifyTime ${identifyTime}`);
+    });
+    this.thermoHeat.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+      this.thermoHeat?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
+    });
+    this.thermoHeat.subscribeAttribute(
+      ThermostatCluster.id,
+      'systemMode',
+      async (value) => {
+        const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
+        this.thermoHeat?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+      },
+      this.thermoHeat.log,
+    );
+    this.thermoHeat.subscribeAttribute(
+      ThermostatCluster.id,
+      'occupiedHeatingSetpoint',
+      async (value) => {
+        this.thermoHeat?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
+      },
+      this.thermoHeat.log,
+    );
+
+    // Create a thermostat with Cool device
+    this.thermoCool = await this.createMutableDevice([thermostatDevice, bridgedNode], { uniqueStorageKey: 'ThermostatCool' }, this.config.debug as boolean);
+    this.thermoCool.log.logName = 'Thermostat (Cool)';
+    this.thermoCool.createDefaultIdentifyClusterServer();
+    this.thermoCool.createDefaultGroupsClusterServer();
+    this.thermoCool.createDefaultScenesClusterServer();
+    this.thermoCool.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Thermostat (Cool)',
+      '0x96382164',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Thermostat',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version === '' ? 'Unknown' : this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
+    this.thermoCool.createDefaultThermostatClusterServer(20, 18, 22);
+    this.thermoCool.addDeviceType(powerSource);
+    this.thermoCool.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+
+    await this.registerDevice(this.thermoCool);
+    this.bridgedDevices.set(this.thermoCool.deviceName ?? '', this.thermoCool);
+
+    this.thermoCool.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.thermoCool?.log.info(`Command identify called identifyTime ${identifyTime}`);
+    });
+    this.thermoCool.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+      this.thermoCool?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
+    });
+    this.thermoCool.subscribeAttribute(
+      ThermostatCluster.id,
+      'systemMode',
+      async (value) => {
+        const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
+        this.thermoAuto?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+      },
+      this.thermoCool.log,
+    );
+    this.thermoCool.subscribeAttribute(
+      ThermostatCluster.id,
+      'occupiedCoolingSetpoint',
+      async (value) => {
+        this.thermoCool?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
+      },
+      this.thermoCool.log,
     );
 
     // Create a airConditioning device
@@ -730,7 +841,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a fan device
-    this.fan = await this.createMutableDevice([DeviceTypes.FAN, bridgedNode], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean);
+    this.fan = await this.createMutableDevice([fanDevice, bridgedNode], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean);
     this.fan.log.logName = 'Fan';
     this.fan.createDefaultBridgedDeviceBasicInformationClusterServer(
       'Fan',
@@ -743,7 +854,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
-    this.fan.addDeviceTypeWithClusterServer([DeviceTypes.FAN], []);
+    this.fan.addDeviceTypeWithClusterServer([fanDevice], []);
     await this.registerDevice(this.fan);
     this.bridgedDevices.set(this.fan.deviceName ?? '', this.fan);
 
@@ -1071,31 +1182,35 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Set local to 16°C
-    await this.thermo?.setAttribute(ThermostatCluster.id, 'localTemperature', 16 * 100, this.thermo.log);
-    await this.thermo?.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Auto, this.thermo.log);
-    this.thermo?.log.info('Set thermostat initial localTemperature to 16°C and mode Auto');
-    const temperature = this.thermo?.getChildEndpointByName('Temperature');
-    await this.thermo?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', 16 * 100, this.thermo.log, temperature);
-    const humidity = this.thermo?.getChildEndpointByName('Humidity');
-    await this.thermo?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.thermo.log, humidity);
-    const flow = this.thermo?.getChildEndpointByName('Flow');
-    await this.thermo?.setAttribute(FlowMeasurementCluster.id, 'measuredValue', 10, this.thermo.log, flow);
-    this.thermo?.log.info('Set thermostat ext temperature to 16°C, ext humidity to 50% and ext valve flow to 10');
+    await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'localTemperature', 16 * 100, this.thermoAuto.log);
+    await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Auto, this.thermoAuto.log);
+    this.thermoAuto?.log.info('Set thermostat initial localTemperature to 16°C and mode Auto');
+    const temperature = this.thermoAuto?.getChildEndpointByName('Temperature');
+    await this.thermoAuto?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', 16 * 100, this.thermoAuto.log, temperature);
+    const humidity = this.thermoAuto?.getChildEndpointByName('Humidity');
+    await this.thermoAuto?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.thermoAuto.log, humidity);
+    const flow = this.thermoAuto?.getChildEndpointByName('Flow');
+    await this.thermoAuto?.setAttribute(FlowMeasurementCluster.id, 'measuredValue', 10, this.thermoAuto.log, flow);
+    this.thermoAuto?.log.info('Set thermostat ext temperature to 16°C, ext humidity to 50% and ext valve flow to 10');
 
     // Increment localTemperature every minute
     this.thermoInterval = setInterval(
       async () => {
-        let temperature = this.thermo?.getAttribute(ThermostatCluster.id, 'localTemperature', this.thermo.log);
+        let temperature = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'localTemperature', this.thermoAuto.log);
         if (isValidNumber(temperature, 1600, 2400)) {
           temperature = temperature + 100 > 2400 ? 1600 : temperature + 100;
-          await this.thermo?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermo.log);
-          const temp = this.thermo?.getChildEndpointByName('Temperature');
-          await this.thermo?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature, this.thermo.log, temp);
-          const humidity = this.thermo?.getChildEndpointByName('Humidity');
-          await this.thermo?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.thermo.log, humidity);
-          const flow = this.thermo?.getChildEndpointByName('Flow');
-          await this.thermo?.setAttribute(FlowMeasurementCluster.id, 'measuredValue', 10, this.thermo.log, flow);
-          this.thermo?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
+          await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoAuto.log);
+          await this.thermoHeat?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoHeat.log);
+          await this.thermoCool?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoCool.log);
+          const temp = this.thermoAuto?.getChildEndpointByName('Temperature');
+          await this.thermoAuto?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature, this.thermoAuto.log, temp);
+          const humidity = this.thermoAuto?.getChildEndpointByName('Humidity');
+          await this.thermoAuto?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.thermoAuto.log, humidity);
+          const flow = this.thermoAuto?.getChildEndpointByName('Flow');
+          await this.thermoAuto?.setAttribute(FlowMeasurementCluster.id, 'measuredValue', 10, this.thermoAuto.log, flow);
+          this.thermoAuto?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
+          this.thermoHeat?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
+          this.thermoCool?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
         }
       },
       60 * 1000 + 600,
