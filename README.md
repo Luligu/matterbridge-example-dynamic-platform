@@ -30,7 +30,7 @@ It exposes:
 - a lock with doorLock cluster
 - a thermo autoMode (i.e. with Auto Heat and Cool features) with thermostat cluster and 3 sub endpoints with flowMeasurement cluster, temperatureMeasurement cluster
   and relativeHumidityMeasurement cluster (to show how to create a composed device with sub endpoints)
-- a thermo heat only
+- a thermo heat only with two external temperature sensors (tagged like Indoor and Outdoor)
 - a thermo cool only
 - an airConditioner device
 - a fan with FanControl cluster
