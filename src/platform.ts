@@ -885,9 +885,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.airPurifier.log,
     );
 
-    // Create a airConditioning device
+    // Create a airConditioner device
     this.airConditioner = await this.createMutableDevice(
-      [airConditioner, fanDevice, temperatureSensor, humiditySensor, bridgedNode],
+      [airConditioner, /* fanDevice, temperatureSensor, humiditySensor,*/ bridgedNode],
       { uniqueStorageKey: 'Air conditioner' },
       this.config.debug as boolean,
     );
@@ -912,6 +912,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.airConditioner.addDeviceType(powerSource);
     this.airConditioner.createDefaultPowerSourceWiredClusterServer();
+
+    this.airConditioner.addRequiredClusterServers(this.airConditioner);
 
     await this.registerDevice(this.airConditioner);
     this.bridgedDevices.set(this.airConditioner.deviceName ?? '', this.airConditioner);
@@ -1494,7 +1496,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         if (isValidNumber(value, AirQuality.AirQualityEnum.Good, AirQuality.AirQualityEnum.ExtremelyPoor)) {
           value = value >= AirQuality.AirQualityEnum.ExtremelyPoor ? AirQuality.AirQualityEnum.Good : value + 1;
           await this.airQuality?.setAttribute(AirQualityCluster.id, 'airQuality', value, this.airQuality.log);
-          this.smoke?.log.info(`Set air quality to ${value}`);
+          this.airQuality?.log.info(`Set air quality to ${value}`);
         }
       },
       60 * 1000 + 1100,
