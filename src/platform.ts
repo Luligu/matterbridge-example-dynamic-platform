@@ -89,6 +89,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   airQuality: MatterbridgeDevice | undefined;
   airConditioner: MatterbridgeDevice | undefined;
   airPurifier: MatterbridgeDevice | undefined;
+  pump: MatterbridgeDevice | undefined;
+  valve: MatterbridgeDevice | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -826,7 +828,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.airPurifier.log.logName = 'Air purifier';
     this.airPurifier.createDefaultBridgedDeviceBasicInformationClusterServer(
       'Air purifier',
-      '0x96584864',
+      '0x96584864AP',
       0xfff1,
       'Matterbridge',
       'Matterbridge Air purifier',
@@ -890,7 +892,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.airConditioner.log.logName = 'Air conditioner';
     this.airConditioner.createDefaultBridgedDeviceBasicInformationClusterServer(
       'Air conditioner',
-      '0x96382864',
+      '0x96382864AC',
       0xfff1,
       'Matterbridge',
       'Matterbridge Air conditioner',
@@ -972,7 +974,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         if (isValidNumber(newValue, 0, 100)) await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
-      this.fan,
     );
     this.fan.subscribeAttribute(
       FanControlCluster.id,
@@ -982,7 +983,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         if (isValidNumber(newValue, 0, 100)) await this.fan?.setAttribute(FanControlCluster.id, 'speedCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
-      this.fan,
     );
 
     /** ********************* Create a waterLeakDetector device ***********************/
