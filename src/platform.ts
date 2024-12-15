@@ -62,6 +62,8 @@ import {
   waterLeakDetector,
   LocationTag,
   airPurifier,
+  pumpDevice,
+  waterValve,
 } from 'matterbridge';
 import { Matterbridge, /* MatterbridgeEndpoint as */ MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
@@ -902,11 +904,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.matterbridge.matterbridgeVersion,
     );
     this.airConditioner.createDefaultIdentifyClusterServer();
-    this.airConditioner.createDefaultOnOffClusterServer(true);
+    this.airConditioner.createDeadFrontOnOffClusterServer(true);
     this.airConditioner.createDefaultThermostatClusterServer(20, 18, 22);
-    this.airConditioner.createDefaultFanControlClusterServer();
-    this.airConditioner.createDefaultTemperatureMeasurementClusterServer(20);
-    this.airConditioner.createDefaultRelativeHumidityMeasurementClusterServer(50);
+    this.airConditioner.createDefaultFanControlClusterServer(FanControl.FanMode.Auto);
+    this.airConditioner.createDefaultTemperatureMeasurementClusterServer(20 * 100);
+    this.airConditioner.createDefaultRelativeHumidityMeasurementClusterServer(50 * 100);
 
     this.airConditioner.addDeviceType(powerSource);
     this.airConditioner.createDefaultPowerSourceWiredClusterServer();
@@ -919,11 +921,85 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.airConditioner.addCommandHandler('on', async () => {
       await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', true, this.airConditioner?.log);
-      this.outlet?.log.info('Command on called');
+      this.airConditioner?.log.info('Command on called');
+      await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', true, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 20 * 100, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', 20 * 100, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControlCluster.id, 'speedSetting', 50, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControlCluster.id, 'percentSetting', 50, this.airConditioner?.log);
     });
     this.airConditioner.addCommandHandler('off', async () => {
       await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', false, this.airConditioner?.log);
-      this.outlet?.log.info('Command off called');
+      await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControlCluster.id, 'speedSetting', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControlCluster.id, 'percentSetting', null, this.airConditioner?.log);
+      this.airConditioner?.log.info('Command off called');
+    });
+
+    // Create a pumpDevice device
+    this.pump = await this.createMutableDevice([pumpDevice, bridgedNode], { uniqueStorageKey: 'Pump' }, this.config.debug as boolean);
+    this.pump.log.logName = 'Pump';
+    this.pump.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Pump',
+      '0x96382864PUMP',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Pump',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version === '' ? 'Unknown' : this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
+    this.pump.createDefaultIdentifyClusterServer();
+    this.pump.createDefaultOnOffClusterServer(true);
+    this.pump.createDefaultPumpConfigurationAndControlClusterServer();
+
+    this.pump.addDeviceType(powerSource);
+    this.pump.createDefaultPowerSourceWiredClusterServer();
+
+    await this.registerDevice(this.pump);
+    this.bridgedDevices.set(this.pump.deviceName ?? '', this.pump);
+
+    this.pump.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.pump?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.pump.addCommandHandler('on', async () => {
+      await this.pump?.setAttribute(OnOffCluster.id, 'onOff', true, this.pump?.log);
+      this.pump?.log.info('Command on called');
+    });
+    this.pump.addCommandHandler('off', async () => {
+      await this.pump?.setAttribute(OnOffCluster.id, 'onOff', false, this.pump?.log);
+      this.pump?.log.info('Command off called');
+    });
+
+    // Create a waterValve device
+    this.valve = await this.createMutableDevice([waterValve, bridgedNode], { uniqueStorageKey: 'Water valve' }, this.config.debug as boolean);
+    this.valve.log.logName = 'Water valve';
+    this.valve.createDefaultBridgedDeviceBasicInformationClusterServer(
+      'Water valve',
+      '0x96382864WV',
+      0xfff1,
+      'Matterbridge',
+      'Matterbridge Water valve',
+      parseInt(this.version.replace(/\D/g, '')),
+      this.version === '' ? 'Unknown' : this.version,
+      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+      this.matterbridge.matterbridgeVersion,
+    );
+    this.valve.createDefaultIdentifyClusterServer();
+    this.valve.createDefaultValveConfigurationAndControlClusterServer();
+
+    this.valve.addDeviceType(powerSource);
+    this.valve.createDefaultPowerSourceWiredClusterServer();
+
+    await this.registerDevice(this.valve);
+    this.bridgedDevices.set(this.valve.deviceName ?? '', this.valve);
+
+    this.valve.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.valve?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
 
     // Create a fan device
