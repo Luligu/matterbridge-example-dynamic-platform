@@ -13,17 +13,31 @@ import {
   PlatformConfig,
   WindowCovering,
   WindowCoveringCluster,
-  DoorLock,
   ThermostatCluster,
   Thermostat,
   FanControl,
   FanControlCluster,
   MatterbridgeDevice,
   MatterbridgeEndpoint,
+  DeviceTypeId,
 } from 'matterbridge';
+/*
+import {
+  AggregatorEndpoint as AggregatorNode,
+  Endpoint as EndpointNode,
+  ServerNode,
+  LogLevel as MatterLogLevel,
+  LogFormat as MatterLogFormat,
+  MdnsService,
+  MatterbridgeEdge,
+  StorageContext,
+} from 'matterbridge/matter';
+*/
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
-import { ExampleMatterbridgeDynamicPlatform } from './platform';
+
 import { jest } from '@jest/globals';
+
+import { ExampleMatterbridgeDynamicPlatform } from './platform';
 
 describe('TestPlatform', () => {
   let mockMatterbridge: Matterbridge;
@@ -34,7 +48,12 @@ describe('TestPlatform', () => {
   let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
   let loggerLogSpy: jest.SpiedFunction<(level: LogLevel, message: string, ...parameters: any[]) => void>;
 
-  // const log = new AnsiLogger({ logName: 'shellyDeviceTest', logTimestampFormat: TimestampFormat.TIME_MILLIS, logDebug: true });
+  /*
+  let edge: MatterbridgeEdge;
+  let context: StorageContext;
+  let server: ServerNode<ServerNode.RootEndpoint>;
+  let aggregator: EndpointNode<AggregatorNode>;
+  */
 
   async function invokeCommands(cluster: ClusterServerObj, data?: Record<string, boolean | number | bigint | string | object | null | undefined>): Promise<void> {
     const commands = (cluster as any).commands as object;
@@ -50,33 +69,32 @@ describe('TestPlatform', () => {
     }
   }
 
-  beforeAll(() => {
+  beforeAll(async () => {
     mockMatterbridge = {
       matterbridgeDirectory: '',
       matterbridgePluginDirectory: 'temp',
       systemInformation: { ipv4Address: undefined },
       matterbridgeVersion: '1.6.7',
       addBridgedDevice: jest.fn(async (pluginName: string, device: MatterbridgeDevice) => {
-        // console.error('addBridgedDevice called');
+        // console.log('addBridgedDevice called');
       }),
       addBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {
-        device.number = 100;
-        // console.error('addBridgedEndpoint called');
+        // console.log('addBridgedEndpoint called');
+        // await aggregator.add(device);
       }),
       removeBridgedDevice: jest.fn(async (pluginName: string, device: MatterbridgeDevice) => {
-        // console.error('removeBridgedDevice called');
+        // console.log('removeBridgedDevice called');
       }),
       removeBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {
-        // console.error('removeBridgedEndpoint called');
+        // console.log('removeBridgedEndpoint called');
       }),
       removeAllBridgedDevices: jest.fn(async (pluginName: string) => {
-        // console.error('removeAllBridgedDevices called');
+        // console.log('removeAllBridgedDevices called');
       }),
       removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {
-        // console.error('removeAllBridgedEndpoints called');
+        // console.log('removeAllBridgedEndpoints called');
       }),
     } as unknown as Matterbridge;
-    // mockLog = { fatal: jest.fn(), error: jest.fn(), warn: jest.fn(), notice: jest.fn(), info: jest.fn(), debug: jest.fn() } as unknown as AnsiLogger;
 
     mockLog = {
       fatal: jest.fn().mockImplementation((message: unknown) => {
@@ -115,15 +133,39 @@ describe('TestPlatform', () => {
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation((...args: any[]) => {
       // console.error('Mocked console.log', args);
     });
+
+    /*
+    // Create a MatterbridgeEdge instance
+    edge = await MatterbridgeEdge.loadInstance(false);
+    edge.log = new AnsiLogger({ logName: 'Matterbridge', logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
+    // Setup matter environment
+    edge.environment.vars.set('log.level', MatterLogLevel.DEBUG);
+    edge.environment.vars.set('log.format', MatterLogFormat.ANSI);
+    edge.environment.vars.set('path.root', 'matterstorage');
+    edge.environment.vars.set('runtime.signals', false);
+    edge.environment.vars.set('runtime.exitcode', false);
+    // Setup Matter mdnsInterface
+    if ((edge as any).mdnsInterface) edge.environment.vars.set('mdns.networkInterface', (edge as any).mdnsInterface);
+    await edge.startMatterStorage('test', 'Matterbridge');
+    context = await edge.createServerNodeContext('Jest', bridge.name, DeviceTypeId(bridge.code), VendorId(0xfff1), 'Matterbridge', 0x8000, 'Matterbridge aggregator');
+    server = await edge.createServerNode(context);
+    aggregator = await edge.createAggregatorNode(context);
+    await server.add(aggregator);
+    await server.start();
+    */
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     loggerLogSpy.mockRestore();
     consoleLogSpy.mockRestore();
+    /*
+    await server.close();
+    await edge.environment.get(MdnsService)[Symbol.asyncDispose]();
+    */
   });
 
   it('should throw error in load when version is not valid', () => {
