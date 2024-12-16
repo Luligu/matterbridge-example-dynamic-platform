@@ -80,22 +80,22 @@ describe('TestPlatform', () => {
 
     mockLog = {
       fatal: jest.fn().mockImplementation((message: unknown) => {
-        console.log(`FATAL: ${message as string}`);
+        // console.log(`FATAL: ${message as string}`);
       }),
       error: jest.fn().mockImplementation((message: unknown) => {
-        console.log(`ERROR: ${message as string}`);
+        // console.log(`ERROR: ${message as string}`);
       }),
       warn: jest.fn().mockImplementation((message: unknown) => {
-        console.log(`WARN: ${message as string}`);
+        // console.log(`WARN: ${message as string}`);
       }),
       notice: jest.fn().mockImplementation((message: unknown) => {
-        console.log(`NOTICE: ${message as string}`);
+        // console.log(`NOTICE: ${message as string}`);
       }),
       info: jest.fn().mockImplementation((message: unknown) => {
-        console.log(`INFO: ${message as string}`);
+        // console.log(`INFO: ${message as string}`);
       }),
       debug: jest.fn().mockImplementation((message: unknown) => {
-        console.log(`DEBUG: ${message as string}`);
+        // console.log(`DEBUG: ${message as string}`);
       }),
     } as unknown as jest.Mocked<AnsiLogger>;
 
