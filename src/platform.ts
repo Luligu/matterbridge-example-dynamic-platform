@@ -790,7 +790,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
       this.matterbridge.matterbridgeVersion,
     );
-    this.thermoCool.createDefaultCoolingThermostatClusterServer(20, 18, 22);
+    this.thermoCool.createDefaultCoolingThermostatClusterServer(20, 18, 5, 35);
     this.thermoCool.addDeviceType(powerSource);
     this.thermoCool.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
 
