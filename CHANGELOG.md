@@ -4,11 +4,14 @@ All notable changes to this project will be documented in this file.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
 
-## [1.1.3] - 2024-12-15
+## [1.1.3] - 2024-12-16
 
 - [package]: Added thermostat Heat only with two external temperature sensors (tagged like Indoor and Outdoor).
 - [package]: Added thermostat Cool only.
 - [package]: Added an airPurifier device with temperature and humidity sensor (supported by Apple Home).
+- [package]: Added a pumpDevice device.
+- [package]: Added a waterValve device.
+- [package]: Require matterbridge 1.6.7.
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">

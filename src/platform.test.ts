@@ -24,11 +24,10 @@ import {
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { ExampleMatterbridgeDynamicPlatform } from './platform';
 import { jest } from '@jest/globals';
-import { wait } from 'matterbridge/utils';
 
 describe('TestPlatform', () => {
   let mockMatterbridge: Matterbridge;
-  let mockLog: AnsiLogger;
+  let mockLog: jest.Mocked<AnsiLogger>;
   let mockConfig: PlatformConfig;
   let dynamicPlatform: ExampleMatterbridgeDynamicPlatform;
 
@@ -53,6 +52,10 @@ describe('TestPlatform', () => {
 
   beforeAll(() => {
     mockMatterbridge = {
+      matterbridgeDirectory: '',
+      matterbridgePluginDirectory: 'temp',
+      systemInformation: { ipv4Address: undefined },
+      matterbridgeVersion: '1.6.7',
       addBridgedDevice: jest.fn(async (pluginName: string, device: MatterbridgeDevice) => {
         // console.error('addBridgedDevice called');
       }),
@@ -60,13 +63,42 @@ describe('TestPlatform', () => {
         device.number = 100;
         // console.error('addBridgedEndpoint called');
       }),
-      matterbridgeDirectory: '',
-      matterbridgePluginDirectory: 'temp',
-      systemInformation: { ipv4Address: undefined },
-      matterbridgeVersion: '1.6.6',
-      removeAllBridgedDevices: jest.fn(),
+      removeBridgedDevice: jest.fn(async (pluginName: string, device: MatterbridgeDevice) => {
+        // console.error('removeBridgedDevice called');
+      }),
+      removeBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {
+        // console.error('removeBridgedEndpoint called');
+      }),
+      removeAllBridgedDevices: jest.fn(async (pluginName: string) => {
+        // console.error('removeAllBridgedDevices called');
+      }),
+      removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {
+        // console.error('removeAllBridgedEndpoints called');
+      }),
     } as unknown as Matterbridge;
-    mockLog = { fatal: jest.fn(), error: jest.fn(), warn: jest.fn(), notice: jest.fn(), info: jest.fn(), debug: jest.fn() } as unknown as AnsiLogger;
+    // mockLog = { fatal: jest.fn(), error: jest.fn(), warn: jest.fn(), notice: jest.fn(), info: jest.fn(), debug: jest.fn() } as unknown as AnsiLogger;
+
+    mockLog = {
+      fatal: jest.fn().mockImplementation((message: unknown) => {
+        console.log(`FATAL: ${message as string}`);
+      }),
+      error: jest.fn().mockImplementation((message: unknown) => {
+        console.log(`ERROR: ${message as string}`);
+      }),
+      warn: jest.fn().mockImplementation((message: unknown) => {
+        console.log(`WARN: ${message as string}`);
+      }),
+      notice: jest.fn().mockImplementation((message: unknown) => {
+        console.log(`NOTICE: ${message as string}`);
+      }),
+      info: jest.fn().mockImplementation((message: unknown) => {
+        console.log(`INFO: ${message as string}`);
+      }),
+      debug: jest.fn().mockImplementation((message: unknown) => {
+        console.log(`DEBUG: ${message as string}`);
+      }),
+    } as unknown as jest.Mocked<AnsiLogger>;
+
     mockConfig = {
       'name': 'matterbridge-example-dynamic-platform',
       'type': 'DynamicPlatform',
@@ -97,9 +129,63 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "1.6.6". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "1.6.7". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '1.6.6';
+    mockMatterbridge.matterbridgeVersion = '1.6.7';
+  });
+
+  it('should initialize platform in edge mode with config name', () => {
+    mockMatterbridge.edge = true;
+    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig);
+    expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
+  });
+
+  it('should call onStart in edge mode', async () => {
+    await dynamicPlatform.onStart('Test reason');
+    expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
+    expect(mockMatterbridge.addBridgedDevice).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(23);
+  }, 60000);
+
+  it('should call onConfigure in edge mode', async () => {
+    expect(mockLog.info).toHaveBeenCalledTimes(0);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(0);
+    jest.useFakeTimers();
+
+    await dynamicPlatform.onConfigure();
+    expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
+
+    // Simulate multiple interval executions
+    for (let i = 0; i < 200; i++) {
+      jest.advanceTimersByTime(61 * 1000);
+      await Promise.resolve();
+    }
+    expect(mockLog.info).toHaveBeenCalledTimes(1);
+    expect(mockLog.error).toHaveBeenCalledTimes(202);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(3073);
+
+    jest.useRealTimers();
+  });
+
+  it('should call onShutdown in edge mode', async () => {
+    await dynamicPlatform.onShutdown('Test reason');
+    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
+    expect(mockMatterbridge.removeBridgedDevice).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeAllBridgedDevices).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(0);
+  });
+
+  it('should call onShutdown in edge mode and remove all endpoints', async () => {
+    mockConfig.unregisterOnShutdown = true;
+    await dynamicPlatform.onShutdown('Test reason');
+    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
+    expect(mockMatterbridge.removeBridgedDevice).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeAllBridgedDevices).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(1);
+    mockMatterbridge.edge = false;
+    mockConfig.unregisterOnShutdown = false;
   });
 
   it('should initialize platform with config name', () => {
@@ -107,31 +193,11 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
   });
 
-  it('should call onStart in edge mode', async () => {
-    mockMatterbridge.edge = true;
-    await dynamicPlatform.onStart('Test reason');
-    expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-  }, 60000);
-
-  it('should call onConfigure in edge mode', async () => {
-    jest.useFakeTimers();
-
-    await dynamicPlatform.onConfigure();
-    expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
-
-    jest.advanceTimersByTime(60 * 1000);
-    jest.useRealTimers();
-  });
-
-  it('should call onShutdown  in edge mode', async () => {
-    await dynamicPlatform.onShutdown('Test reason');
-    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
-    mockMatterbridge.edge = false;
-  });
-
   it('should call onStart with reason', async () => {
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
+    expect(mockMatterbridge.addBridgedDevice).toHaveBeenCalledTimes(23);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(0);
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
@@ -212,6 +278,8 @@ describe('TestPlatform', () => {
   });
 
   it('should call onConfigure', async () => {
+    expect(mockLog.info).toHaveBeenCalledTimes(0);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(0);
     jest.useFakeTimers();
 
     await dynamicPlatform.onConfigure();
@@ -223,6 +291,8 @@ describe('TestPlatform', () => {
       await Promise.resolve();
     }
     expect(mockLog.info).toHaveBeenCalledTimes(390);
+    expect(mockLog.error).toHaveBeenCalledTimes(0);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(13420);
 
     jest.useRealTimers();
   }, 300000);
@@ -230,5 +300,19 @@ describe('TestPlatform', () => {
   it('should call onShutdown with reason', async () => {
     await dynamicPlatform.onShutdown('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
+    expect(mockMatterbridge.removeBridgedDevice).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeAllBridgedDevices).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(0);
+  });
+
+  it('should call onShutdown with reason and remove the devices', async () => {
+    mockConfig.unregisterOnShutdown = true;
+    await dynamicPlatform.onShutdown('Test reason');
+    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
+    expect(mockMatterbridge.removeBridgedDevice).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeAllBridgedDevices).toHaveBeenCalledTimes(1);
+    expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(0);
   });
 });

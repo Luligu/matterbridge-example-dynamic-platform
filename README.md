@@ -32,13 +32,15 @@ It exposes:
   and relativeHumidityMeasurement cluster (to show how to create a composed device with sub endpoints)
 - a thermo heat only with two external temperature sensors (tagged like Indoor and Outdoor)
 - a thermo cool only
-- an airConditioner device
-- an airPurifier device with temperature and humidity sensor (supported by Apple Home)
 - a fan with FanControl cluster
 - a rainSensor device
 - a waterFreezeDetector device
 - a waterLeakDetector device
 - a smokeCoAlarm device
+- an airConditioner device
+- an airPurifier device with temperature and humidity sensor (supported by Apple Home)
+- a pumpDevice device
+- a waterValve device
 
 All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices) and how to subscribe to attributes.
 
