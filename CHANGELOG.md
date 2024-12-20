@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
 
-## [1.1.4-dev.1] - 2024-12-17
+## [1.1.4-dev.2] - 2024-12-20
 
 - [package]: Added thermostat Heat only with two external temperature sensors (tagged like Indoor and Outdoor).
 - [package]: Added thermostat Cool only.

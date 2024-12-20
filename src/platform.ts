@@ -321,7 +321,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with HS color control
-    this.lightHS = await this.createMutableDevice([colorTemperatureLight, bridgedNode], { uniqueStorageKey: 'Light (HS)' }, this.config.debug as boolean);
+    this.lightHS = await this.createMutableDevice([colorTemperatureLight, bridgedNode], { uniqueStorageKey: 'Light (HS, CT)' }, this.config.debug as boolean);
     this.lightHS.log.logName = 'Light (HS, CT)';
     this.lightHS.createDefaultIdentifyClusterServer();
     this.lightHS.createDefaultGroupsClusterServer();
@@ -388,7 +388,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with XY color control
-    this.lightXY = await this.createMutableDevice([colorTemperatureLight, bridgedNode], { uniqueStorageKey: 'Light (XY)' }, this.config.debug as boolean);
+    this.lightXY = await this.createMutableDevice([colorTemperatureLight, bridgedNode], { uniqueStorageKey: 'Light (XY, CT)' }, this.config.debug as boolean);
     this.lightXY.log.logName = 'Light (XY, CT)';
     this.lightXY.createDefaultIdentifyClusterServer();
     this.lightXY.createDefaultGroupsClusterServer();
@@ -632,7 +632,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a thermostat with AutoMode device
-    this.thermoAuto = await this.createMutableDevice([thermostatDevice, bridgedNode], { uniqueStorageKey: 'ThermostatAuto' }, this.config.debug as boolean);
+    this.thermoAuto = await this.createMutableDevice([thermostatDevice, bridgedNode], { uniqueStorageKey: 'Thermostat (AutoMode)' }, this.config.debug as boolean);
     this.thermoAuto.log.logName = 'Thermostat (AutoMode)';
     this.thermoAuto.createDefaultIdentifyClusterServer();
     this.thermoAuto.createDefaultGroupsClusterServer();
@@ -714,7 +714,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Create a thermostat with Heat device
-    this.thermoHeat = await this.createMutableDevice([thermostatDevice, bridgedNode], { uniqueStorageKey: 'ThermostatHeat' }, this.config.debug as boolean);
+    this.thermoHeat = await this.createMutableDevice([thermostatDevice, bridgedNode], { uniqueStorageKey: 'Thermostat (Heat)' }, this.config.debug as boolean);
     this.thermoHeat.log.logName = 'Thermostat (Heat)';
     this.thermoHeat.createDefaultIdentifyClusterServer();
     this.thermoHeat.createDefaultGroupsClusterServer();
@@ -774,7 +774,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Create a thermostat with Cool device
-    this.thermoCool = await this.createMutableDevice([thermostatDevice, bridgedNode], { uniqueStorageKey: 'ThermostatCool' }, this.config.debug as boolean);
+    this.thermoCool = await this.createMutableDevice([thermostatDevice, bridgedNode], { uniqueStorageKey: 'Thermostat (Cool)' }, this.config.debug as boolean);
     this.thermoCool.log.logName = 'Thermostat (Cool)';
     this.thermoCool.createDefaultIdentifyClusterServer();
     this.thermoCool.createDefaultGroupsClusterServer();
@@ -1503,9 +1503,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       60 * 1000 + 1100,
     );
+    super.onConfigure();
   }
 
   override async onShutdown(reason?: string) {
+    super.onShutdown(reason);
     this.log.info('onShutdown called with reason:', reason ?? 'none');
     clearInterval(this.switchInterval);
     clearInterval(this.lightInterval);
