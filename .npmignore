@@ -165,4 +165,5 @@ screenshot
 TODO.md
 yellow-button.png
 tsconfig.production.json
-matterstorage
+temp/
+jest/

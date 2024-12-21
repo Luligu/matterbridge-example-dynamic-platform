@@ -71,10 +71,14 @@ describe('TestPlatform', () => {
 
   beforeAll(async () => {
     mockMatterbridge = {
-      matterbridgeDirectory: '',
-      matterbridgePluginDirectory: 'temp',
+      matterbridgeDirectory: './jest/matterbridge',
+      matterbridgePluginDirectory: './jest/plugins',
       systemInformation: { ipv4Address: undefined },
       matterbridgeVersion: '1.6.7',
+      getDevices: jest.fn(() => {
+        // console.log('getDevices called');
+        return [];
+      }),
       addBridgedDevice: jest.fn(async (pluginName: string, device: MatterbridgeDevice) => {
         // console.log('addBridgedDevice called');
       }),

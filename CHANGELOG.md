@@ -4,15 +4,20 @@ All notable changes to this project will be documented in this file.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
 
-## [1.1.4-dev.2] - 2024-12-20
+## [1.1.4] - 2024-12-21
 
-- [package]: Added thermostat Heat only with two external temperature sensors (tagged like Indoor and Outdoor).
-- [package]: Added thermostat Cool only.
-- [package]: Added an airPurifier device with temperature and humidity sensor (supported by Apple Home).
-- [package]: Added a pumpDevice device.
-- [package]: Added a waterValve device.
-- [package]: Require matterbridge 1.6.7.
+### Added
+
+- [platform]: Added call to super.OnConfigure() and super.OnShutDown() to check endpoints numbers.
+
+### Changed
+
 - [package]: Updated dependencies.
+- [package]: Updated package.
+
+### Fixed
+
+- [thermostat]: Fixed temperature
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
@@ -20,11 +25,16 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [1.1.3] - 2024-12-16
 
+### Added
+
 - [package]: Added thermostat Heat only with two external temperature sensors (tagged like Indoor and Outdoor).
 - [package]: Added thermostat Cool only.
 - [package]: Added an airPurifier device with temperature and humidity sensor (supported by Apple Home).
 - [package]: Added a pumpDevice device.
 - [package]: Added a waterValve device.
+
+### Changed
+
 - [package]: Require matterbridge 1.6.7.
 - [package]: Updated dependencies.
 
@@ -34,9 +44,14 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [1.1.2] - 2024-12-12
 
+### Added
+
 - [package]: Added the Matter 1.3 airConditioner device (not supported by Apple Home).
 - [package]: Require matterbridge 1.6.6.
 - [package]: Added Jest test with 100% coverage.
+
+### Changed
+
 - [package]: Updated package.
 - [package]: Updated dependencies.
 

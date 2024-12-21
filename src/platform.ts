@@ -1190,6 +1190,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   }
 
   override async onConfigure() {
+    await super.onConfigure();
     this.log.info('onConfigure called');
 
     // Set switch to off
@@ -1503,11 +1504,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       60 * 1000 + 1100,
     );
-    super.onConfigure();
   }
 
   override async onShutdown(reason?: string) {
-    super.onShutdown(reason);
+    await super.onShutdown(reason);
     this.log.info('onShutdown called with reason:', reason ?? 'none');
     clearInterval(this.switchInterval);
     clearInterval(this.lightInterval);
