@@ -14,7 +14,6 @@ import {
   FlowMeasurementCluster,
   FormaldehydeConcentrationMeasurement,
   LevelControlCluster,
-  MatterbridgeEndpoint,
   NitrogenDioxideConcentrationMeasurement,
   OnOffCluster,
   OzoneConcentrationMeasurement,
@@ -60,34 +59,34 @@ import {
   pumpDevice,
   waterValve,
 } from 'matterbridge';
-import { Matterbridge, /* MatterbridgeEndpoint as */ MatterbridgeDevice, MatterbridgeDynamicPlatform } from 'matterbridge';
+import { Matterbridge, MatterbridgeEndpoint, MatterbridgeDynamicPlatform } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
-  switch: MatterbridgeDevice | undefined;
-  lightOnOff: MatterbridgeDevice | undefined;
-  dimmer: MatterbridgeDevice | undefined;
-  light: MatterbridgeDevice | undefined;
-  lightXY: MatterbridgeDevice | undefined;
-  lightHS: MatterbridgeDevice | undefined;
-  lightCT: MatterbridgeDevice | undefined;
-  outlet: MatterbridgeDevice | undefined;
-  cover: MatterbridgeDevice | undefined;
-  lock: MatterbridgeDevice | undefined;
-  thermoAuto: MatterbridgeDevice | undefined;
-  thermoHeat: MatterbridgeDevice | undefined;
-  thermoCool: MatterbridgeDevice | undefined;
-  fan: MatterbridgeDevice | undefined;
-  waterLeak: MatterbridgeDevice | undefined;
-  waterFreeze: MatterbridgeDevice | undefined;
-  rain: MatterbridgeDevice | undefined;
-  smoke: MatterbridgeDevice | undefined;
-  airQuality: MatterbridgeDevice | undefined;
-  airConditioner: MatterbridgeDevice | undefined;
-  airPurifier: MatterbridgeDevice | undefined;
-  pump: MatterbridgeDevice | undefined;
-  valve: MatterbridgeDevice | undefined;
+  switch: MatterbridgeEndpoint | undefined;
+  lightOnOff: MatterbridgeEndpoint | undefined;
+  dimmer: MatterbridgeEndpoint | undefined;
+  light: MatterbridgeEndpoint | undefined;
+  lightXY: MatterbridgeEndpoint | undefined;
+  lightHS: MatterbridgeEndpoint | undefined;
+  lightCT: MatterbridgeEndpoint | undefined;
+  outlet: MatterbridgeEndpoint | undefined;
+  cover: MatterbridgeEndpoint | undefined;
+  lock: MatterbridgeEndpoint | undefined;
+  thermoAuto: MatterbridgeEndpoint | undefined;
+  thermoHeat: MatterbridgeEndpoint | undefined;
+  thermoCool: MatterbridgeEndpoint | undefined;
+  fan: MatterbridgeEndpoint | undefined;
+  waterLeak: MatterbridgeEndpoint | undefined;
+  waterFreeze: MatterbridgeEndpoint | undefined;
+  rain: MatterbridgeEndpoint | undefined;
+  smoke: MatterbridgeEndpoint | undefined;
+  airQuality: MatterbridgeEndpoint | undefined;
+  airConditioner: MatterbridgeEndpoint | undefined;
+  airPurifier: MatterbridgeEndpoint | undefined;
+  pump: MatterbridgeEndpoint | undefined;
+  valve: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -103,7 +102,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   airQualityInterval: NodeJS.Timeout | undefined;
   airConditionerInterval: NodeJS.Timeout | undefined;
 
-  bridgedDevices = new Map<string, MatterbridgeDevice>();
+  bridgedDevices = new Map<string, MatterbridgeEndpoint>();
 
   fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
 
@@ -358,7 +357,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lightHS?.log.debug(`Command moveToSaturation called request: saturation ${saturation}`);
     });
     this.lightHS.addCommandHandler('moveToColorTemperature', async ({ request: colorTemperatureMireds }) => {
-      await this.lightHS?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightHS?.log);
+      // await this.lightHS?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
@@ -1213,7 +1212,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         let level = this.light?.getAttribute(LevelControlCluster.id, 'currentLevel', this.light.log);
         if (isValidBoolean(state) && isValidNumber(level, 0, 254)) {
           level += 10;
-          if (level >= 250) {
+          if (level >= 230) {
             level = 1;
             await this.lightOnOff?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightOnOff.log);
             await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', false, this.dimmer.log);
@@ -1243,8 +1242,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.lightCT?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightCT.log);
             this.log.info(`Set lights currentLevel to ${level}`);
           }
-        } else {
-          this.log.error(`Invalid state ${state} or level ${level}`);
         }
       },
       60 * 1000 + 200,
@@ -1329,9 +1326,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoAuto.log);
 
           await this.thermoHeat?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoHeat.log);
-          const tempIn = this.thermoHeat?.getChildEndpointByName('TemperatureIN') as MatterbridgeDevice | undefined;
+          const tempIn = this.thermoHeat?.getChildEndpointByName('TemperatureIN');
           await tempIn?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature - 50, this.thermoHeat?.log);
-          const tempOut = this.thermoHeat?.getChildEndpointByName('TemperatureOUT') as MatterbridgeDevice | undefined;
+          const tempOut = this.thermoHeat?.getChildEndpointByName('TemperatureOUT');
           await tempOut?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature - 400, this.thermoHeat?.log);
 
           await this.thermoCool?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoCool.log);
@@ -1351,6 +1348,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Set airConditioner to on
     await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', true, this.airConditioner.log);
+    await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 2000, this.airConditioner.log);
     // Increment airConditioner localTemperature every minute
     this.airConditionerInterval = setInterval(
       async () => {

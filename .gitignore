@@ -44,3 +44,5 @@ replay_pid*
 
 temp/
 jest/
+matterstorage/
+matterstorage.backup/
