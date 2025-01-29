@@ -61,8 +61,9 @@ describe('initializePlugin', () => {
     'debug': false,
   } as PlatformConfig;
 
-  it('should return an instance of TestPlatform', () => {
+  it('should return an instance of TestPlatform', async () => {
     const result = initializePlugin(mockMatterbridge, mockLog, mockConfig);
     expect(result).toBeInstanceOf(ExampleMatterbridgeDynamicPlatform);
+    await result.onShutdown();
   });
 });

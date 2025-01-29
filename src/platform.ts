@@ -1177,7 +1177,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Set light to off, level to 0 and hue to 0 and saturation to 50% (pink color)
     await this.light?.setAttribute(OnOffCluster.id, 'onOff', false, this.light.log);
-    await this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', 1, this.light.log);
+    await this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', 200, this.light.log);
     await this.light?.setAttribute(ColorControlCluster.id, 'currentHue', 0, this.light.log);
     await this.light?.setAttribute(ColorControlCluster.id, 'currentSaturation', 128, this.light.log);
     await this.light?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);

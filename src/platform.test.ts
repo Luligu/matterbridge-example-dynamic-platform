@@ -225,6 +225,7 @@ describe('TestPlatform', () => {
       if (device.hasClusterServer(IdentifyCluster)) {
         jest.clearAllMocks();
         await device.executeCommandHandler('identify', { identifyTime: 5 });
+        await device.executeCommandHandler('triggerEffect', { effectIdentifier: 0, effectVariant: 0 });
         // expect(mockLog.info).toHaveBeenCalledTimes(1);
         // expect(mockLog.info).toHaveBeenCalledWith('Command identify called identifyTime:5');
       }
@@ -267,27 +268,37 @@ describe('TestPlatform', () => {
 
       if (device.hasClusterServer(FanControlCluster)) {
         await device.executeCommandHandler('step', { direction: FanControl.StepDirection.Increase });
-        device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Off);
-        device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Low);
-        device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
-        device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.High);
-        device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.On);
-        device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto);
+        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Off);
+        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Low);
+        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
+        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.High);
+        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.On);
+        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto);
 
-        device.setAttribute(FanControlCluster.id, 'percentSetting', 50);
-        device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
+        await device.setAttribute(FanControlCluster.id, 'percentSetting', 50);
+        await device.setAttribute(FanControlCluster.id, 'percentSetting', 10);
+        await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
+        await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
       }
 
       if (device.hasClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))) {
         await device.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 100 });
-        device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
+        if (device.deviceName === 'Thermostat (AutoMode)') {
+          await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
+          await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Heat);
+          await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Cool);
+        }
         if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (Heat)') {
-          device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Heat);
-          device.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', 2400);
+          await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
+          await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Heat);
+          await device.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', 2800);
+          await device.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', 2700);
         }
         if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (Cool)') {
-          device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Cool);
-          device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1800);
+          await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
+          await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Cool);
+          await device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1500);
+          await device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1400);
         }
       }
     }
@@ -312,7 +323,7 @@ describe('TestPlatform', () => {
 
     expect(mockLog.info).toHaveBeenCalledTimes(1);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(4463);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(4446);
   }, 300000);
 
   it('should call onShutdown with reason', async () => {
