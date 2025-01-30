@@ -1,32 +1,26 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Matterbridge, PlatformConfig, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource } from 'matterbridge';
+import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
+import { ServerNode, Endpoint, LogLevel as Level, LogFormat as Format } from 'matterbridge/matter';
+import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
 import {
   ColorControlCluster,
   DoorLockCluster,
-  IdentifyCluster,
-  LevelControlCluster,
-  Matterbridge,
-  ModeSelectCluster,
-  OnOffCluster,
-  PlatformConfig,
-  WindowCovering,
-  WindowCoveringCluster,
-  ThermostatCluster,
-  Thermostat,
   FanControl,
   FanControlCluster,
-  MatterbridgeEndpoint,
-  onOffSwitch,
-  bridgedNode,
-  powerSource,
-} from 'matterbridge';
-import { AnsiLogger, db, LogLevel, TimestampFormat } from 'matterbridge/logger';
-import { ServerNode, Endpoint, AggregatorEndpoint, LogLevel as Level, LogFormat as Format, MdnsService } from 'matterbridge/matter';
-
+  IdentifyCluster,
+  LevelControlCluster,
+  ModeSelectCluster,
+  OnOffCluster,
+  Thermostat,
+  ThermostatCluster,
+  WindowCovering,
+  WindowCoveringCluster,
+} from 'matterbridge/matter/clusters';
 import { jest } from '@jest/globals';
 
 import { ExampleMatterbridgeDynamicPlatform } from './platform';
-import { wait } from 'matterbridge/utils';
 
 describe('TestPlatform', () => {
   let matterbridge: Matterbridge;
@@ -323,7 +317,7 @@ describe('TestPlatform', () => {
 
     expect(mockLog.info).toHaveBeenCalledTimes(1);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(4446);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(4431);
   }, 300000);
 
   it('should call onShutdown with reason', async () => {
