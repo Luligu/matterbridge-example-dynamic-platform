@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Matterbridge, PlatformConfig, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource } from 'matterbridge';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
-import { ServerNode, Endpoint, LogLevel as Level, LogFormat as Format } from 'matterbridge/matter';
+import { ServerNode, Endpoint, LogLevel as Level, LogFormat as Format, MdnsService } from 'matterbridge/matter';
 import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
 import {
   ColorControlCluster,
@@ -136,7 +136,6 @@ describe('TestPlatform', () => {
     matterbridge.environment.vars.set('path.root', 'matterstorage');
     matterbridge.environment.vars.set('runtime.signals', false);
     matterbridge.environment.vars.set('runtime.exitcode', false);
-    if (matterbridge.mdnsInterface) matterbridge.environment.vars.set('mdns.networkInterface', matterbridge.mdnsInterface);
   });
 
   beforeEach(() => {
@@ -338,6 +337,7 @@ describe('TestPlatform', () => {
   it('should stop the server', async () => {
     await (matterbridge as any).stopServerNode(server);
     expect(server.lifecycle.isOnline).toBe(false);
+    await server.env.get(MdnsService)[Symbol.asyncDispose]();
   });
 
   it('should stop the storage', async () => {
