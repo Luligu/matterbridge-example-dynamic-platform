@@ -8,9 +8,9 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
+- [package]: Require matterbridge 2.1.0.
 - [package]: Updated package.
 - [package]: Updated dependencies.
-- [package]: Require matterbridge 2.1.0.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
