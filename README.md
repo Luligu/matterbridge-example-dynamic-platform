@@ -41,8 +41,11 @@ It exposes:
 - an airPurifier device with temperature and humidity sensor (supported by Apple Home)
 - a pumpDevice device
 - a waterValve device
+- an airQuality device with all concentration measurements clusters
+- a momentary switch
+- a latching switch
 
-All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices) and how to subscribe to attributes.
+All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices), how to subscribe to attributes and how to trigger events.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
 

@@ -4,12 +4,28 @@ All notable changes to this project will be documented in this file.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
 
+## [1.1.7] - 2025-02-08
+
+### Added
+
+- [platform]: Added generic momentary switch device.
+- [platform]: Added generic latching switch device.
+- [platform]: Added chaining provided by the new MatterbridgeEndpoint api.
+
+### Changed
+
+- [package]: Updated package.
+- [package]: Updated dependencies.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+</a>
+
 ## [1.1.6] - 2025-02-02
 
 ### Changed
 
 - [package]: Require matterbridge 2.1.0.
-- [package]: Updated package.
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">

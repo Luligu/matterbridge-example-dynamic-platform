@@ -26,27 +26,25 @@ import {
   airPurifier,
   pumpDevice,
   waterValve,
+  genericSwitch,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
 import { LocationTag } from 'matterbridge/matter';
 import {
+  PowerSource,
+  BooleanState,
+  OnOff,
+  LevelControl,
   AirQuality,
-  AirQualityCluster,
-  BooleanStateCluster,
   CarbonDioxideConcentrationMeasurement,
   CarbonMonoxideConcentrationMeasurement,
+  FlowMeasurement,
   ColorControl,
-  ColorControlCluster,
   DoorLock,
-  DoorLockCluster,
   FanControl,
-  FanControlCluster,
-  FlowMeasurementCluster,
   FormaldehydeConcentrationMeasurement,
-  LevelControlCluster,
   NitrogenDioxideConcentrationMeasurement,
-  OnOffCluster,
   OzoneConcentrationMeasurement,
   Pm10ConcentrationMeasurement,
   Pm1ConcentrationMeasurement,
@@ -55,14 +53,11 @@ import {
   RelativeHumidityMeasurement,
   RelativeHumidityMeasurementCluster,
   SmokeCoAlarm,
-  SmokeCoAlarmCluster,
   TemperatureMeasurement,
-  TemperatureMeasurementCluster,
   Thermostat,
   ThermostatCluster,
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
-  WindowCoveringCluster,
 } from 'matterbridge/matter/clusters';
 import { BitFlag, TypeFromPartialBitSchema } from 'matterbridge/matter/types';
 
@@ -90,6 +85,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   airPurifier: MatterbridgeEndpoint | undefined;
   pump: MatterbridgeEndpoint | undefined;
   valve: MatterbridgeEndpoint | undefined;
+  momentarySwitch: MatterbridgeEndpoint | undefined;
+  latchingSwitch: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -104,6 +101,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   smokeInterval: NodeJS.Timeout | undefined;
   airQualityInterval: NodeJS.Timeout | undefined;
   airConditionerInterval: NodeJS.Timeout | undefined;
+  genericSwitchInterval: NodeJS.Timeout | undefined;
+  genericSwitchLastEvent: 'Single' | 'Double' | 'Long' | 'Press' | 'Release' = 'Release';
 
   bridgedDevices = new Map<string, MatterbridgeEndpoint>();
 
@@ -113,9 +112,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('2.1.0')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('2.1.5')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "2.1.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "2.1.5". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -126,24 +125,26 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.log.info('onStart called with reason:', reason ?? 'none');
 
     // Create a switch device
-    this.switch = new MatterbridgeEndpoint([onOffSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Switch' }, this.config.debug as boolean);
-    this.switch.log.logName = 'Switch';
-    this.switch.createDefaultIdentifyClusterServer();
-    this.switch.createDefaultGroupsClusterServer();
-    // this.switch.createDefaultScenesClusterServer();
-    this.switch.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Switch',
-      '0x23452164',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Switch',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.switch.createDefaultOnOffClusterServer();
-    this.switch.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+    this.switch = new MatterbridgeEndpoint(
+      [onOffSwitch, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Switch' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.switch
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Switch',
+        '0x23452164',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Switch',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultOnOffClusterServer()
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
     await this.registerDevice(this.switch);
     this.bridgedDevices.set(this.switch.deviceName ?? '', this.switch);
 
@@ -151,33 +152,31 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.switch.addCommandHandler('on', async () => {
-      await this.switch?.setAttribute(OnOffCluster.id, 'onOff', true, this.switch.log);
+      await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.switch.log);
       this.switch?.log.info('Command on called');
     });
     this.switch.addCommandHandler('off', async () => {
-      await this.switch?.setAttribute(OnOffCluster.id, 'onOff', false, this.switch.log);
+      await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.switch.log);
       this.switch?.log.info('Command off called');
     });
 
     // Create a on off light device
-    this.lightOnOff = new MatterbridgeEndpoint([onOffLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (on/off)' }, this.config.debug as boolean);
-    this.lightOnOff.log.logName = 'Light (on/off)';
-    this.lightOnOff.createDefaultIdentifyClusterServer();
-    this.lightOnOff.createDefaultGroupsClusterServer();
-    // this.lightOnOff.createDefaultScenesClusterServer();
-    this.lightOnOff.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Light (on/off)',
-      '0x2342375564',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Light on/off',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.lightOnOff.createDefaultOnOffClusterServer();
-    this.lightOnOff.createDefaultPowerSourceWiredClusterServer();
+    this.lightOnOff = new MatterbridgeEndpoint([onOffLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (on/off)' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Light (on/off)',
+        '0x2342375564',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Light on/off',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultOnOffClusterServer()
+      .createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.lightOnOff);
     this.bridgedDevices.set(this.lightOnOff.deviceName ?? '', this.lightOnOff);
 
@@ -185,34 +184,36 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lightOnOff?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lightOnOff.addCommandHandler('on', async () => {
-      await this.lightOnOff?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightOnOff?.log);
+      await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightOnOff?.log);
       this.lightOnOff?.log.info('Command on called');
     });
     this.lightOnOff.addCommandHandler('off', async () => {
-      await this.lightOnOff?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightOnOff?.log);
+      await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightOnOff?.log);
       this.lightOnOff?.log.info('Command off called');
     });
 
     // Create a dimmer device
-    this.dimmer = new MatterbridgeEndpoint([dimmableLight, bridgedNode, powerSource], { uniqueStorageKey: 'Dimmer' }, this.config.debug as boolean);
-    this.dimmer.log.logName = 'Dimmer';
-    this.dimmer.createDefaultIdentifyClusterServer();
-    this.dimmer.createDefaultGroupsClusterServer();
-    // this.dimmer.createDefaultScenesClusterServer();
-    this.dimmer.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Dimmer',
-      '0x234554564',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Dimmer',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.dimmer.createDefaultOnOffClusterServer();
-    this.dimmer.createDefaultLevelControlClusterServer();
-    this.dimmer.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
+    this.dimmer = new MatterbridgeEndpoint(
+      [dimmableLight, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Dimmer' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.dimmer
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Dimmer',
+        '0x234554564',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Dimmer',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultOnOffClusterServer()
+      .createDefaultLevelControlClusterServer()
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     await this.registerDevice(this.dimmer);
     this.bridgedDevices.set(this.dimmer.deviceName ?? '', this.dimmer);
 
@@ -220,43 +221,45 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.dimmer?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.dimmer.addCommandHandler('on', async () => {
-      await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', true, this.dimmer.log);
+      await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dimmer.log);
       this.dimmer?.log.info('Command on called');
     });
     this.dimmer.addCommandHandler('off', async () => {
-      await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', false, this.dimmer.log);
+      await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.dimmer.log);
       this.dimmer?.log.info('Command off called');
     });
     this.dimmer.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.dimmer?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.dimmer.log);
+      await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.dimmer.log);
       this.dimmer?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.dimmer.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.dimmer?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.dimmer.log);
+      await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.dimmer.log);
       this.dimmer?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
     // Create a light device
-    this.light = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, HS and CT)' }, this.config.debug as boolean);
-    this.light.log.logName = 'Light (XY, HS and CT)';
-    this.light.createDefaultIdentifyClusterServer();
-    this.light.createDefaultGroupsClusterServer();
-    // this.light.createDefaultScenesClusterServer();
-    this.light.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Light (XY, HS and CT)',
-      '0x23480564',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Light',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.light.createDefaultOnOffClusterServer();
-    this.light.createDefaultLevelControlClusterServer();
-    this.light.createDefaultColorControlClusterServer();
-    this.light.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
+    this.light = new MatterbridgeEndpoint(
+      [colorTemperatureLight, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Light (XY, HS and CT)' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.light
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Light (XY, HS and CT)',
+        '0x23480564',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Light',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultOnOffClusterServer()
+      .createDefaultLevelControlClusterServer()
+      .createDefaultColorControlClusterServer()
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     await this.registerDevice(this.light);
     this.bridgedDevices.set(this.light.deviceName ?? '', this.light);
 
@@ -264,66 +267,67 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.light?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.light.addCommandHandler('on', async () => {
-      await this.light?.setAttribute(OnOffCluster.id, 'onOff', true, this.light?.log);
+      await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.light?.log);
       this.light?.log.info('Command on called');
     });
     this.light.addCommandHandler('off', async () => {
-      await this.light?.setAttribute(OnOffCluster.id, 'onOff', false, this.light?.log);
+      await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.light?.log);
       this.light?.log.info('Command off called');
     });
     this.light.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light?.log);
+      await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.light?.log);
       this.light?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.light.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light?.log);
+      await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.light?.log);
       this.light?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
     this.light.addCommandHandler('moveToColor', async ({ request: { colorX, colorY } }) => {
-      await this.light?.setAttribute(ColorControlCluster.id, 'currentX', colorX, this.light?.log);
-      await this.light?.setAttribute(ColorControlCluster.id, 'currentY', colorY, this.light?.log);
+      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentX', colorX, this.light?.log);
+      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentY', colorY, this.light?.log);
       this.light?.log.debug(`Command moveToColor called request: X ${colorX / 65536} Y ${colorY / 65536}`);
     });
     this.light.addCommandHandler('moveToHueAndSaturation', async ({ request: { hue, saturation } }) => {
-      await this.light?.setAttribute(ColorControlCluster.id, 'currentHue', hue, this.light?.log);
-      await this.light?.setAttribute(ColorControlCluster.id, 'currentSaturation', saturation, this.light?.log);
+      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentHue', hue, this.light?.log);
+      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', saturation, this.light?.log);
       this.light?.log.debug(`Command moveToHueAndSaturation called request: hue ${hue} saturation ${saturation}`);
     });
     this.light.addCommandHandler('moveToHue', async ({ request: { hue } }) => {
-      await this.light?.setAttribute(ColorControlCluster.id, 'currentHue', hue, this.light?.log);
+      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentHue', hue, this.light?.log);
       this.light?.log.debug(`Command moveToHue called request: hue ${hue}`);
     });
     this.light.addCommandHandler('moveToSaturation', async ({ request: { saturation } }) => {
-      await this.light?.setAttribute(ColorControlCluster.id, 'currentSaturation', saturation, this.light?.log);
+      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', saturation, this.light?.log);
       this.light?.log.debug(`Command moveToSaturation called request: saturation ${saturation}}`);
     });
     this.light.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
-      await this.light?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.light?.log);
+      await this.light?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.light?.log);
       this.light?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
     // Create a light device with HS color control
-    this.lightHS = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (HS, CT)' }, this.config.debug as boolean);
-    this.lightHS.log.logName = 'Light (HS, CT)';
-    this.lightHS.createDefaultIdentifyClusterServer();
-    this.lightHS.createDefaultGroupsClusterServer();
-    // this.lightHS.createDefaultScenesClusterServer();
-    this.lightHS.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Light (HS, CT)',
-      '0x25097564',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Light',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.lightHS.createDefaultOnOffClusterServer();
-    this.lightHS.createDefaultLevelControlClusterServer();
-    this.lightHS.createHsColorControlClusterServer();
-    // await this.lightHS.configureColorControlCluster(true, false, false, ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
-    this.lightHS.createDefaultPowerSourceWiredClusterServer();
+    this.lightHS = new MatterbridgeEndpoint(
+      [colorTemperatureLight, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Light (HS, CT)' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.lightHS
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Light (HS, CT)',
+        '0x25097564',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Light',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultOnOffClusterServer()
+      .createDefaultLevelControlClusterServer()
+      .createHsColorControlClusterServer()
+      .createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.lightHS);
     this.bridgedDevices.set(this.lightHS.deviceName ?? '', this.lightHS);
 
@@ -331,60 +335,62 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lightHS?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lightHS.addCommandHandler('on', async () => {
-      await this.lightHS?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightHS?.log);
+      await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightHS?.log);
       this.lightHS?.log.info('Command on called');
     });
     this.lightHS.addCommandHandler('off', async () => {
-      await this.lightHS?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightHS?.log);
+      await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightHS?.log);
       this.lightHS?.log.info('Command off called');
     });
     this.lightHS.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightHS?.log);
+      await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.lightHS.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightHS?.log);
+      await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
     this.lightHS.addCommandHandler('moveToHueAndSaturation', async ({ request: { hue, saturation } }) => {
-      await this.lightHS?.setAttribute(ColorControlCluster.id, 'currentHue', hue, this.lightHS?.log);
-      await this.lightHS?.setAttribute(ColorControlCluster.id, 'currentSaturation', saturation, this.lightHS?.log);
+      await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentHue', hue, this.lightHS?.log);
+      await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', saturation, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToHueAndSaturation called request: hue ${hue} saturation ${saturation}}`);
     });
     this.lightHS.addCommandHandler('moveToHue', async ({ request: { hue } }) => {
-      await this.lightHS?.setAttribute(ColorControlCluster.id, 'currentHue', hue, this.lightHS?.log);
+      await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentHue', hue, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToHue called request: hue ${hue}`);
     });
     this.lightHS.addCommandHandler('moveToSaturation', async ({ request: { saturation } }) => {
-      await this.lightHS?.setAttribute(ColorControlCluster.id, 'currentSaturation', saturation, this.lightHS?.log);
+      await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', saturation, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToSaturation called request: saturation ${saturation}`);
     });
     this.lightHS.addCommandHandler('moveToColorTemperature', async ({ request: colorTemperatureMireds }) => {
-      // await this.lightHS?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightHS?.log);
+      // await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
     // Create a light device with XY color control
-    this.lightXY = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, CT)' }, this.config.debug as boolean);
-    this.lightXY.log.logName = 'Light (XY, CT)';
-    this.lightXY.createDefaultIdentifyClusterServer();
-    this.lightXY.createDefaultGroupsClusterServer();
-    // this.lightXY.createDefaultScenesClusterServer();
-    this.lightXY.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Light (XY, CT)',
-      '0x23497564',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Light',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.lightXY.createDefaultOnOffClusterServer();
-    this.lightXY.createDefaultLevelControlClusterServer();
-    this.lightXY.createXyColorControlClusterServer();
-    this.lightXY.createDefaultPowerSourceWiredClusterServer();
+    this.lightXY = new MatterbridgeEndpoint(
+      [colorTemperatureLight, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Light (XY, CT)' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.lightXY
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Light (XY, CT)',
+        '0x23497564',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Light',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultOnOffClusterServer()
+      .createDefaultLevelControlClusterServer()
+      .createXyColorControlClusterServer()
+      .createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.lightXY);
     this.bridgedDevices.set(this.lightXY.deviceName ?? '', this.lightXY);
 
@@ -392,53 +398,54 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lightXY?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lightXY.addCommandHandler('on', async () => {
-      await this.lightXY?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightXY?.log);
+      await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightXY?.log);
       this.lightXY?.log.info('Command on called');
     });
     this.lightXY.addCommandHandler('off', async () => {
-      await this.lightXY?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightXY?.log);
+      await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightXY?.log);
       this.lightXY?.log.info('Command off called');
     });
     this.lightXY.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.lightXY?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightXY?.log);
+      await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightXY?.log);
       this.lightXY?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.lightXY.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.lightXY?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightXY?.log);
+      await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightXY?.log);
       this.lightXY?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
     this.lightXY.addCommandHandler('moveToColor', async ({ request: { colorX, colorY } }) => {
-      await this.lightXY?.setAttribute(ColorControlCluster.id, 'currentX', colorX, this.lightXY?.log);
-      await this.lightXY?.setAttribute(ColorControlCluster.id, 'currentY', colorY, this.lightXY?.log);
+      await this.lightXY?.setAttribute(ColorControl.Cluster.id, 'currentX', colorX, this.lightXY?.log);
+      await this.lightXY?.setAttribute(ColorControl.Cluster.id, 'currentY', colorY, this.lightXY?.log);
       this.lightXY?.log.debug(`Command moveToColor called request: X ${colorX / 65536} Y ${colorY / 65536}`);
     });
     this.lightXY.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
-      await this.lightXY?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightXY?.log);
+      await this.lightXY?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightXY?.log);
       this.lightXY?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
     // Create a light device with CT color control
-    this.lightCT = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (CT)' }, this.config.debug as boolean);
-    this.lightCT.log.logName = 'Light (CT)';
-    this.lightCT.createDefaultIdentifyClusterServer();
-    this.lightCT.createDefaultGroupsClusterServer();
-    // this.lightCT.createDefaultScenesClusterServer();
-    this.lightCT.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Light (CT)',
-      '0x23480749',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Light',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.lightCT.createDefaultOnOffClusterServer();
-    this.lightCT.createDefaultLevelControlClusterServer();
-    this.lightCT.createCtColorControlClusterServer();
-    // await this.lightCT.configureColorControlCluster(false, false, true, ColorControl.ColorMode.ColorTemperatureMireds);
-    this.lightCT.createDefaultPowerSourceReplaceableBatteryClusterServer(70);
+    this.lightCT = new MatterbridgeEndpoint(
+      [colorTemperatureLight, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Light (CT)' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.lightCT
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Light (CT)',
+        '0x23480749',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Light',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultOnOffClusterServer()
+      .createDefaultLevelControlClusterServer()
+      .createCtColorControlClusterServer()
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(70);
     await this.registerDevice(this.lightCT);
     this.bridgedDevices.set(this.lightCT.deviceName ?? '', this.lightCT);
 
@@ -446,45 +453,47 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lightCT?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lightCT.addCommandHandler('on', async () => {
-      await this.lightCT?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightCT?.log);
+      await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightCT?.log);
       this.lightCT?.log.info('Command on called');
     });
     this.lightCT.addCommandHandler('off', async () => {
-      await this.lightCT?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightCT?.log);
+      await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightCT?.log);
       this.lightCT?.log.info('Command off called');
     });
     this.lightCT.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.lightCT?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightCT?.log);
+      await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightCT?.log);
       this.lightCT?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.lightCT.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.lightCT?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightCT?.log);
+      await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightCT?.log);
       this.lightCT?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
     this.lightCT.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
-      await this.lightCT?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightCT?.log);
+      await this.lightCT?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightCT?.log);
       this.lightCT?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
     // Create an outlet device
-    this.outlet = new MatterbridgeEndpoint([onOffOutlet, bridgedNode, powerSource], { uniqueStorageKey: 'Outlet' }, this.config.debug as boolean);
-    this.outlet.log.logName = 'Outlet';
-    this.outlet.createDefaultIdentifyClusterServer();
-    this.outlet.createDefaultGroupsClusterServer();
-    // this.outlet.createDefaultScenesClusterServer();
-    this.outlet.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Outlet',
-      '0x29252164',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Outlet',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.outlet.createDefaultOnOffClusterServer();
-    this.outlet.createDefaultPowerSourceWiredClusterServer();
+    this.outlet = new MatterbridgeEndpoint(
+      [onOffOutlet, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Outlet' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.outlet
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Outlet',
+        '0x29252164',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Outlet',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultOnOffClusterServer()
+      .createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.outlet);
     this.bridgedDevices.set(this.outlet.deviceName ?? '', this.outlet);
 
@@ -492,11 +501,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.outlet?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.outlet.addCommandHandler('on', async () => {
-      await this.outlet?.setAttribute(OnOffCluster.id, 'onOff', true, this.outlet?.log);
+      await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.outlet?.log);
       this.outlet?.log.info('Command on called');
     });
     this.outlet.addCommandHandler('off', async () => {
-      await this.outlet?.setAttribute(OnOffCluster.id, 'onOff', false, this.outlet?.log);
+      await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outlet?.log);
       this.outlet?.log.info('Command off called');
     });
 
@@ -524,7 +533,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.bridgedDevices.set(this.cover.deviceName ?? '', this.cover);
 
     this.cover.subscribeAttribute(
-      WindowCoveringCluster.id,
+      WindowCovering.Cluster.id,
       'mode',
       (
         newValue: TypeFromPartialBitSchema<{
@@ -572,22 +581,25 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a lock device
-    this.lock = new MatterbridgeEndpoint([doorLockDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Lock' }, this.config.debug as boolean);
-    this.lock.log.logName = 'Lock';
-    this.lock.createDefaultIdentifyClusterServer();
-    this.lock.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Lock',
-      '0x96352164',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Lock',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.lock.createDefaultDoorLockClusterServer();
-    this.lock.createDefaultPowerSourceRechargeableBatteryClusterServer(30);
+    this.lock = new MatterbridgeEndpoint(
+      [doorLockDevice, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Lock' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.lock
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Lock',
+        '0x96352164',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Lock',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultDoorLockClusterServer()
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(30);
     await this.registerDevice(this.lock);
     this.bridgedDevices.set(this.lock.deviceName ?? '', this.lock);
 
@@ -595,45 +607,50 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lock?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lock.addCommandHandler('lockDoor', async () => {
-      await this.lock?.setAttribute(DoorLockCluster.id, 'lockState', DoorLock.LockState.Locked, this.lock?.log);
+      await this.lock?.setAttribute(DoorLock.Cluster.id, 'lockState', DoorLock.LockState.Locked, this.lock?.log);
       this.lock?.log.info('Command lockDoor called');
     });
     this.lock.addCommandHandler('unlockDoor', async () => {
-      await this.lock?.setAttribute(DoorLockCluster.id, 'lockState', DoorLock.LockState.Unlocked, this.lock?.log);
+      await this.lock?.setAttribute(DoorLock.Cluster.id, 'lockState', DoorLock.LockState.Unlocked, this.lock?.log);
       this.lock?.log.info('Command unlockDoor called');
     });
 
     // Create a thermostat with AutoMode device
-    this.thermoAuto = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (AutoMode)' }, this.config.debug as boolean);
-    this.thermoAuto.log.logName = 'Thermostat (AutoMode)';
-    this.thermoAuto.createDefaultIdentifyClusterServer();
-    this.thermoAuto.createDefaultGroupsClusterServer();
-    // this.thermoAuto.createDefaultScenesClusterServer();
-    this.thermoAuto.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Thermostat (AutoMode)',
-      '0x96382164A',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Thermostat',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.thermoAuto.createDefaultThermostatClusterServer(20, 18, 22);
-    this.thermoAuto.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+    this.thermoAuto = new MatterbridgeEndpoint(
+      [thermostatDevice, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Thermostat (AutoMode)' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.thermoAuto
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Thermostat (AutoMode)',
+        '0x96382164A',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Thermostat',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultThermostatClusterServer(20, 18, 22)
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
 
-    const flowChild = this.thermoAuto.addChildDeviceType('Flow', flowSensor);
-    flowChild.createDefaultFlowMeasurementClusterServer(1 * 10);
-    flowChild.addRequiredClusterServers();
+    this.thermoAuto
+      .addChildDeviceType('Flow', flowSensor)
+      .createDefaultFlowMeasurementClusterServer(1 * 10)
+      .addRequiredClusterServers();
 
-    const tempChild = this.thermoAuto.addChildDeviceType('Temperature', temperatureSensor);
-    tempChild.createDefaultTemperatureMeasurementClusterServer(21 * 100);
-    tempChild.addRequiredClusterServers();
+    this.thermoAuto
+      .addChildDeviceType('Temperature', temperatureSensor)
+      .createDefaultTemperatureMeasurementClusterServer(21 * 100)
+      .addRequiredClusterServers();
 
-    const humidityChild = this.thermoAuto.addChildDeviceType('Humidity', humiditySensor);
-    humidityChild.createDefaultRelativeHumidityMeasurementClusterServer(50 * 100);
-    humidityChild.addRequiredClusterServers();
+    this.thermoAuto
+      .addChildDeviceType('Humidity', humiditySensor)
+      .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
+      .addRequiredClusterServers();
 
     await this.registerDevice(this.thermoAuto);
     this.bridgedDevices.set(this.thermoAuto.deviceName ?? '', this.thermoAuto);
@@ -685,36 +702,40 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Create a thermostat with Heat device
-    this.thermoHeat = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Heat)' }, this.config.debug as boolean);
-    this.thermoHeat.log.logName = 'Thermostat (Heat)';
-    this.thermoHeat.createDefaultIdentifyClusterServer();
-    this.thermoHeat.createDefaultGroupsClusterServer();
-    // this.thermoHeat.createDefaultScenesClusterServer();
-    this.thermoHeat.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Thermostat (Heat)',
-      '0x96382164H',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Thermostat',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.thermoHeat.createDefaultHeatingThermostatClusterServer(20, 18, 5, 35);
-    this.thermoHeat.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+    this.thermoHeat = new MatterbridgeEndpoint(
+      [thermostatDevice, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Thermostat (Heat)' },
+      this.config.debug as boolean,
+    ).createDefaultIdentifyClusterServer();
+    this.thermoHeat
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Thermostat (Heat)',
+        '0x96382164H',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Thermostat',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultHeatingThermostatClusterServer(20, 18, 5, 35)
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
 
-    const heatTempIN = this.thermoHeat.addChildDeviceType('TemperatureIN', [temperatureSensor], {
-      tagList: [{ mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null }],
-    });
-    heatTempIN.createDefaultIdentifyClusterServer();
-    heatTempIN.createDefaultTemperatureMeasurementClusterServer(21 * 100);
+    this.thermoHeat
+      .addChildDeviceType('TemperatureIN', [temperatureSensor], {
+        tagList: [{ mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null }],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultTemperatureMeasurementClusterServer(21 * 100);
 
-    const heatTempOUT = this.thermoHeat.addChildDeviceType('TemperatureOUT', [temperatureSensor], {
-      tagList: [{ mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: null }],
-    });
-    heatTempOUT.createDefaultIdentifyClusterServer();
-    heatTempOUT.createDefaultTemperatureMeasurementClusterServer(15 * 100);
+    this.thermoHeat
+      .addChildDeviceType('TemperatureOUT', [temperatureSensor], {
+        tagList: [{ mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: null }],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultTemperatureMeasurementClusterServer(15 * 100);
 
     await this.registerDevice(this.thermoHeat);
     this.bridgedDevices.set(this.thermoHeat.deviceName ?? '', this.thermoHeat);
@@ -744,25 +765,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Create a thermostat with Cool device
-    this.thermoCool = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Cool)' }, this.config.debug as boolean);
-    this.thermoCool.log.logName = 'Thermostat (Cool)';
-    this.thermoCool.createDefaultIdentifyClusterServer();
-    this.thermoCool.createDefaultGroupsClusterServer();
-    // this.thermoCool.createDefaultScenesClusterServer();
-    this.thermoCool.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Thermostat (Cool)',
-      '0x96382164C',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Thermostat',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.thermoCool.createDefaultCoolingThermostatClusterServer(20, 18, 5, 35);
-    this.thermoCool.createDefaultPowerSourceRechargeableBatteryClusterServer(70);
-
+    this.thermoCool = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Cool)' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Thermostat (Cool)',
+        '0x96382164C',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Thermostat',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultCoolingThermostatClusterServer(20, 18, 5, 35)
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
     await this.registerDevice(this.thermoCool);
     this.bridgedDevices.set(this.thermoCool.deviceName ?? '', this.thermoCool);
 
@@ -797,24 +815,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.config.debug as boolean,
     );
     this.airPurifier.log.logName = 'Air purifier';
-    this.airPurifier.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Air purifier',
-      '0x96584864AP',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Air purifier',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.airPurifier.createDefaultIdentifyClusterServer();
-    this.airPurifier.createDefaultFanControlClusterServer();
-    this.airPurifier.createDefaultTemperatureMeasurementClusterServer(20 * 100);
-    this.airPurifier.createDefaultRelativeHumidityMeasurementClusterServer(50 * 100);
-
-    this.airPurifier.createDefaultPowerSourceWiredClusterServer();
-
+    this.airPurifier
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Air purifier',
+        '0x96584864AP',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Air purifier',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultFanControlClusterServer()
+      .createDefaultTemperatureMeasurementClusterServer(20 * 100)
+      .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
+      .createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.airPurifier);
     this.bridgedDevices.set(this.airPurifier.deviceName ?? '', this.airPurifier);
 
@@ -823,61 +840,57 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     // Apple sends Off and High
     this.airPurifier.subscribeAttribute(
-      FanControlCluster.id,
+      FanControl.Cluster.id,
       'fanMode',
       async (newValue: FanControl.FanMode, oldValue: FanControl.FanMode) => {
         this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]}`);
         if (newValue === FanControl.FanMode.Off) {
-          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 0, this.airPurifier?.log);
+          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Low) {
-          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 33, this.airPurifier?.log);
+          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Medium) {
-          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 66, this.airPurifier?.log);
+          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.High) {
-          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 100, this.airPurifier?.log);
+          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.On) {
-          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 100, this.airPurifier?.log);
+          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Auto) {
-          await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', 50, this.airPurifier?.log);
+          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.airPurifier?.log);
         }
       },
       this.airPurifier.log,
     );
     this.airPurifier.subscribeAttribute(
-      FanControlCluster.id,
+      FanControl.Cluster.id,
       'percentSetting',
       async (newValue: number | null, oldValue: number | null) => {
         this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue}`);
-        if (isValidNumber(newValue, 0, 100)) await this.airPurifier?.setAttribute(FanControlCluster.id, 'percentCurrent', newValue, this.airPurifier?.log);
+        if (isValidNumber(newValue, 0, 100)) await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airPurifier?.log);
       },
       this.airPurifier.log,
     );
 
     // Create a airConditioner device
-    this.airConditioner = new MatterbridgeEndpoint([airConditioner, bridgedNode, powerSource], { uniqueStorageKey: 'Air conditioner' }, this.config.debug as boolean);
-    this.airConditioner.log.logName = 'Air conditioner';
-    this.airConditioner.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Air conditioner',
-      '0x96382864AC',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Air conditioner',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.airConditioner.createDefaultIdentifyClusterServer();
-    this.airConditioner.createDeadFrontOnOffClusterServer(true);
-    this.airConditioner.createDefaultThermostatClusterServer(20, 18, 22);
-    this.airConditioner.createDefaultFanControlClusterServer(FanControl.FanMode.Auto);
-    this.airConditioner.createDefaultTemperatureMeasurementClusterServer(20 * 100);
-    this.airConditioner.createDefaultRelativeHumidityMeasurementClusterServer(50 * 100);
-
-    this.airConditioner.createDefaultPowerSourceWiredClusterServer();
-
-    this.airConditioner.addRequiredClusterServers();
-
+    this.airConditioner = new MatterbridgeEndpoint([airConditioner, bridgedNode, powerSource], { uniqueStorageKey: 'Air conditioner' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Air conditioner',
+        '0x96382864AC',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Air conditioner',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultIdentifyClusterServer()
+      .createDeadFrontOnOffClusterServer(true)
+      .createDefaultThermostatClusterServer(20, 18, 22)
+      .createDefaultFanControlClusterServer(FanControl.FanMode.Auto)
+      .createDefaultTemperatureMeasurementClusterServer(20 * 100)
+      .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
     await this.registerDevice(this.airConditioner);
     this.bridgedDevices.set(this.airConditioner.deviceName ?? '', this.airConditioner);
 
@@ -886,44 +899,41 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.airConditioner.addCommandHandler('on', async () => {
       this.airConditioner?.log.info('Command on called');
-      await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', true, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', true, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 20 * 100, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', 20 * 100, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 20 * 100, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControlCluster.id, 'speedSetting', 50, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControlCluster.id, 'percentSetting', 50, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.airConditioner?.log);
     });
     this.airConditioner.addCommandHandler('off', async () => {
       this.airConditioner?.log.info('Command off called');
-      await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', false, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', null, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControlCluster.id, 'speedSetting', null, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControlCluster.id, 'percentSetting', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.airConditioner?.log);
     });
 
     // Create a pumpDevice device
-    this.pump = new MatterbridgeEndpoint([pumpDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Pump' }, this.config.debug as boolean);
-    this.pump.log.logName = 'Pump';
-    this.pump.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Pump',
-      '0x96382864PUMP',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Pump',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.pump.createDefaultIdentifyClusterServer();
-    this.pump.createDefaultOnOffClusterServer(true);
-    this.pump.createDefaultPumpConfigurationAndControlClusterServer();
-
-    this.pump.createDefaultPowerSourceWiredClusterServer();
-
+    this.pump = new MatterbridgeEndpoint([pumpDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Pump' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Pump',
+        '0x96382864PUMP',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Pump',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultOnOffClusterServer(true)
+      .createDefaultPumpConfigurationAndControlClusterServer()
+      .createDefaultPowerSourceWiredClusterServer();
     await this.registerDevice(this.pump);
     this.bridgedDevices.set(this.pump.deviceName ?? '', this.pump);
 
@@ -932,32 +942,31 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.pump.addCommandHandler('on', async () => {
       this.pump?.log.info('Command on called');
-      await this.pump?.setAttribute(OnOffCluster.id, 'onOff', true, this.pump?.log);
+      await this.pump?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.pump?.log);
     });
     this.pump.addCommandHandler('off', async () => {
       this.pump?.log.info('Command off called');
-      await this.pump?.setAttribute(OnOffCluster.id, 'onOff', false, this.pump?.log);
+      await this.pump?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.pump?.log);
     });
 
     // Create a waterValve device
-    this.valve = new MatterbridgeEndpoint([waterValve, bridgedNode, powerSource], { uniqueStorageKey: 'Water valve' }, this.config.debug as boolean);
+    this.valve = new MatterbridgeEndpoint([waterValve, bridgedNode, powerSource], { uniqueStorageKey: 'Water valve' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Water valve',
+        '0x96382864WV',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Water valve',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultValveConfigurationAndControlClusterServer()
+      .createDefaultPowerSourceWiredClusterServer();
+
     this.valve.log.logName = 'Water valve';
-    this.valve.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Water valve',
-      '0x96382864WV',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Water valve',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.valve.createDefaultIdentifyClusterServer();
-    this.valve.createDefaultValveConfigurationAndControlClusterServer();
-
-    this.valve.createDefaultPowerSourceWiredClusterServer();
-
     await this.registerDevice(this.valve);
     this.bridgedDevices.set(this.valve.deviceName ?? '', this.valve);
 
@@ -966,173 +975,166 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a fan device
-    this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean);
-    this.fan.log.logName = 'Fan';
-    this.fan.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Fan',
-      'serial_980545631228',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Fan',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-
-    this.fan.addRequiredClusterServers();
+    this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Fan',
+        'serial_980545631228',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Fan',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .addRequiredClusterServers();
     await this.registerDevice(this.fan);
     this.bridgedDevices.set(this.fan.deviceName ?? '', this.fan);
 
     this.fan.subscribeAttribute(
-      FanControlCluster.id,
+      FanControl.Cluster.id,
       'fanMode',
       async (newValue: FanControl.FanMode, oldValue: FanControl.FanMode) => {
         this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]}`);
         if (newValue === FanControl.FanMode.Off) {
-          await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', 0, this.fan?.log);
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Low) {
-          await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', 33, this.fan?.log);
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Medium) {
-          await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', 66, this.fan?.log);
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fan?.log);
         } else if (newValue === FanControl.FanMode.High) {
-          await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', 100, this.fan?.log);
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
         } else if (newValue === FanControl.FanMode.On) {
-          await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', 100, this.fan?.log);
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Auto) {
-          await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', 50, this.fan?.log);
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fan?.log);
         }
       },
       this.fan.log,
     );
     this.fan.subscribeAttribute(
-      FanControlCluster.id,
+      FanControl.Cluster.id,
       'percentSetting',
       async (newValue: number | null, oldValue: number | null) => {
         this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue}`);
-        if (isValidNumber(newValue, 0, 100)) await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', newValue, this.fan?.log);
+        if (isValidNumber(newValue, 0, 100)) await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
     );
     this.fan.subscribeAttribute(
-      FanControlCluster.id,
+      FanControl.Cluster.id,
       'speedSetting',
       async (newValue: number | null, oldValue: number | null) => {
         this.fan?.log.info(`Speed setting changed from ${oldValue} to ${newValue}`);
-        if (isValidNumber(newValue, 0, 100)) await this.fan?.setAttribute(FanControlCluster.id, 'speedCurrent', newValue, this.fan?.log);
+        if (isValidNumber(newValue, 0, 100)) await this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
     );
 
     /** ********************* Create a waterLeakDetector device ***********************/
-    this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean);
-    this.waterLeak.log.logName = 'Water leak detector';
-    this.waterLeak.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Water leak detector',
-      'serial_98745631222',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge WaterLeakDetector',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.waterLeak.addRequiredClusterServers();
-    this.waterLeak.addOptionalClusterServers();
-    await this.registerDevice(this.waterLeak);
+    this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Water leak detector',
+        'serial_98745631222',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge WaterLeakDetector',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .addRequiredClusterServers()
+      .addOptionalClusterServers();
+    this.registerDevice(this.waterLeak);
     this.bridgedDevices.set(this.waterLeak.deviceName ?? '', this.waterLeak);
-    await this.waterLeak.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterLeak.log);
+    await this.waterLeak.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.waterLeak.log);
 
     /** ********************* Create a waterFreezeDetector device ***********************/
-    this.waterFreeze = new MatterbridgeEndpoint([waterFreezeDetector, bridgedNode], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean);
-    this.waterFreeze.log.logName = 'Water freeze detector';
-    this.waterFreeze.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Water freeze detector',
-      'serial_98745631223',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge WaterFreezeDetector',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.waterFreeze.addRequiredClusterServers();
-    this.waterFreeze.addOptionalClusterServers();
+    this.waterFreeze = new MatterbridgeEndpoint([waterFreezeDetector, bridgedNode], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Water freeze detector',
+        'serial_98745631223',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge WaterFreezeDetector',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .addRequiredClusterServers()
+      .addOptionalClusterServers();
     await this.registerDevice(this.waterFreeze);
     this.bridgedDevices.set(this.waterFreeze.deviceName ?? '', this.waterFreeze);
-    await this.waterFreeze.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterFreeze.log);
+    await this.waterFreeze.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.waterFreeze.log);
 
     /** ********************* Create a rainSensor device ***********************/
-    this.rain = new MatterbridgeEndpoint([rainSensor, bridgedNode], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean);
-    this.rain.log.logName = 'Rain sensor';
-    this.rain.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Rain sensor',
-      'serial_98745631224',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge RainSensor',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.rain.createDefaultIdentifyClusterServer();
-    this.rain.createDefaultBooleanStateClusterServer(false);
-    this.rain.createDefaultBooleanStateConfigurationClusterServer();
+    this.rain = new MatterbridgeEndpoint([rainSensor, bridgedNode], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Rain sensor',
+        'serial_98745631224',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge RainSensor',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBooleanStateClusterServer(false)
+      .createDefaultBooleanStateConfigurationClusterServer();
     await this.registerDevice(this.rain);
     this.bridgedDevices.set(this.rain.deviceName ?? '', this.rain);
 
     /** ********************* Create a smokeCoAlarm device ***********************/
-    this.smoke = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean);
-    this.smoke.log.logName = 'Smoke alarm sensor';
-    this.smoke.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Smoke alarm sensor',
-      'serial_94745631225',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge SmokeCoAlarm',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.smoke.createDefaultIdentifyClusterServer();
-    this.smoke.createDefaultSmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Normal);
-    this.smoke.createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
+    this.smoke = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Smoke alarm sensor',
+        'serial_94745631225',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge SmokeCoAlarm',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultSmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Normal)
+      .createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
     await this.registerDevice(this.smoke);
     this.bridgedDevices.set(this.smoke.deviceName ?? '', this.smoke);
 
     // Create an airQuality device
-    this.airQuality = new MatterbridgeEndpoint([airQualitySensor, bridgedNode], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean);
-    this.airQuality.log.logName = 'Air quality Sensor';
-    this.airQuality.createDefaultBridgedDeviceBasicInformationClusterServer(
-      'Air quality sensor',
-      'serial_987484318322',
-      0xfff1,
-      'Matterbridge',
-      'Matterbridge Air Quality Sensor',
-      parseInt(this.version.replace(/\D/g, '')),
-      this.version === '' ? 'Unknown' : this.version,
-      parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-      this.matterbridge.matterbridgeVersion,
-    );
-    this.airQuality.addRequiredClusterServers();
-    this.airQuality.addClusterServers([
-      TemperatureMeasurement.Cluster.id,
-      RelativeHumidityMeasurement.Cluster.id,
-      CarbonMonoxideConcentrationMeasurement.Cluster.id,
-      CarbonDioxideConcentrationMeasurement.Cluster.id,
-      NitrogenDioxideConcentrationMeasurement.Cluster.id,
-      OzoneConcentrationMeasurement.Cluster.id,
-      FormaldehydeConcentrationMeasurement.Cluster.id,
-      Pm1ConcentrationMeasurement.Cluster.id,
-      Pm25ConcentrationMeasurement.Cluster.id,
-      Pm10ConcentrationMeasurement.Cluster.id,
-      RadonConcentrationMeasurement.Cluster.id,
-      TotalVolatileOrganicCompoundsConcentrationMeasurement.Cluster.id,
-    ]);
+    this.airQuality = new MatterbridgeEndpoint([airQualitySensor, bridgedNode], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Air quality sensor',
+        'serial_987484318322',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Air Quality Sensor',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .addRequiredClusterServers()
+      .addClusterServers([
+        TemperatureMeasurement.Cluster.id,
+        RelativeHumidityMeasurement.Cluster.id,
+        CarbonMonoxideConcentrationMeasurement.Cluster.id,
+        CarbonDioxideConcentrationMeasurement.Cluster.id,
+        NitrogenDioxideConcentrationMeasurement.Cluster.id,
+        OzoneConcentrationMeasurement.Cluster.id,
+        FormaldehydeConcentrationMeasurement.Cluster.id,
+        Pm1ConcentrationMeasurement.Cluster.id,
+        Pm25ConcentrationMeasurement.Cluster.id,
+        Pm10ConcentrationMeasurement.Cluster.id,
+        RadonConcentrationMeasurement.Cluster.id,
+        TotalVolatileOrganicCompoundsConcentrationMeasurement.Cluster.id,
+      ]);
     await this.registerDevice(this.airQuality);
     this.bridgedDevices.set(this.airQuality.deviceName ?? '', this.airQuality);
     await this.airQuality.setAttribute(AirQuality.Cluster.id, 'airQuality', AirQuality.AirQualityEnum.Good, this.airQuality.log);
@@ -1148,6 +1150,44 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.airQuality.setAttribute(Pm10ConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
     await this.airQuality.setAttribute(RadonConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
     await this.airQuality.setAttribute(TotalVolatileOrganicCompoundsConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
+
+    /** ********************* Create a momentary switch ***********************/
+    this.momentarySwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Momentary switch' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Momentary switch',
+        'serial_947942331225',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge MomentarySwitch',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultSwitchClusterServer()
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
+    await this.registerDevice(this.momentarySwitch);
+    this.bridgedDevices.set(this.momentarySwitch.deviceName ?? '', this.momentarySwitch);
+
+    /** ********************* Create a latching switch ***********************/
+    this.latchingSwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Latching switch' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Latching switch',
+        'serial_947442331225',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge LatchingSwitch',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultLatchingSwitchClusterServer()
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(10, PowerSource.BatChargeLevel.Critical, 2850, 'CR2032', 1);
+    await this.registerDevice(this.latchingSwitch);
+    this.bridgedDevices.set(this.latchingSwitch.deviceName ?? '', this.latchingSwitch);
   }
 
   override async onConfigure() {
@@ -1155,316 +1195,367 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.log.info('onConfigure called');
 
     // Set switch to off
-    await this.switch?.setAttribute(OnOffCluster.id, 'onOff', false, this.switch.log);
+    await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.switch.log);
     this.switch?.log.info('Set switch initial onOff to false');
-    // Toggle switch onOff every minute
-    this.switchInterval = setInterval(
-      async () => {
-        const status = this.switch?.getAttribute(OnOffCluster.id, 'onOff', this.switch.log);
-        if (isValidBoolean(status)) {
-          await this.switch?.setAttribute(OnOffCluster.id, 'onOff', !status, this.switch.log);
-          this.switch?.log.info(`Set switch onOff to ${!status}`);
-        }
-      },
-      60 * 1000 + 100,
-    );
+    if (this.config.useInterval) {
+      // Toggle switch onOff every minute
+      this.switchInterval = setInterval(
+        async () => {
+          const status = this.switch?.getAttribute(OnOff.Cluster.id, 'onOff', this.switch.log);
+          if (isValidBoolean(status)) {
+            await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', !status, this.switch.log);
+            this.switch?.log.info(`Set switch onOff to ${!status}`);
+          }
+        },
+        60 * 1000 + 100,
+      );
+    }
 
     // Set light on/off to off
-    await this.lightOnOff?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightOnOff.log);
+    await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightOnOff.log);
     this.lightOnOff?.log.info('Set light initial onOff to false.');
 
     // Set light on/off to off
-    await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', false, this.dimmer.log);
-    await this.dimmer?.setAttribute(LevelControlCluster.id, 'currentLevel', 1, this.dimmer.log);
+    await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.dimmer.log);
+    await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 1, this.dimmer.log);
     this.dimmer?.log.info(`Set dimmer initial onOff to false, currentLevel to 1.`);
 
     // Set light to off, level to 0 and hue to 0 and saturation to 50% (pink color)
-    await this.light?.setAttribute(OnOffCluster.id, 'onOff', false, this.light.log);
-    await this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', 200, this.light.log);
-    await this.light?.setAttribute(ColorControlCluster.id, 'currentHue', 0, this.light.log);
-    await this.light?.setAttribute(ColorControlCluster.id, 'currentSaturation', 128, this.light.log);
+    await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.light.log);
+    await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 200, this.light.log);
+    await this.light?.setAttribute(ColorControl.Cluster.id, 'currentHue', 0, this.light.log);
+    await this.light?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', 128, this.light.log);
     await this.light?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
     this.light?.log.info('Set light initial onOff to false, currentLevel to 1, hue to 0 and saturation to 50%.');
 
     // Set light XY to true, level to 100% and XY to red
-    await this.lightXY?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightXY.log);
-    await this.lightXY?.setAttribute(LevelControlCluster.id, 'currentLevel', 254, this.lightXY.log);
-    await this.lightXY?.setAttribute(ColorControlCluster.id, 'currentX', 0.7006 * 65536, this.lightXY.log);
-    await this.lightXY?.setAttribute(ColorControlCluster.id, 'currentY', 0.2993 * 65536, this.lightXY.log);
+    await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightXY.log);
+    await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 254, this.lightXY.log);
+    await this.lightXY?.setAttribute(ColorControl.Cluster.id, 'currentX', 0.7006 * 65536, this.lightXY.log);
+    await this.lightXY?.setAttribute(ColorControl.Cluster.id, 'currentY', 0.2993 * 65536, this.lightXY.log);
     await this.lightXY?.configureColorControlMode(ColorControl.ColorMode.CurrentXAndCurrentY);
     this.lightXY?.log.info('Set light XY initial onOff to true, currentLevel to 254, X to 0.7006 and Y to 0.2993.');
 
     // Set light HS to off, level to 0 and hue to 0 and saturation to 50% (pink color)
-    await this.lightHS?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightHS.log);
-    await this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', 1, this.lightHS.log);
-    await this.lightHS?.setAttribute(ColorControlCluster.id, 'currentHue', 0, this.lightHS.log);
-    await this.lightHS?.setAttribute(ColorControlCluster.id, 'currentSaturation', 128, this.lightHS.log);
+    await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightHS.log);
+    await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 1, this.lightHS.log);
+    await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentHue', 0, this.lightHS.log);
+    await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', 128, this.lightHS.log);
     await this.lightHS?.configureColorControlMode(ColorControl.ColorMode.CurrentHueAndCurrentSaturation);
     this.lightHS?.log.info('Set light HS initial onOff to false, currentLevel to 1, hue to 0 and saturation to 50%.');
 
     // Set light CT to true, level to 50% and colorTemperatureMireds to 250
-    await this.lightCT?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightCT.log);
-    await this.lightCT?.setAttribute(LevelControlCluster.id, 'currentLevel', 128, this.lightCT.log);
-    await this.lightCT?.setAttribute(ColorControlCluster.id, 'colorTemperatureMireds', 250, this.lightCT.log);
+    await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightCT.log);
+    await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 128, this.lightCT.log);
+    await this.lightCT?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', 250, this.lightCT.log);
     await this.lightCT?.configureColorControlMode(ColorControl.ColorMode.ColorTemperatureMireds);
     this.lightCT?.log.info('Set light CT initial onOff to true, currentLevel to 128, colorTemperatureMireds to 250.');
 
-    this.lightInterval = setInterval(
-      async () => {
-        const state = this.light?.getAttribute(OnOffCluster.id, 'onOff', this.light.log);
-        let level = this.light?.getAttribute(LevelControlCluster.id, 'currentLevel', this.light.log);
-        if (isValidBoolean(state) && isValidNumber(level, 0, 254)) {
-          level += 10;
-          if (level >= 230) {
-            level = 1;
-            await this.lightOnOff?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightOnOff.log);
-            await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', false, this.dimmer.log);
-            await this.light?.setAttribute(OnOffCluster.id, 'onOff', false, this.light.log);
-            await this.lightXY?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightXY.log);
-            await this.lightHS?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightHS.log);
-            await this.lightCT?.setAttribute(OnOffCluster.id, 'onOff', false, this.lightCT.log);
-            this.log.info('Set lights onOff to false');
-            await this.dimmer?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.dimmer.log);
-            await this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light.log);
-            await this.lightXY?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightXY.log);
-            await this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightHS.log);
-            await this.lightCT?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightCT.log);
-            this.log.info(`Set lights currentLevel to ${level}`);
-          } else {
-            await this.lightOnOff?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightOnOff?.log);
-            await this.dimmer?.setAttribute(OnOffCluster.id, 'onOff', true, this.dimmer.log);
-            await this.light?.setAttribute(OnOffCluster.id, 'onOff', true, this.light.log);
-            await this.lightXY?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightXY.log);
-            await this.lightHS?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightHS.log);
-            await this.lightCT?.setAttribute(OnOffCluster.id, 'onOff', true, this.lightCT.log);
-            this.log.info('Set lights onOff to true');
-            await this.dimmer?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.dimmer.log);
-            await this.light?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.light.log);
-            await this.lightXY?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightXY.log);
-            await this.lightHS?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightHS.log);
-            await this.lightCT?.setAttribute(LevelControlCluster.id, 'currentLevel', level, this.lightCT.log);
-            this.log.info(`Set lights currentLevel to ${level}`);
+    if (this.config.useInterval) {
+      this.lightInterval = setInterval(
+        async () => {
+          const state = this.light?.getAttribute(OnOff.Cluster.id, 'onOff', this.light.log);
+          let level = this.light?.getAttribute(LevelControl.Cluster.id, 'currentLevel', this.light.log);
+          if (isValidBoolean(state) && isValidNumber(level, 0, 254)) {
+            level += 10;
+            if (level >= 250) {
+              level = 1;
+              await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightOnOff.log);
+              await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.dimmer.log);
+              await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.light.log);
+              await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightXY.log);
+              await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightHS.log);
+              await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightCT.log);
+              this.log.info('Set lights onOff to false');
+              await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.dimmer.log);
+              await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.light.log);
+              await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightXY.log);
+              await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightHS.log);
+              await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightCT.log);
+              this.log.info(`Set lights currentLevel to ${level}`);
+            } else {
+              await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightOnOff?.log);
+              await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dimmer.log);
+              await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.light.log);
+              await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightXY.log);
+              await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightHS.log);
+              await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightCT.log);
+              this.log.info('Set lights onOff to true');
+              await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.dimmer.log);
+              await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.light.log);
+              await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightXY.log);
+              await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightHS.log);
+              await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightCT.log);
+              this.log.info(`Set lights currentLevel to ${level}`);
+            }
           }
-        }
-      },
-      60 * 1000 + 200,
-    );
+        },
+        60 * 1000 + 200,
+      );
+    }
 
     // Set outlet to off
-    await this.outlet?.setAttribute(OnOffCluster.id, 'onOff', false, this.outlet.log);
+    await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outlet.log);
     this.outlet?.log.info('Set outlet initial onOff to false');
-    // Toggle outlet onOff every minute
-    this.outletInterval = setInterval(
-      async () => {
-        const state = this.outlet?.getAttribute(OnOffCluster.id, 'onOff', this.outlet.log);
-        if (isValidBoolean(state)) {
-          await this.outlet?.setAttribute(OnOffCluster.id, 'onOff', !state, this.outlet.log);
-          this.outlet?.log.info(`Set outlet onOff to ${!state}`);
-        }
-      },
-      60 * 1000 + 300,
-    );
+    if (this.config.useInterval) {
+      // Toggle outlet onOff every minute
+      this.outletInterval = setInterval(
+        async () => {
+          const state = this.outlet?.getAttribute(OnOff.Cluster.id, 'onOff', this.outlet.log);
+          if (isValidBoolean(state)) {
+            await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outlet.log);
+            this.outlet?.log.info(`Set outlet onOff to ${!state}`);
+          }
+        },
+        60 * 1000 + 300,
+      );
+    }
 
     // Set cover to target = current position and status to stopped (current position is persisted in the cluster)
     await this.cover?.setWindowCoveringTargetAsCurrentAndStopped();
     this.cover?.log.info('Set cover initial targetPositionLiftPercent100ths = currentPositionLiftPercent100ths and operationalStatus to Stopped.');
-    // Increment cover position every minute
-    this.coverInterval = setInterval(
-      async () => {
-        let position = this.cover?.getAttribute(WindowCoveringCluster.id, 'currentPositionLiftPercent100ths', this.cover.log);
-        if (isValidNumber(position, 0, 10000)) {
-          position = position > 9000 ? 0 : position + 1000;
-          await this.cover?.setAttribute(WindowCoveringCluster.id, 'targetPositionLiftPercent100ths', position, this.cover.log);
-          await this.cover?.setAttribute(WindowCoveringCluster.id, 'currentPositionLiftPercent100ths', position, this.cover.log);
-          await this.cover?.setAttribute(
-            WindowCoveringCluster.id,
-            'operationalStatus',
-            { global: WindowCovering.MovementStatus.Stopped, lift: WindowCovering.MovementStatus.Stopped, tilt: WindowCovering.MovementStatus.Stopped },
-            this.cover.log,
-          );
-          this.cover?.log.info(`Set cover current and target positionLiftPercent100ths to ${position} and operationalStatus to Stopped`);
-        }
-      },
-      60 * 1000 + 400,
-    );
+    if (this.config.useInterval) {
+      // Increment cover position every minute
+      this.coverInterval = setInterval(
+        async () => {
+          let position = this.cover?.getAttribute(WindowCovering.Cluster.id, 'currentPositionLiftPercent100ths', this.cover.log);
+          if (isValidNumber(position, 0, 10000)) {
+            position = position > 9000 ? 0 : position + 1000;
+            await this.cover?.setAttribute(WindowCovering.Cluster.id, 'targetPositionLiftPercent100ths', position, this.cover.log);
+            await this.cover?.setAttribute(WindowCovering.Cluster.id, 'currentPositionLiftPercent100ths', position, this.cover.log);
+            await this.cover?.setAttribute(
+              WindowCovering.Cluster.id,
+              'operationalStatus',
+              { global: WindowCovering.MovementStatus.Stopped, lift: WindowCovering.MovementStatus.Stopped, tilt: WindowCovering.MovementStatus.Stopped },
+              this.cover.log,
+            );
+            this.cover?.log.info(`Set cover current and target positionLiftPercent100ths to ${position} and operationalStatus to Stopped`);
+          }
+        },
+        60 * 1000 + 400,
+      );
+    }
 
     // Set lock to Locked
-    await this.lock?.setAttribute(DoorLockCluster.id, 'lockState', DoorLock.LockState.Locked, this.lock.log);
+    await this.lock?.setAttribute(DoorLock.Cluster.id, 'lockState', DoorLock.LockState.Locked, this.lock.log);
     this.lock?.log.info('Set lock initial lockState to Locked');
-    // Toggle lock every minute
-    this.lockInterval = setInterval(
-      async () => {
-        const status = this.lock?.getAttribute(DoorLockCluster.id, 'lockState', this.lock.log);
-        if (isValidNumber(status, DoorLock.LockState.Locked, DoorLock.LockState.Unlocked)) {
-          await this.lock?.setAttribute(
-            DoorLockCluster.id,
-            'lockState',
-            status === DoorLock.LockState.Locked ? DoorLock.LockState.Unlocked : DoorLock.LockState.Locked,
-            this.lock.log,
-          );
-          this.lock?.log.info(`Set lock lockState to ${status === DoorLock.LockState.Locked ? 'Unlocked' : 'Locked'}`);
-        }
-      },
-      60 * 1000 + 500,
-    );
+    if (this.config.useInterval) {
+      // Toggle lock every minute
+      this.lockInterval = setInterval(
+        async () => {
+          const status = this.lock?.getAttribute(DoorLock.Cluster.id, 'lockState', this.lock.log);
+          if (isValidNumber(status, DoorLock.LockState.Locked, DoorLock.LockState.Unlocked)) {
+            await this.lock?.setAttribute(
+              DoorLock.Cluster.id,
+              'lockState',
+              status === DoorLock.LockState.Locked ? DoorLock.LockState.Unlocked : DoorLock.LockState.Locked,
+              this.lock.log,
+            );
+            this.lock?.log.info(`Set lock lockState to ${status === DoorLock.LockState.Locked ? 'Unlocked' : 'Locked'}`);
+          }
+        },
+        60 * 1000 + 500,
+      );
+    }
 
     // Set local to 16°C
     await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'localTemperature', 16 * 100, this.thermoAuto.log);
     await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Auto, this.thermoAuto.log);
     this.thermoAuto?.log.info('Set thermostat initial localTemperature to 16°C and mode Auto');
     const temperature = this.thermoAuto?.getChildEndpointByName('Temperature');
-    await temperature?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', 16 * 100, this.thermoAuto?.log);
+    await temperature?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 16 * 100, this.thermoAuto?.log);
     const humidity = this.thermoAuto?.getChildEndpointByName('Humidity');
     await humidity?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.thermoAuto?.log);
     const flow = this.thermoAuto?.getChildEndpointByName('Flow');
-    await flow?.setAttribute(FlowMeasurementCluster.id, 'measuredValue', 10, this.thermoAuto?.log);
+    await flow?.setAttribute(FlowMeasurement.Cluster.id, 'measuredValue', 10, this.thermoAuto?.log);
     this.thermoAuto?.log.info('Set thermostat ext temperature to 16°C, ext humidity to 50% and ext valve flow to 10');
 
-    // Increment localTemperature every minute
-    this.thermoInterval = setInterval(
-      async () => {
-        let temperature = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'localTemperature', this.thermoAuto.log);
-        if (isValidNumber(temperature, 1600, 2400)) {
-          temperature = temperature + 100 > 2400 ? 1600 : temperature + 100;
-          await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoAuto.log);
+    if (this.config.useInterval) {
+      // Increment localTemperature every minute
+      this.thermoInterval = setInterval(
+        async () => {
+          let temperature = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'localTemperature', this.thermoAuto.log);
+          if (isValidNumber(temperature, 1600, 2400)) {
+            temperature = temperature + 100 > 2400 ? 1600 : temperature + 100;
+            await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoAuto.log);
 
-          await this.thermoHeat?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoHeat.log);
-          const tempIn = this.thermoHeat?.getChildEndpointByName('TemperatureIN');
-          await tempIn?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature - 50, this.thermoHeat?.log);
-          const tempOut = this.thermoHeat?.getChildEndpointByName('TemperatureOUT');
-          await tempOut?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature - 400, this.thermoHeat?.log);
+            await this.thermoHeat?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoHeat.log);
+            const tempIn = this.thermoHeat?.getChildEndpointByName('TemperatureIN');
+            await tempIn?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature - 50, this.thermoHeat?.log);
+            const tempOut = this.thermoHeat?.getChildEndpointByName('TemperatureOUT');
+            await tempOut?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature - 400, this.thermoHeat?.log);
 
-          await this.thermoCool?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoCool.log);
-          const temp = this.thermoCool?.getChildEndpointByName('Temperature');
-          await temp?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature, this.thermoCool?.log);
-          const humidity = this.thermoCool?.getChildEndpointByName('Humidity');
-          await humidity?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.thermoCool?.log);
-          const flow = this.thermoCool?.getChildEndpointByName('Flow');
-          await flow?.setAttribute(FlowMeasurementCluster.id, 'measuredValue', 10, this.thermoCool?.log);
-          this.thermoAuto?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
-          this.thermoHeat?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
-          this.thermoCool?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
-        }
-      },
-      60 * 1000 + 600,
-    );
+            await this.thermoCool?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoCool.log);
+            const temp = this.thermoCool?.getChildEndpointByName('Temperature');
+            await temp?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature, this.thermoCool?.log);
+            const humidity = this.thermoCool?.getChildEndpointByName('Humidity');
+            await humidity?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.thermoCool?.log);
+            const flow = this.thermoCool?.getChildEndpointByName('Flow');
+            await flow?.setAttribute(FlowMeasurement.Cluster.id, 'measuredValue', 10, this.thermoCool?.log);
+            this.thermoAuto?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
+            this.thermoHeat?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
+            this.thermoCool?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
+          }
+        },
+        60 * 1000 + 600,
+      );
+    }
 
     // Set airConditioner to on
-    await this.airConditioner?.setAttribute(OnOffCluster.id, 'onOff', true, this.airConditioner.log);
+    await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner.log);
     await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 2000, this.airConditioner.log);
-    // Increment airConditioner localTemperature every minute
-    this.airConditionerInterval = setInterval(
-      async () => {
-        let temperature = this.airConditioner?.getAttribute(ThermostatCluster.id, 'localTemperature', this.airConditioner.log);
-        if (isValidNumber(temperature, 1600, 2400)) {
-          temperature = temperature + 100 > 2400 ? 1600 : temperature + 100;
-          await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.airConditioner.log);
-          await this.airConditioner?.setAttribute(TemperatureMeasurementCluster.id, 'measuredValue', temperature, this.airConditioner.log);
-          await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner.log);
-          this.airConditioner?.log.info(`Set airConditioner localTemperature to ${temperature / 100}°C`);
-        }
-      },
-      60 * 1000 + 550,
-    );
+    if (this.config.useInterval) {
+      // Increment airConditioner localTemperature every minute
+      this.airConditionerInterval = setInterval(
+        async () => {
+          let temperature = this.airConditioner?.getAttribute(ThermostatCluster.id, 'localTemperature', this.airConditioner.log);
+          if (isValidNumber(temperature, 1600, 2400)) {
+            temperature = temperature + 100 > 2400 ? 1600 : temperature + 100;
+            await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.airConditioner.log);
+            await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature, this.airConditioner.log);
+            await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner.log);
+            this.airConditioner?.log.info(`Set airConditioner localTemperature to ${temperature / 100}°C`);
+          }
+        },
+        60 * 1000 + 550,
+      );
+    }
 
     // Set fan to auto
     this.fan?.log.info('Set fan initial fanMode to Auto, percentCurrent and percentSetting to 50 and speedCurrent and speedSetting to 50');
-    await this.fan?.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto, this.fan.log);
-    await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', 50, this.fan.log);
-    await this.fan?.setAttribute(FanControlCluster.id, 'percentSetting', 50, this.fan.log);
-    await this.fan?.setAttribute(FanControlCluster.id, 'speedCurrent', 50, this.fan.log);
-    await this.fan?.setAttribute(FanControlCluster.id, 'speedSetting', 50, this.fan.log);
-    // Increment fan percentCurrent every minute
-    this.fanInterval = setInterval(
-      async () => {
-        const mode = this.fan?.getAttribute(FanControlCluster.id, 'fanMode', this.fan.log);
-        let value = this.fan?.getAttribute(FanControlCluster.id, 'percentCurrent', this.fan.log);
-        if (isValidNumber(mode, FanControl.FanMode.Off, FanControl.FanMode.Auto) && mode === FanControl.FanMode.Auto && isValidNumber(value, 0, 100)) {
-          value = value + 10 >= 100 ? 0 : value + 10;
-          await this.fan?.setAttribute(FanControlCluster.id, 'percentCurrent', value, this.fan.log);
-          await this.fan?.setAttribute(FanControlCluster.id, 'percentSetting', value, this.fan.log);
-          this.fan?.log.info(`Set fan percentCurrent and percentSetting to ${value}`);
-        }
-      },
-      60 * 1000 + 700,
-    );
+    await this.fan?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Auto, this.fan.log);
+    await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fan.log);
+    await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fan.log);
+    await this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', 50, this.fan.log);
+    await this.fan?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.fan.log);
+    if (this.config.useInterval) {
+      // Increment fan percentCurrent every minute
+      this.fanInterval = setInterval(
+        async () => {
+          const mode = this.fan?.getAttribute(FanControl.Cluster.id, 'fanMode', this.fan.log);
+          let value = this.fan?.getAttribute(FanControl.Cluster.id, 'percentCurrent', this.fan.log);
+          if (isValidNumber(mode, FanControl.FanMode.Off, FanControl.FanMode.Auto) && mode === FanControl.FanMode.Auto && isValidNumber(value, 0, 100)) {
+            value = value + 10 >= 100 ? 0 : value + 10;
+            await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', value, this.fan.log);
+            await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', value, this.fan.log);
+            this.fan?.log.info(`Set fan percentCurrent and percentSetting to ${value}`);
+          }
+        },
+        60 * 1000 + 700,
+      );
+    }
 
     // Set waterLeak to false
-    await this.waterLeak?.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterLeak.log);
-    // Toggle waterLeak every minute
-    this.waterLeakInterval = setInterval(
-      async () => {
-        let value = this.waterLeak?.getAttribute(BooleanStateCluster.id, 'stateValue', this.waterLeak.log);
-        if (isValidBoolean(value)) {
-          value = !value;
-          await this.waterLeak?.setAttribute(BooleanStateCluster.id, 'stateValue', value, this.waterLeak.log);
-          this.waterLeak?.log.info(`Set waterLeak stateValue to ${value}`);
-        }
-      },
-      60 * 1000 + 800,
-    );
+    await this.waterLeak?.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.waterLeak.log);
+    if (this.config.useInterval) {
+      // Toggle waterLeak every minute
+      this.waterLeakInterval = setInterval(
+        async () => {
+          let value = this.waterLeak?.getAttribute(BooleanState.Cluster.id, 'stateValue', this.waterLeak.log);
+          if (isValidBoolean(value)) {
+            value = !value;
+            await this.waterLeak?.setAttribute(BooleanState.Cluster.id, 'stateValue', value, this.waterLeak.log);
+            this.waterLeak?.log.info(`Set waterLeak stateValue to ${value}`);
+          }
+        },
+        60 * 1000 + 800,
+      );
+    }
 
     // Set waterFreeze to false
-    await this.waterFreeze?.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.waterFreeze.log);
-    // Toggle waterFreeze every minute
-    this.waterFreezeInterval = setInterval(
-      async () => {
-        let value = this.waterFreeze?.getAttribute(BooleanStateCluster.id, 'stateValue', this.waterFreeze.log);
-        if (isValidBoolean(value)) {
-          value = !value;
-          await this.waterFreeze?.setAttribute(BooleanStateCluster.id, 'stateValue', value, this.waterFreeze.log);
-          this.waterFreeze?.log.info(`Set waterFreeze stateValue to ${value}`);
-        }
-      },
-      60 * 1000 + 900,
-    );
+    await this.waterFreeze?.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.waterFreeze.log);
+    if (this.config.useInterval) {
+      // Toggle waterFreeze every minute
+      this.waterFreezeInterval = setInterval(
+        async () => {
+          let value = this.waterFreeze?.getAttribute(BooleanState.Cluster.id, 'stateValue', this.waterFreeze.log);
+          if (isValidBoolean(value)) {
+            value = !value;
+            await this.waterFreeze?.setAttribute(BooleanState.Cluster.id, 'stateValue', value, this.waterFreeze.log);
+            this.waterFreeze?.log.info(`Set waterFreeze stateValue to ${value}`);
+          }
+        },
+        60 * 1000 + 900,
+      );
+    }
 
     // Set rain to false
-    await this.rain?.setAttribute(BooleanStateCluster.id, 'stateValue', false, this.rain.log);
-    // Toggle rain every minute
-    this.rainInterval = setInterval(
-      async () => {
-        let value = this.rain?.getAttribute(BooleanStateCluster.id, 'stateValue', this.rain.log);
-        if (isValidBoolean(value)) {
-          value = !value;
-          await this.rain?.setAttribute(BooleanStateCluster.id, 'stateValue', value, this.rain.log);
-          this.rain?.log.info(`Set rain stateValue to ${value}`);
-        }
-      },
-      60 * 1000 + 1000,
-    );
+    await this.rain?.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.rain.log);
+    if (this.config.useInterval) {
+      // Toggle rain every minute
+      this.rainInterval = setInterval(
+        async () => {
+          let value = this.rain?.getAttribute(BooleanState.Cluster.id, 'stateValue', this.rain.log);
+          if (isValidBoolean(value)) {
+            value = !value;
+            await this.rain?.setAttribute(BooleanState.Cluster.id, 'stateValue', value, this.rain.log);
+            this.rain?.log.info(`Set rain stateValue to ${value}`);
+          }
+        },
+        60 * 1000 + 1000,
+      );
+    }
 
     // Set smoke to Normal
-    await this.smoke?.setAttribute(SmokeCoAlarmCluster.id, 'smokeState', SmokeCoAlarm.AlarmState.Normal, this.smoke.log);
-    await this.smoke?.setAttribute(SmokeCoAlarmCluster.id, 'coState', SmokeCoAlarm.AlarmState.Normal, this.smoke.log);
-    // Toggle smoke every minute
-    this.smokeInterval = setInterval(
-      async () => {
-        let value = this.smoke?.getAttribute(SmokeCoAlarmCluster.id, 'smokeState', this.smoke.log);
-        if (isValidNumber(value, SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Critical)) {
-          value = value === SmokeCoAlarm.AlarmState.Normal ? SmokeCoAlarm.AlarmState.Critical : SmokeCoAlarm.AlarmState.Normal;
-          await this.smoke?.setAttribute(SmokeCoAlarmCluster.id, 'smokeState', value, this.smoke.log);
-          await this.smoke?.setAttribute(SmokeCoAlarmCluster.id, 'coState', value, this.smoke.log);
-          this.smoke?.log.info(`Set smoke smokeState and coState to ${value}`);
-        }
-      },
-      60 * 1000 + 1100,
-    );
+    await this.smoke?.setAttribute(SmokeCoAlarm.Cluster.id, 'smokeState', SmokeCoAlarm.AlarmState.Normal, this.smoke.log);
+    await this.smoke?.setAttribute(SmokeCoAlarm.Cluster.id, 'coState', SmokeCoAlarm.AlarmState.Normal, this.smoke.log);
+    if (this.config.useInterval) {
+      // Toggle smoke every minute
+      this.smokeInterval = setInterval(
+        async () => {
+          let value = this.smoke?.getAttribute(SmokeCoAlarm.Cluster.id, 'smokeState', this.smoke.log);
+          if (isValidNumber(value, SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Critical)) {
+            value = value === SmokeCoAlarm.AlarmState.Normal ? SmokeCoAlarm.AlarmState.Critical : SmokeCoAlarm.AlarmState.Normal;
+            await this.smoke?.setAttribute(SmokeCoAlarm.Cluster.id, 'smokeState', value, this.smoke.log);
+            await this.smoke?.setAttribute(SmokeCoAlarm.Cluster.id, 'coState', value, this.smoke.log);
+            this.smoke?.log.info(`Set smoke smokeState and coState to ${value}`);
+          }
+        },
+        60 * 1000 + 1100,
+      );
+    }
 
     // Set air quality to Normal
-    this.airQuality?.setAttribute(AirQualityCluster.id, 'airQuality', AirQuality.AirQualityEnum.Good, this.airQuality.log);
-    // Toggle air quality every minute
-    this.airQualityInterval = setInterval(
-      async () => {
-        let value = this.airQuality?.getAttribute(AirQualityCluster.id, 'airQuality', this.airQuality?.log);
-        if (isValidNumber(value, AirQuality.AirQualityEnum.Good, AirQuality.AirQualityEnum.ExtremelyPoor)) {
-          value = value >= AirQuality.AirQualityEnum.ExtremelyPoor ? AirQuality.AirQualityEnum.Good : value + 1;
-          await this.airQuality?.setAttribute(AirQualityCluster.id, 'airQuality', value, this.airQuality.log);
-          this.airQuality?.log.info(`Set air quality to ${value}`);
-        }
-      },
-      60 * 1000 + 1100,
-    );
+    this.airQuality?.setAttribute(AirQuality.Cluster.id, 'airQuality', AirQuality.AirQualityEnum.Good, this.airQuality.log);
+    if (this.config.useInterval) {
+      // Toggle air quality every minute
+      this.airQualityInterval = setInterval(
+        async () => {
+          let value = this.airQuality?.getAttribute(AirQuality.Cluster.id, 'airQuality', this.airQuality?.log);
+          if (isValidNumber(value, AirQuality.AirQualityEnum.Good, AirQuality.AirQualityEnum.ExtremelyPoor)) {
+            value = value >= AirQuality.AirQualityEnum.ExtremelyPoor ? AirQuality.AirQualityEnum.Good : value + 1;
+            await this.airQuality?.setAttribute(AirQuality.Cluster.id, 'airQuality', value, this.airQuality.log);
+            this.airQuality?.log.info(`Set air quality to ${value}`);
+          }
+        },
+        60 * 1000 + 1100,
+      );
+    }
+
+    if (this.config.useInterval) {
+      // Trigger the switches every minute
+      this.genericSwitchInterval = setInterval(
+        async () => {
+          if (this.genericSwitchLastEvent === 'Release') {
+            await this.momentarySwitch?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
+            this.genericSwitchLastEvent = 'Single';
+          } else if (this.genericSwitchLastEvent === 'Single') {
+            await this.momentarySwitch?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
+            this.genericSwitchLastEvent = 'Double';
+          } else if (this.genericSwitchLastEvent === 'Double') {
+            await this.momentarySwitch?.triggerSwitchEvent('Long', this.momentarySwitch?.log);
+            this.genericSwitchLastEvent = 'Long';
+          } else if (this.genericSwitchLastEvent === 'Long') {
+            await this.latchingSwitch?.triggerSwitchEvent('Press', this.latchingSwitch?.log);
+            this.genericSwitchLastEvent = 'Press';
+          } else if (this.genericSwitchLastEvent === 'Press') {
+            await this.latchingSwitch?.triggerSwitchEvent('Release', this.latchingSwitch?.log);
+            this.genericSwitchLastEvent = 'Release';
+          }
+        },
+        60 * 1000 + 1900,
+      );
+    }
   }
 
   override async onShutdown(reason?: string) {
@@ -1481,6 +1572,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     clearInterval(this.smokeInterval);
     clearInterval(this.airQualityInterval);
     clearInterval(this.airConditionerInterval);
+    clearInterval(this.genericSwitchInterval);
     await super.onShutdown(reason);
     this.log.info('onShutdown called with reason:', reason ?? 'none');
     if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices();

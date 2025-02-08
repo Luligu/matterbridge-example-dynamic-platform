@@ -32,7 +32,7 @@ describe('initializePlugin', () => {
     matterbridgeDirectory: './jest/matterbridge',
     matterbridgePluginDirectory: './jest/plugins',
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '2.1.0',
+    matterbridgeVersion: '2.1.5',
     edge: true,
     log: mockLog,
     getDevices: jest.fn(() => {
@@ -57,8 +57,9 @@ describe('initializePlugin', () => {
   const mockConfig = {
     'name': 'matterbridge-example-dynamic-platform',
     'type': 'DynamicPlatform',
-    'unregisterOnShutdown': false,
+    'useInterval': true,
     'debug': false,
+    'unregisterOnShutdown': false,
   } as PlatformConfig;
 
   it('should return an instance of TestPlatform', async () => {

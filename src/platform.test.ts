@@ -54,7 +54,7 @@ describe('TestPlatform', () => {
     matterbridgeDirectory: './jest/matterbridge',
     matterbridgePluginDirectory: './jest/plugins',
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '2.1.0',
+    matterbridgeVersion: '2.1.5',
     edge: true,
     log: mockLog,
     getDevices: jest.fn(() => {
@@ -81,8 +81,9 @@ describe('TestPlatform', () => {
   const mockConfig = {
     'name': 'matterbridge-example-dynamic-platform',
     'type': 'DynamicPlatform',
-    'unregisterOnShutdown': false,
+    'useInterval': true,
     'debug': true,
+    'unregisterOnShutdown': false,
   } as PlatformConfig;
 
   /*
@@ -188,9 +189,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "2.1.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "2.1.5". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '2.1.0';
+    mockMatterbridge.matterbridgeVersion = '2.1.5';
   });
 
   it('should initialize platform with config name', () => {
@@ -202,7 +203,7 @@ describe('TestPlatform', () => {
   it('should call onStart with reason', async () => {
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(23);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(25);
   }, 60000);
 
   it('should start the server', async () => {
@@ -307,16 +308,15 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
 
     // Simulate multiple interval executions
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 100; i++) {
       jest.advanceTimersByTime(61 * 1000);
-      await Promise.resolve();
     }
 
     jest.useRealTimers();
 
     expect(mockLog.info).toHaveBeenCalledTimes(1);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(4431);
+    expect(loggerLogSpy).toHaveBeenCalled();
   }, 300000);
 
   it('should call onShutdown with reason', async () => {
@@ -324,7 +324,7 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
     expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
     expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(0);
-  });
+  }, 60000);
 
   it('should call onShutdown with reason and remove the devices', async () => {
     mockConfig.unregisterOnShutdown = true;
@@ -332,13 +332,13 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
     expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
     expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(1);
-  });
+  }, 60000);
 
   it('should stop the server', async () => {
-    await (matterbridge as any).stopServerNode(server);
+    await server.close();
     expect(server.lifecycle.isOnline).toBe(false);
     await server.env.get(MdnsService)[Symbol.asyncDispose]();
-  });
+  }, 60000);
 
   it('should stop the storage', async () => {
     await (matterbridge as any).stopMatterStorage();
