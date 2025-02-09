@@ -635,7 +635,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.matterbridge.matterbridgeVersion,
       )
       .createDefaultThermostatClusterServer(20, 18, 22)
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 4700);
 
     this.thermoAuto
       .addChildDeviceType('Flow', flowSensor)
@@ -721,7 +721,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.matterbridge.matterbridgeVersion,
       )
       .createDefaultHeatingThermostatClusterServer(20, 18, 5, 35)
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 6010, 'AA 1.5V', 4);
 
     this.thermoHeat
       .addChildDeviceType('TemperatureIN', [temperatureSensor], {
@@ -780,7 +780,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.matterbridge.matterbridgeVersion,
       )
       .createDefaultCoolingThermostatClusterServer(20, 18, 5, 35)
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(40, PowerSource.BatChargeLevel.Ok, 5080, 'AA 1.5V', 4);
     await this.registerDevice(this.thermoCool);
     this.bridgedDevices.set(this.thermoCool.deviceName ?? '', this.thermoCool);
 
@@ -965,8 +965,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultValveConfigurationAndControlClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
-
-    this.valve.log.logName = 'Water valve';
     await this.registerDevice(this.valve);
     this.bridgedDevices.set(this.valve.deviceName ?? '', this.valve);
 
@@ -1044,11 +1042,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
         this.matterbridge.matterbridgeVersion,
       )
+      .createDefaultBooleanStateClusterServer(false)
       .addRequiredClusterServers()
       .addOptionalClusterServers();
     this.registerDevice(this.waterLeak);
     this.bridgedDevices.set(this.waterLeak.deviceName ?? '', this.waterLeak);
-    await this.waterLeak.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.waterLeak.log);
 
     /** ********************* Create a waterFreezeDetector device ***********************/
     this.waterFreeze = new MatterbridgeEndpoint([waterFreezeDetector, bridgedNode], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean)
@@ -1063,11 +1061,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
         this.matterbridge.matterbridgeVersion,
       )
+      .createDefaultBooleanStateClusterServer(false)
       .addRequiredClusterServers()
       .addOptionalClusterServers();
     await this.registerDevice(this.waterFreeze);
     this.bridgedDevices.set(this.waterFreeze.deviceName ?? '', this.waterFreeze);
-    await this.waterFreeze.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.waterFreeze.log);
 
     /** ********************* Create a rainSensor device ***********************/
     this.rain = new MatterbridgeEndpoint([rainSensor, bridgedNode], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean)
@@ -1137,19 +1135,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       ]);
     await this.registerDevice(this.airQuality);
     this.bridgedDevices.set(this.airQuality.deviceName ?? '', this.airQuality);
-    await this.airQuality.setAttribute(AirQuality.Cluster.id, 'airQuality', AirQuality.AirQualityEnum.Good, this.airQuality.log);
-    await this.airQuality.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 2150, this.airQuality.log);
-    await this.airQuality.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', 5500, this.airQuality.log);
-    await this.airQuality.setAttribute(CarbonMonoxideConcentrationMeasurement.Cluster.id, 'measuredValue', 10, this.airQuality.log);
-    await this.airQuality.setAttribute(CarbonDioxideConcentrationMeasurement.Cluster.id, 'measuredValue', 400, this.airQuality.log);
-    await this.airQuality.setAttribute(NitrogenDioxideConcentrationMeasurement.Cluster.id, 'measuredValue', 1, this.airQuality.log);
-    await this.airQuality.setAttribute(OzoneConcentrationMeasurement.Cluster.id, 'measuredValue', 1, this.airQuality.log);
-    await this.airQuality.setAttribute(FormaldehydeConcentrationMeasurement.Cluster.id, 'measuredValue', 1, this.airQuality.log);
-    await this.airQuality.setAttribute(Pm1ConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
-    await this.airQuality.setAttribute(Pm25ConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
-    await this.airQuality.setAttribute(Pm10ConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
-    await this.airQuality.setAttribute(RadonConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
-    await this.airQuality.setAttribute(TotalVolatileOrganicCompoundsConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
 
     /** ********************* Create a momentary switch ***********************/
     this.momentarySwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Momentary switch' }, this.config.debug as boolean)
@@ -1516,7 +1501,20 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     // Set air quality to Normal
-    this.airQuality?.setAttribute(AirQuality.Cluster.id, 'airQuality', AirQuality.AirQualityEnum.Good, this.airQuality.log);
+    await this.airQuality?.setAttribute(AirQuality.Cluster.id, 'airQuality', AirQuality.AirQualityEnum.Good, this.airQuality.log);
+    await this.airQuality?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 2150, this.airQuality.log);
+    await this.airQuality?.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', 5500, this.airQuality.log);
+    await this.airQuality?.setAttribute(CarbonMonoxideConcentrationMeasurement.Cluster.id, 'measuredValue', 10, this.airQuality.log);
+    await this.airQuality?.setAttribute(CarbonDioxideConcentrationMeasurement.Cluster.id, 'measuredValue', 400, this.airQuality.log);
+    await this.airQuality?.setAttribute(NitrogenDioxideConcentrationMeasurement.Cluster.id, 'measuredValue', 1, this.airQuality.log);
+    await this.airQuality?.setAttribute(OzoneConcentrationMeasurement.Cluster.id, 'measuredValue', 1, this.airQuality.log);
+    await this.airQuality?.setAttribute(FormaldehydeConcentrationMeasurement.Cluster.id, 'measuredValue', 1, this.airQuality.log);
+    await this.airQuality?.setAttribute(Pm1ConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
+    await this.airQuality?.setAttribute(Pm25ConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
+    await this.airQuality?.setAttribute(Pm10ConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
+    await this.airQuality?.setAttribute(RadonConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
+    await this.airQuality?.setAttribute(TotalVolatileOrganicCompoundsConcentrationMeasurement.Cluster.id, 'measuredValue', 100, this.airQuality.log);
+
     if (this.config.useInterval) {
       // Toggle air quality every minute
       this.airQualityInterval = setInterval(
