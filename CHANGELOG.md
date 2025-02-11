@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
 
-## [1.1.7] - 2025-02-09
+## [1.1.7] - 2025-02-11
 
 ### Added
 
@@ -16,6 +16,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [package]: Updated package.
 - [package]: Updated dependencies.
+- [package]: Require matterbridge 2.1.5.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
