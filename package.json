@@ -1,6 +1,6 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Matterbridge dynamic plugin",
   "author": "https://github.com/Luligu",
   "license": "MIT",
@@ -41,7 +41,7 @@
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose --coverage",
     "test:index": "node --experimental-vm-modules node_modules/jest/bin/jest.js index.test.ts --verbose --coverage",
-    "test:platform": "node --experimental-vm-modules node_modules/jest/bin/jest.js platform.test.ts --verbose --coverage --forceExit",
+    "test:platform": "node --experimental-vm-modules node_modules/jest/bin/jest.js platform.test.ts --verbose --coverage",
     "lint": "eslint --max-warnings=0 .",
     "lint:fix": "eslint --fix --max-warnings=0 .",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
@@ -54,6 +54,7 @@
     "checkDependencies": "npx npm-check-updates",
     "updateDependencies": "npx npm-check-updates -u && npm run deepCleanBuild",
     "prepublishOnly": "npm run cleanBuildProduction && npm pkg delete devDependencies scripts types && npx rimraf ./node_modules && npm install --omit=dev && npm shrinkwrap",
+    "runMeBeforePublish": "npm run lint && npm run format && npm run build && npm run test",
     "npmPack": "copy package.json package.log && npm run prepublishOnly && npm pack && copy package.log package.json && npm run deepCleanBuild",
     "npmPublishTagDev": "copy package.json package.log && npm run prepublishOnly && npm publish --tag dev && copy package.log package.json && npm run deepCleanBuild",
     "npmPublishTagLatest": "copy package.json package.log && npm run prepublishOnly && npm publish --tag latest && copy package.log package.json && npm run deepCleanBuild",
@@ -64,26 +65,28 @@
     "matterbridge:list": "matterbridge -list",
     "dev:link": "npm link matterbridge",
     "dev:unlink": "npm unlink matterbridge",
-    "runMeBeforePublish": "npm run lint && npm run format && npm run build && npm run test"
+    "install:dependencies": "npm install node-ansi-logger node-persist-manager --omit=dev",
+    "install:typescript": "npm install typescript @types/node --save-dev --omit=dev",
+    "install:eslint": "npm uninstall eslint @types/eslint__js && npm install --save-dev @eslint/js typescript-eslint && npm run lint",
+    "install:prettier": "npm install prettier eslint-config-prettier eslint-plugin-prettier --save-dev --omit=dev",
+    "install:jest": "npm install jest ts-jest @types/jest eslint-plugin-jest --save-dev --omit=dev"
   },
   "devDependencies": {
-    "@eslint/js": "9.20.0",
-    "@types/eslint__js": "8.42.3",
+    "@eslint/js": "^9.21.0",
     "@types/jest": "29.5.14",
-    "@types/node": "22.13.1",
-    "eslint": "9.20.0",
-    "eslint-config-prettier": "10.0.1",
+    "@types/node": "22.13.9",
+    "eslint-config-prettier": "10.0.2",
     "eslint-plugin-jest": "28.11.0",
-    "eslint-plugin-n": "^17.15.1",
+    "eslint-plugin-n": "^17.16.2",
     "eslint-plugin-prettier": "5.2.3",
     "jest": "29.7.0",
-    "prettier": "3.5.0",
-    "ts-jest": "29.2.5",
-    "typescript": "5.7.3",
-    "typescript-eslint": "8.24.0"
+    "prettier": "3.5.3",
+    "ts-jest": "29.2.6",
+    "typescript": "5.8.2",
+    "typescript-eslint": "^8.26.0"
   },
   "dependencies": {
-    "node-ansi-logger": "3.0.0",
+    "node-ansi-logger": "3.0.1",
     "node-persist-manager": "1.0.8"
   }
 }
