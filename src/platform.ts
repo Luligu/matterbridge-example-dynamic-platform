@@ -995,16 +995,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       async (newValue: FanControl.FanMode, oldValue: FanControl.FanMode) => {
         this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]}`);
         if (newValue === FanControl.FanMode.Off) {
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fan?.log);
           await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Low) {
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fan?.log);
           await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Medium) {
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fan?.log);
           await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fan?.log);
         } else if (newValue === FanControl.FanMode.High) {
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fan?.log);
           await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
         } else if (newValue === FanControl.FanMode.On) {
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fan?.log);
           await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Auto) {
+          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fan?.log);
           await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fan?.log);
         }
       },
