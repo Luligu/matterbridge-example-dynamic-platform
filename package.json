@@ -67,7 +67,7 @@
     "dev:unlink": "npm unlink matterbridge",
     "install:dependencies": "npm install node-ansi-logger node-persist-manager --omit=dev",
     "install:typescript": "npm install typescript @types/node --save-dev --omit=dev",
-    "install:eslint": "npm uninstall eslint @types/eslint__js && npm install --save-dev @eslint/js typescript-eslint && npm run lint",
+    "install:eslint": "npm uninstall eslint @types/eslint__js && npm install --save-dev @eslint/js typescript-eslint eslint-plugin-n && npm run lint",
     "install:prettier": "npm install prettier eslint-config-prettier eslint-plugin-prettier --save-dev --omit=dev",
     "install:jest": "npm install jest ts-jest @types/jest eslint-plugin-jest --save-dev --omit=dev"
   },
@@ -75,7 +75,7 @@
     "@eslint/js": "^9.21.0",
     "@types/jest": "29.5.14",
     "@types/node": "22.13.9",
-    "eslint-config-prettier": "10.0.2",
+    "eslint-config-prettier": "10.1.1",
     "eslint-plugin-jest": "28.11.0",
     "eslint-plugin-n": "^17.16.2",
     "eslint-plugin-prettier": "5.2.3",
