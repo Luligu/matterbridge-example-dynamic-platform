@@ -7,15 +7,40 @@
     "name": {
       "description": "Plugin name",
       "type": "string",
-      "readOnly": true
+      "readOnly": true,
+      "ui:widget": "hidden"
     },
     "type": {
       "description": "Plugin type",
       "type": "string",
-      "readOnly": true
+      "readOnly": true,
+      "ui:widget": "hidden"
+    },
+    "whiteList": {
+      "description": "Only the devices in the list will be exposed. If the list is empty, all the devices will be exposed.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "selectFrom": "name"
+    },
+    "blackList": {
+      "description": "The devices in the list will not be exposed. If the list is empty, no devices will be excluded.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "selectFrom": "name"
     },
     "useInterval": {
       "description": "Use interval to refresh the devices",
+      "type": "boolean",
+      "default": true
+    },
+    "enableConcentrationMeasurements": {
+      "description": "Enable the ConcentrationMeasurements in the Air Quality device and SmokeCoSensor devices (Apple Home 18.4 will discard these devices when enabled)",
       "type": "boolean",
       "default": true
     },

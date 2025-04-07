@@ -1,9 +1,10 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Matterbridge dynamic plugin",
   "author": "https://github.com/Luligu",
   "license": "MIT",
+  "homepage": "https://www.npmjs.com/package/matterbridge-example-dynamic-platform",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -72,18 +73,18 @@
     "install:jest": "npm install jest ts-jest @types/jest eslint-plugin-jest --save-dev --omit=dev"
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
+    "@eslint/js": "^9.24.0",
     "@types/jest": "29.5.14",
-    "@types/node": "22.13.9",
+    "@types/node": "22.14.0",
     "eslint-config-prettier": "10.1.1",
     "eslint-plugin-jest": "28.11.0",
-    "eslint-plugin-n": "^17.16.2",
-    "eslint-plugin-prettier": "5.2.3",
+    "eslint-plugin-n": "^17.17.0",
+    "eslint-plugin-prettier": "5.2.6",
     "jest": "29.7.0",
     "prettier": "3.5.3",
-    "ts-jest": "29.2.6",
-    "typescript": "5.8.2",
-    "typescript-eslint": "^8.26.0"
+    "ts-jest": "29.3.1",
+    "typescript": "5.8.3",
+    "typescript-eslint": "^8.29.0"
   },
   "dependencies": {
     "node-ansi-logger": "3.0.1",

@@ -54,7 +54,7 @@ describe('TestPlatform', () => {
     matterbridgeDirectory: './jest/matterbridge',
     matterbridgePluginDirectory: './jest/plugins',
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '2.2.0',
+    matterbridgeVersion: '2.2.7',
     edge: true,
     log: mockLog,
     getDevices: jest.fn(() => {
@@ -79,11 +79,14 @@ describe('TestPlatform', () => {
   } as unknown as Matterbridge;
 
   const mockConfig = {
-    'name': 'matterbridge-example-dynamic-platform',
-    'type': 'DynamicPlatform',
-    'useInterval': true,
-    'debug': true,
-    'unregisterOnShutdown': false,
+    name: 'matterbridge-example-dynamic-platform',
+    type: 'DynamicPlatform',
+    whiteList: [],
+    blackList: [],
+    useInterval: true,
+    enableConcentrationMeasurements: true,
+    debug: true,
+    unregisterOnShutdown: false,
   } as PlatformConfig;
 
   /*
@@ -189,9 +192,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "2.2.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "2.2.7". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '2.2.0';
+    mockMatterbridge.matterbridgeVersion = '2.2.7';
   });
 
   it('should initialize platform with config name', () => {
@@ -203,7 +206,7 @@ describe('TestPlatform', () => {
   it('should call onStart with reason', async () => {
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(25);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(27);
   }, 60000);
 
   it('should start the server', async () => {

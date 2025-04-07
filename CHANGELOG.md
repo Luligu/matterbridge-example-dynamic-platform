@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
 
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
+</a>
+
+## [1.1.9] - 2025-04-07
+
+### Added
+
+- [platform]: Added select devices for the frontend Devices panel in the home page.
+- [config]: Added enableConcentrationMeasurements option to fix the Apple Home issue: Air Quality devices and all SmokeCoAlarm sensors (with or without Smoke and Co) don't show up in the Home app if any of the concentration measurements clusters is present (Carbon Monoxide Concentration Measurements included).
+- [platform]: Added smoke only SmokeCoAlarm sensor (supported by Apple Home 18.4).
+- [platform]: Added co only SmokeCoAlarm sensor (supported by Apple Home 18.4).
+
+### Changed
+
+- [package]: Require matterbridge 2.2.7.
+- [package]: Updated package.
+- [package]: Updated dependencies.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.1.8] - 2025-03-05
 
 ### Changed
@@ -13,7 +36,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.1.7] - 2025-02-11
@@ -31,7 +54,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Require matterbridge 2.1.5.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.1.6] - 2025-02-02
@@ -42,7 +65,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.1.4] - 2024-12-21
@@ -61,7 +84,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [thermostat]: Fixed temperature
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.1.3] - 2024-12-16
@@ -80,7 +103,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.1.2] - 2024-12-12
@@ -97,7 +120,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.1.0] - 2024-11-25
@@ -109,7 +132,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.0.24] - 2024-11-10
@@ -120,7 +143,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.0.23] - 2024-10-28
@@ -131,7 +154,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.0.22] - 2024-10-01
@@ -142,7 +165,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.0.21] - 2024-09-19
@@ -156,7 +179,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.0.20] - 2024-09-08
@@ -170,7 +193,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.0.19] - 2024-09-04
@@ -187,7 +210,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 ## [1.0.18] - 2024-09-03
@@ -209,7 +232,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Updated dependencies.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
-  <img src="./yellow-button.png" alt="Buy me a coffee" width="120">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
 </a>
 
 <!-- Commented out section

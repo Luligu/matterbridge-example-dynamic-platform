@@ -36,18 +36,24 @@ It exposes:
 - a rainSensor device
 - a waterFreezeDetector device
 - a waterLeakDetector device
-- a smokeCoAlarm device
+- a smokeCoAlarm (with smoke and co features) sensor (supported by Apple Home)
+- a smokeCoAlarm (with smoke only feature) sensor (supported by Apple Home)
+- a smokeCoAlarm (with co only feature) sensor (supported by Apple Home)
 - an airConditioner device
 - an airPurifier device with temperature and humidity sensor (supported by Apple Home)
 - a pumpDevice device
 - a waterValve device
-- an airQuality device with all concentration measurements clusters
+- an airQuality device with all concentration measurements clusters (supported by Apple Home only without the concentration measurements)
 - a momentary switch
 - a latching switch
 
 All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices), how to subscribe to attributes and how to trigger events.
 
 If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
+</a>
 
 ## Prerequisites
 
