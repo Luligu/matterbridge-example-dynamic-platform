@@ -29,7 +29,6 @@ import {
   genericSwitch,
   // onOffMountedSwitch,
   // dimmableMountedSwitch,
-  // roboticVacuumCleaner,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
@@ -63,6 +62,8 @@ import {
   WindowCovering,
 } from 'matterbridge/matter/clusters';
 import { BitFlag, TypeFromPartialBitSchema } from 'matterbridge/matter/types';
+import { Appliances } from './appliances.js';
+import { Robot } from './robot.js';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   switch: MatterbridgeEndpoint | undefined;
@@ -1065,7 +1066,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.matterbridge.matterbridgeVersion,
       )
       .createDefaultIdentifyClusterServer()
-      .createDefaultOnOffClusterServer(true)
+      .createOnOffClusterServer()
+      .createLevelControlClusterServer()
       .createDefaultPumpConfigurationAndControlClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
     this.setSelectDevice(this.pump.serialNumber ?? '', this.pump.deviceName ?? '', undefined, 'hub');
@@ -1414,31 +1416,43 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a vacuum ***********************/
-    /*
-    this.vacuum = new MatterbridgeEndpoint([roboticVacuumCleaner, bridgedNode, powerSource], { uniqueStorageKey: 'Robot Vacuum' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Robot Vacuum',
-        'serial_948562331225',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge RobotVacuum',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
-      .createDefaultIdentifyClusterServer()
-      .createDefaultRvcRunModeClusterServer()
-      .createDefaultRvcOperationalStateClusterServer()
-      .createDefaultRvcCleanModeClusterServer()
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 5900);
-    this.setSelectDevice(this.vacuum.serialNumber ?? '', this.vacuum.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.vacuum.deviceName ?? '')) { await this.registerDevice(this.vacuum);
-    this.bridgedDevices.set(this.vacuum.deviceName ?? '', this.vacuum);}
-    else {
-      this.vacuum = undefined;
+
+    const robot = new Robot('Robot Vacuum', '1238777820');
+    this.setSelectDevice(robot.serialNumber ?? '', robot.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(robot.deviceName ?? '')) {
+      await this.registerDevice(robot);
+      this.bridgedDevices.set(robot.deviceName ?? '', robot);
     }
-    */
+
+    /** ********************* Create the appliances ***********************/
+
+    const laundryWasher = new Appliances(Appliances.laundryWasher, 'Laundry Washer', '1234567890');
+    this.setSelectDevice(laundryWasher.serialNumber ?? '', laundryWasher.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(laundryWasher.deviceName ?? '')) {
+      await this.registerDevice(laundryWasher);
+      this.bridgedDevices.set(laundryWasher.deviceName ?? '', laundryWasher);
+    }
+
+    const dishwasher = new Appliances(Appliances.dishwasher, 'Dishwasher', '0987654321');
+    this.setSelectDevice(dishwasher.serialNumber ?? '', dishwasher.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(dishwasher.deviceName ?? '')) {
+      await this.registerDevice(dishwasher);
+      this.bridgedDevices.set(dishwasher.deviceName ?? '', dishwasher);
+    }
+
+    const temperatureControlledCabinetCooler = new Appliances(Appliances.temperatureControlledCabinetCooler, 'Temperature Controlled Cabinet Cooler', '0986594321');
+    this.setSelectDevice(temperatureControlledCabinetCooler.serialNumber ?? '', temperatureControlledCabinetCooler.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(temperatureControlledCabinetCooler.deviceName ?? '')) {
+      await this.registerDevice(temperatureControlledCabinetCooler);
+      this.bridgedDevices.set(temperatureControlledCabinetCooler.deviceName ?? '', temperatureControlledCabinetCooler);
+    }
+
+    const temperatureControlledCabinetHeater = new Appliances(Appliances.temperatureControlledCabinetHeater, 'Temperature Controlled Cabinet Heater', '0986554421');
+    this.setSelectDevice(temperatureControlledCabinetHeater.serialNumber ?? '', temperatureControlledCabinetHeater.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(temperatureControlledCabinetHeater.deviceName ?? '')) {
+      await this.registerDevice(temperatureControlledCabinetHeater);
+      this.bridgedDevices.set(temperatureControlledCabinetHeater.deviceName ?? '', temperatureControlledCabinetHeater);
+    }
   }
 
   override async onConfigure() {

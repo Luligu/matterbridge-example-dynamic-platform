@@ -8,6 +8,24 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.2.0] - 2025-04-08
+
+### Added
+
+- [platform]: Added Robot Vacuum Cleaner device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Laundry Washer deice (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Dishwasher device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Temperature Controlled Cabinet Cooler device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Temperature Controlled Cabinet Heater device (supported by SmartThings, Alexa and Home Assistant).
+
+### Changed
+
+- [package]: Updated dependencies.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.1.9] - 2025-04-07
 
 ### Added
