@@ -12,7 +12,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
-- [platform]: Added Robot Vacuum Cleaner device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and Apple Home).
 - [platform]: Added Laundry Washer deice (supported by SmartThings, Alexa and Home Assistant).
 - [platform]: Added Dishwasher device (supported by SmartThings, Alexa and Home Assistant).
 - [platform]: Added Temperature Controlled Cabinet Cooler device (supported by SmartThings, Alexa and Home Assistant).

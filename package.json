@@ -1,6 +1,6 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "1.2.0-edge.2",
+  "version": "1.2.0-edge.3",
   "description": "Matterbridge dynamic plugin",
   "author": "https://github.com/Luligu",
   "license": "MIT",
@@ -58,6 +58,7 @@
     "runMeBeforePublish": "npm run lint && npm run format && npm run build && npm run test",
     "npmPack": "copy package.json package.log && npm run prepublishOnly && npm pack && copy package.log package.json && npm run deepCleanBuild",
     "npmPublishTagDev": "copy package.json package.log && npm run prepublishOnly && npm publish --tag dev && copy package.log package.json && npm run deepCleanBuild",
+    "npmPublishTagEdge": "copy package.json package.log && npm run prepublishOnly && npm publish --tag edge && copy package.log package.json && npm run deepCleanBuild",
     "npmPublishTagLatest": "copy package.json package.log && npm run prepublishOnly && npm publish --tag latest && copy package.log package.json && npm run deepCleanBuild",
     "matterbridge:add": "matterbridge -add .\\",
     "matterbridge:remove": "matterbridge -remove .\\",
