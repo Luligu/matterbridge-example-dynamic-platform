@@ -16,6 +16,7 @@ import {
   MatterbridgeServer,
   smokeCoAlarm,
   ClusterType,
+  MatterbridgeOnOffServer,
 } from 'matterbridge';
 import { ClusterBehavior, MaybePromise, MdnsService, LogLevel as MatterLogLevel, LogFormat as MatterLogFormat, EndpointServer, logEndpoint } from 'matterbridge/matter';
 import {
@@ -31,13 +32,20 @@ import {
   DishwasherMode,
   LaundryWasherControls,
   LaundryWasherMode,
+  LaundryDryerControls,
   TemperatureMeasurement,
   OvenMode,
   ModeBase,
   RefrigeratorAndTemperatureControlledCabinetMode,
 } from 'matterbridge/matter/clusters';
 
-import { DishwasherAlarmServer, OperationalStateBehavior, TemperatureControlBehavior } from 'matterbridge/matter/behaviors';
+import {
+  DishwasherAlarmServer,
+  LaundryDryerControlsServer,
+  LaundryWasherControlsServer,
+  OperationalStateBehavior,
+  TemperatureControlBehavior,
+} from 'matterbridge/matter/behaviors';
 import { OvenCavityOperationalState } from './implementations/ovenCavityOperationalStateCluster.js';
 import { AnsiLogger, TimestampFormat, LogLevel } from 'matterbridge/logger';
 import { Robot } from './robot.js';
@@ -102,14 +110,17 @@ export class Appliances extends MatterbridgeEndpoint {
       // Laundry Washer
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Laundry Washer');
+      this.createDeadFrontOnOffClusterServer();
       // this.createNumberTemperatureControlClusterServer(4000, 2000, 8000, 1000);
-      this.createLevelTemperatureControlClusterServer(1, ['Cold', '30°', '40°', '60°']);
+      this.createLevelTemperatureControlClusterServer(3, ['Cold', '30°', '40°', '60°', '80°']);
+      this.createDefaultLaundryWasherModeClusterServer();
+      this.createSpinLaundryWasherControlsClusterServer(3, ['400', '800', '1200', '1600']);
       this.createDefaultOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
     } else if (deviceType.code === Appliances.dishwasher.code) {
       // Dishwasher (subborted by SmartThings, not supported by Home App)
       this.createDefaultIdentifyClusterServer();
-      this.createDeadFrontOnOffClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Dishwasher');
+      this.createDeadFrontOnOffClusterServer();
       // this.createNumberTemperatureControlClusterServer(6000, 2000, 8000, 1000);
       this.createLevelTemperatureControlClusterServer(1, ['Cold', '30°', '40°', '60°']);
       this.createDefaultDishwasherModeClusterServer();
@@ -211,6 +222,63 @@ export class Appliances extends MatterbridgeEndpoint {
         { label: 'Heavy', mode: 3, modeTags: [{ value: DishwasherMode.ModeTag.Heavy }] },
       ],
       currentMode,
+    });
+    return this;
+  }
+
+  /**
+   * Creates a default Laundry Washer Mode Cluster Server.
+   *
+   * @param {number} currentMode - The current mode of the oven.
+   *
+   * @returns {this} The current MatterbridgeEndpoint instance for chaining.
+   */
+  createDefaultLaundryWasherModeClusterServer(currentMode?: number): this {
+    this.behaviors.require(LaundryWasherModeServer, {
+      supportedModes: [
+        { label: 'Delicate', mode: 1, modeTags: [{ value: LaundryWasherMode.ModeTag.Delicate }] },
+        { label: 'Normal', mode: 2, modeTags: [{ value: LaundryWasherMode.ModeTag.Normal }] },
+        { label: 'Heavy', mode: 3, modeTags: [{ value: LaundryWasherMode.ModeTag.Heavy }] },
+        { label: 'Whites', mode: 4, modeTags: [{ value: LaundryWasherMode.ModeTag.Whites }] },
+      ],
+      currentMode,
+    });
+    return this;
+  }
+
+  /**
+   * Creates a spin Laundry Washer Controls Cluster Server.
+   *
+   * @param {number} spinSpeedCurrent - The current spin speed. Default is undefined.
+   * @param {string[]} spinSpeeds - The supported spin speeds. Default is ['400', '800', '1200', '1600'].
+   *
+   * @returns {this} The current MatterbridgeEndpoint instance for chaining.
+   */
+  createSpinLaundryWasherControlsClusterServer(spinSpeedCurrent?: number, spinSpeeds?: string[]): this {
+    this.behaviors.require(LaundryWasherControlsServer.with(LaundryWasherControls.Feature.Spin), {
+      spinSpeeds: spinSpeeds ?? ['400', '800', '1200', '1600'],
+      spinSpeedCurrent, // Writable
+    });
+    return this;
+  }
+
+  /**
+   * Creates a rinse Laundry Washer Controls Cluster Server.
+   *
+   * @param {number} spinSpeedCurrent - The current spin speed. Default is undefined.
+   * @param {string[]} spinSpeeds - The supported spin speeds. Default is ['400', '800', '1200', '1600'].
+   *
+   * @returns {this} The current MatterbridgeEndpoint instance for chaining.
+   */
+  createRinseLaundryWasherControlsClusterServer(numberOfRinses?: LaundryWasherControls.NumberOfRinses, supportedRinses?: LaundryWasherControls.NumberOfRinses[]): this {
+    this.behaviors.require(LaundryWasherControlsServer.with(LaundryWasherControls.Feature.Rinse), {
+      supportedRinses: [
+        LaundryWasherControls.NumberOfRinses.None,
+        LaundryWasherControls.NumberOfRinses.Normal,
+        LaundryWasherControls.NumberOfRinses.Extra,
+        LaundryWasherControls.NumberOfRinses.Max,
+      ],
+      numberOfRinses, // Writable
     });
     return this;
   }
@@ -353,7 +421,7 @@ class MatterbridgeLevelTemperatureControlServer extends TemperatureControlBehavi
 
   override setTemperature(request: TemperatureControl.SetTemperatureRequest): MaybePromise {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    if (request.targetTemperatureLevel && request.targetTemperatureLevel >= 0 && request.targetTemperatureLevel < this.state.supportedTemperatureLevels.length) {
+    if (request.targetTemperatureLevel !== undefined && request.targetTemperatureLevel >= 0 && request.targetTemperatureLevel < this.state.supportedTemperatureLevels.length) {
       device.log.info(
         `MatterbridgeLevelTemperatureControlServer: setTemperature called setting selectedTemperatureLevel to ${request.targetTemperatureLevel}: ${this.state.supportedTemperatureLevels[request.targetTemperatureLevel]}`,
       );
@@ -372,7 +440,7 @@ class MatterbridgeNumberTemperatureControlServer extends TemperatureControlBehav
 
   override setTemperature(request: TemperatureControl.SetTemperatureRequest): MaybePromise {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    if (request.targetTemperature && request.targetTemperature >= this.state.minTemperature && request.targetTemperature <= this.state.maxTemperature) {
+    if (request.targetTemperature !== undefined && request.targetTemperature >= this.state.minTemperature && request.targetTemperature <= this.state.maxTemperature) {
       device.log.info(`MatterbridgeNumberTemperatureControlServer: setTemperature called setting temperatureSetpoint to ${request.targetTemperature}`);
       this.state.temperatureSetpoint = request.targetTemperature;
     } else {
@@ -546,17 +614,81 @@ class DishwasherModeServer extends DishwasherModeBehavior {
   override initialize() {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
     device.log.info('DishwasherModeServer initialized: setting currentMode to 3');
-    this.state.currentMode = 3;
+    this.state.currentMode = 2;
+    this.reactTo(this.agent.get(MatterbridgeOnOffServer).events.onOff$Changed, this.handleOnOffChange);
+  }
+
+  // Dead Front OnOff Cluster
+  protected handleOnOffChange(onOff: boolean) {
+    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    if (onOff === false) {
+      device.log.info('***OnOffServer changed to OFF: setting Dead Front state to Manufacturer Specific');
+      this.state.currentMode = 2;
+    }
   }
 
   override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    if (this.state.supportedModes.find((mode) => mode.mode === request.newMode)) {
-      device.log.info(`DishwasherModeServer: changeToMode called with mode ${request.newMode} = ${this.state.supportedModes[request.newMode].label}`);
+    const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
+    if (supportedMode) {
+      device.log.info(`DishwasherModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
       this.state.currentMode = request.newMode;
       return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
     } else {
       device.log.error(`DishwasherModeServer: changeToMode called with invalid mode ${request.newMode}`);
+      return { status: Status.InvalidCommand, statusText: 'Invalid mode' } as ModeBase.ChangeToModeResponse;
+    }
+  }
+}
+
+/** ************************************************************** LaundryWasherMode ***********************************************************/
+
+// Interface for the LaundryWasherMode
+export namespace LaundryWasherModeInterface {
+  export interface Base {
+    changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse>;
+  }
+}
+export interface LaundryWasherModeInterface {
+  components: [{ flags: {}; methods: LaundryWasherModeInterface.Base }];
+}
+
+// Behavior for LaundryWasherMode
+export const LaundryWasherModeBehavior = ClusterBehavior.withInterface<LaundryWasherModeInterface>().for(LaundryWasherMode.Cluster);
+type LaundryWasherModeBehaviorType = InstanceType<typeof LaundryWasherModeBehavior>;
+export interface LaundryWasherModeBehavior extends LaundryWasherModeBehaviorType {}
+type LaundryWasherModeStateType = InstanceType<typeof LaundryWasherModeBehavior.State>;
+export namespace LaundryWasherModeBehavior {
+  export interface State extends LaundryWasherModeStateType {}
+}
+
+// Server for LaundryWasherMode
+class LaundryWasherModeServer extends LaundryWasherModeBehavior {
+  override initialize() {
+    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    device.log.info('LaundryWasherModeServer initialized: setting currentMode to 3');
+    this.state.currentMode = 2;
+    this.reactTo(this.agent.get(MatterbridgeOnOffServer).events.onOff$Changed, this.handleOnOffChange);
+  }
+
+  // Dead Front OnOff Cluster
+  protected handleOnOffChange(onOff: boolean) {
+    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    if (onOff === false) {
+      device.log.info('***OnOffServer changed to OFF: setting Dead Front state to Manufacturer Specific');
+      this.state.currentMode = 2;
+    }
+  }
+
+  override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
+    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
+    if (supportedMode) {
+      device.log.info(`LaundryWasherModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
+      this.state.currentMode = request.newMode;
+      return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
+    } else {
+      device.log.error(`LaundryWasherModeServer: changeToMode called with invalid mode ${request.newMode}`);
       return { status: Status.InvalidCommand, statusText: 'Invalid mode' } as ModeBase.ChangeToModeResponse;
     }
   }
