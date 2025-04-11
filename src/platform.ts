@@ -1433,6 +1433,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(laundryWasher.deviceName ?? '', laundryWasher);
     }
 
+    const laundryDryer = new Appliances(Appliances.laundryDryer, 'Laundry Dryer', '1235227890');
+    this.setSelectDevice(laundryDryer.serialNumber ?? '', laundryDryer.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(laundryDryer.deviceName ?? '')) {
+      await this.registerDevice(laundryDryer);
+      this.bridgedDevices.set(laundryDryer.deviceName ?? '', laundryDryer);
+    }
+
     const dishwasher = new Appliances(Appliances.dishwasher, 'Dishwasher', '0987654321');
     this.setSelectDevice(dishwasher.serialNumber ?? '', dishwasher.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(dishwasher.deviceName ?? '')) {

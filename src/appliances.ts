@@ -95,6 +95,19 @@ export class Appliances extends MatterbridgeEndpoint {
    * Cluster Restrictions:
    * On/Off Cluster: the DF (Dead Front) feature is required
    */
+  static laundryDryer = DeviceTypeDefinition({
+    name: 'MA-laundrydryer',
+    code: 0x7c,
+    deviceClass: DeviceClasses.Simple,
+    revision: 1,
+    requiredServerClusters: [OperationalState.Cluster.id],
+    optionalServerClusters: [Identify.Cluster.id, LaundryWasherMode.Cluster.id, OnOff.Cluster.id, LaundryDryerControls.Cluster.id, TemperatureControl.Cluster.id],
+  });
+
+  /**
+   * Cluster Restrictions:
+   * On/Off Cluster: the DF (Dead Front) feature is required
+   */
   static dishwasher = DeviceTypeDefinition({
     name: 'MA-dishwasher',
     code: 0x75,
@@ -115,6 +128,16 @@ export class Appliances extends MatterbridgeEndpoint {
       this.createLevelTemperatureControlClusterServer(3, ['Cold', '30°', '40°', '60°', '80°']);
       this.createDefaultLaundryWasherModeClusterServer();
       this.createSpinLaundryWasherControlsClusterServer(3, ['400', '800', '1200', '1600']);
+      this.createDefaultOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
+    } else if (deviceType.code === Appliances.laundryDryer.code) {
+      // Laundry Dryer
+      this.createDefaultIdentifyClusterServer();
+      this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Laundry Dryer');
+      this.createDeadFrontOnOffClusterServer();
+      // this.createNumberTemperatureControlClusterServer(4000, 2000, 8000, 1000);
+      this.createLevelTemperatureControlClusterServer(3, ['Cold', '30°', '40°', '60°', '80°']);
+      this.createDefaultLaundryWasherModeClusterServer();
+      this.createDefaultLaundryDryerControlsClusterServer(1);
       this.createDefaultOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
     } else if (deviceType.code === Appliances.dishwasher.code) {
       // Dishwasher (subborted by SmartThings, not supported by Home App)
@@ -272,13 +295,34 @@ export class Appliances extends MatterbridgeEndpoint {
    */
   createRinseLaundryWasherControlsClusterServer(numberOfRinses?: LaundryWasherControls.NumberOfRinses, supportedRinses?: LaundryWasherControls.NumberOfRinses[]): this {
     this.behaviors.require(LaundryWasherControlsServer.with(LaundryWasherControls.Feature.Rinse), {
-      supportedRinses: [
+      supportedRinses: supportedRinses ?? [
         LaundryWasherControls.NumberOfRinses.None,
         LaundryWasherControls.NumberOfRinses.Normal,
         LaundryWasherControls.NumberOfRinses.Extra,
         LaundryWasherControls.NumberOfRinses.Max,
       ],
       numberOfRinses, // Writable
+    });
+    return this;
+  }
+
+  /**
+   * Creates a default Laundry Dryer Controls Cluster Server.
+   *
+   * @param {LaundryDryerControls.DrynessLevel} selectedDrynessLevel - The selected dryness level. Default is undefined.
+   * @param {LaundryDryerControls.DrynessLevel[]} supportedDrynessLevels - The supported dryness levels. Default is [Low, Normal, Extra, Max].
+   *
+   * @returns {this} The current MatterbridgeEndpoint instance for chaining.
+   */
+  createDefaultLaundryDryerControlsClusterServer(selectedDrynessLevel?: LaundryDryerControls.DrynessLevel, supportedDrynessLevels?: LaundryDryerControls.DrynessLevel[]): this {
+    this.behaviors.require(LaundryDryerControlsServer, {
+      supportedDrynessLevels: supportedDrynessLevels ?? [
+        LaundryDryerControls.DrynessLevel.Low,
+        LaundryDryerControls.DrynessLevel.Normal,
+        LaundryDryerControls.DrynessLevel.Extra,
+        LaundryDryerControls.DrynessLevel.Max,
+      ],
+      selectedDrynessLevel, // Writable
     });
     return this;
   }
@@ -364,14 +408,14 @@ export class Appliances extends MatterbridgeEndpoint {
 class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
   override initialize() {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer initialized: setting operational state to Docked');
+    device.log.info('MatterbridgeOperationalStateServer initialized: setting operational state to Stopped');
     this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
   }
 
   override pause(): MaybePromise<OperationalState.OperationalCommandResponse> {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer: pause called setting operational state to Paused and currentMode to Paused');
+    device.log.info('MatterbridgeOperationalStateServer: pause called setting operational state to Paused');
     this.state.operationalState = OperationalState.OperationalStateEnum.Paused;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
     return {
@@ -381,7 +425,7 @@ class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
 
   override stop(): MaybePromise<OperationalState.OperationalCommandResponse> {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer: stop called setting operational state to Stopped and currentMode to Idle');
+    device.log.info('MatterbridgeOperationalStateServer: stop called setting operational state to Stopped');
     this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
     return {
@@ -391,7 +435,7 @@ class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
 
   override start(): MaybePromise<OperationalState.OperationalCommandResponse> {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer: start called setting operational state to Running and currentMode to Running');
+    device.log.info('MatterbridgeOperationalStateServer: start called setting operational state to Running');
     this.state.operationalState = OperationalState.OperationalStateEnum.Running;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
     return {
@@ -401,7 +445,7 @@ class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
 
   override resume(): MaybePromise<OperationalState.OperationalCommandResponse> {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer: resume called setting operational state to Running and currentMode to Cleaning');
+    device.log.info('MatterbridgeOperationalStateServer: resume called setting operational state to Running');
     this.state.operationalState = OperationalState.OperationalStateEnum.Running;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
     return {
