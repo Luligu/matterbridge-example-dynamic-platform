@@ -1,125 +1,62 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-namespace */
 /* eslint-disable @typescript-eslint/no-empty-object-type */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
-  Identity,
-  DeviceClasses,
-  DeviceTypeDefinition,
-  MatterbridgeEndpoint,
-  Status,
-  Matterbridge,
-  VendorId,
   DeviceTypeId,
-  onOffLight,
-  roboticVacuumCleaner,
+  DeviceTypeDefinition,
+  Matterbridge,
+  MatterbridgeEndpoint,
   MatterbridgeServer,
-  smokeCoAlarm,
-  ClusterType,
   MatterbridgeOnOffServer,
+  Status,
+  VendorId,
+  smokeCoAlarm,
+  RefrigeratorTag,
+  PositionTag,
+  laundryWasher,
+  laundryDryer,
+  dishwasher,
+  refrigerator,
+  temperatureControlledCabinetCooler,
+  oven,
+  temperatureControlledCabinetHeater,
+  microwaveOven,
+  extractorHood,
+  cooktop,
+  cookSurface,
 } from 'matterbridge';
-import { ClusterBehavior, MaybePromise, MdnsService, LogLevel as MatterLogLevel, LogFormat as MatterLogFormat, EndpointServer, logEndpoint } from 'matterbridge/matter';
+import { ClusterBehavior, MaybePromise, LogLevel as MatterLogLevel, LogFormat as MatterLogFormat, EndpointServer, logEndpoint } from 'matterbridge/matter';
 import {
-  Identify,
-  FanControl,
-  Groups,
   OperationalState,
-  OnOff,
-  ScenesManagement,
-  Thermostat,
   TemperatureControl,
-  DishwasherAlarm,
   DishwasherMode,
   LaundryWasherControls,
   LaundryWasherMode,
   LaundryDryerControls,
-  TemperatureMeasurement,
   OvenMode,
   ModeBase,
   RefrigeratorAndTemperatureControlledCabinetMode,
+  MicrowaveOvenMode,
+  MicrowaveOvenControl,
 } from 'matterbridge/matter/clusters';
-
 import {
   DishwasherAlarmServer,
   LaundryDryerControlsServer,
   LaundryWasherControlsServer,
+  MicrowaveOvenControlBehavior,
+  MicrowaveOvenModeServer,
   OperationalStateBehavior,
   TemperatureControlBehavior,
 } from 'matterbridge/matter/behaviors';
 import { OvenCavityOperationalState } from './implementations/ovenCavityOperationalStateCluster.js';
 import { AnsiLogger, TimestampFormat, LogLevel } from 'matterbridge/logger';
 import { Robot } from './robot.js';
-import { CarbonMonoxideConcentrationMeasurement, CarbonMonoxideConcentrationMeasurementServer } from './implementations/carbonMonoxideConcentrationMeasurement.js';
 
 export class Appliances extends MatterbridgeEndpoint {
-  /**
-   * Conditions:
-   * Cooler The device has cooling functionality.
-   */
-  static temperatureControlledCabinetCooler = DeviceTypeDefinition({
-    name: 'MA-temperaturecontrolledcabinetcooler',
-    code: 0x71,
-    deviceClass: DeviceClasses.Simple,
-    revision: 3,
-    requiredServerClusters: [TemperatureControl.Cluster.id, RefrigeratorAndTemperatureControlledCabinetMode.Cluster.id],
-    optionalServerClusters: [TemperatureMeasurement.Cluster.id],
-  });
-
-  /**
-   * Conditions:
-   * Heater The device has heating functionality.
-   */
-  static temperatureControlledCabinetHeater = DeviceTypeDefinition({
-    name: 'MA-temperaturecontrolledcabinetheater',
-    code: 0x71,
-    deviceClass: DeviceClasses.Simple,
-    revision: 3,
-    requiredServerClusters: [TemperatureControl.Cluster.id, OvenMode.Cluster.id, OvenCavityOperationalState.Cluster.id],
-    optionalServerClusters: [TemperatureMeasurement.Cluster.id],
-  });
-
-  /**
-   * Cluster Restrictions:
-   * On/Off Cluster: the DF (Dead Front) feature is required
-   */
-  static laundryWasher = DeviceTypeDefinition({
-    name: 'MA-laundrywasher',
-    code: 0x73,
-    deviceClass: DeviceClasses.Simple,
-    revision: 1,
-    requiredServerClusters: [OperationalState.Cluster.id],
-    optionalServerClusters: [Identify.Cluster.id, LaundryWasherMode.Cluster.id, OnOff.Cluster.id, LaundryWasherControls.Cluster.id, TemperatureControl.Cluster.id],
-  });
-
-  /**
-   * Cluster Restrictions:
-   * On/Off Cluster: the DF (Dead Front) feature is required
-   */
-  static laundryDryer = DeviceTypeDefinition({
-    name: 'MA-laundrydryer',
-    code: 0x7c,
-    deviceClass: DeviceClasses.Simple,
-    revision: 1,
-    requiredServerClusters: [OperationalState.Cluster.id],
-    optionalServerClusters: [Identify.Cluster.id, LaundryWasherMode.Cluster.id, OnOff.Cluster.id, LaundryDryerControls.Cluster.id, TemperatureControl.Cluster.id],
-  });
-
-  /**
-   * Cluster Restrictions:
-   * On/Off Cluster: the DF (Dead Front) feature is required
-   */
-  static dishwasher = DeviceTypeDefinition({
-    name: 'MA-dishwasher',
-    code: 0x75,
-    deviceClass: DeviceClasses.Simple,
-    revision: 1,
-    requiredServerClusters: [OperationalState.Cluster.id],
-    optionalServerClusters: [Identify.Cluster.id, OnOff.Cluster.id, TemperatureControl.Cluster.id, DishwasherMode.Cluster.id, DishwasherAlarm.Cluster.id],
-  });
-
   constructor(deviceType: DeviceTypeDefinition, name: string, serial: string) {
-    super(deviceType, { uniqueStorageKey: `${name}-${serial}` });
-    if (deviceType.code === Appliances.laundryWasher.code) {
+    super(deviceType, { uniqueStorageKey: `${name}-${serial}` }, true);
+    if (deviceType.code === laundryWasher.code) {
       // Laundry Washer
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Laundry Washer');
@@ -129,7 +66,7 @@ export class Appliances extends MatterbridgeEndpoint {
       this.createDefaultLaundryWasherModeClusterServer();
       this.createSpinLaundryWasherControlsClusterServer(3, ['400', '800', '1200', '1600']);
       this.createDefaultOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
-    } else if (deviceType.code === Appliances.laundryDryer.code) {
+    } else if (deviceType.code === laundryDryer.code) {
       // Laundry Dryer
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Laundry Dryer');
@@ -139,7 +76,7 @@ export class Appliances extends MatterbridgeEndpoint {
       this.createDefaultLaundryWasherModeClusterServer();
       this.createDefaultLaundryDryerControlsClusterServer(1);
       this.createDefaultOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
-    } else if (deviceType.code === Appliances.dishwasher.code) {
+    } else if (deviceType.code === dishwasher.code) {
       // Dishwasher (subborted by SmartThings, not supported by Home App)
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Dishwasher');
@@ -149,21 +86,118 @@ export class Appliances extends MatterbridgeEndpoint {
       this.createDefaultDishwasherModeClusterServer();
       this.createDefaultDishwasherAlarmClusterServer();
       this.createDefaultOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
-    } else if (deviceType.name === Appliances.temperatureControlledCabinetCooler.name) {
+    } else if (deviceType.name === refrigerator.name) {
+      // Refrigerator
+      this.createDefaultIdentifyClusterServer();
+      this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Refrigerator');
+
       // Temperature Controlled Cabinet Cooler
+      const refrigerator = this.addChildDeviceType(
+        'Refrigerator',
+        temperatureControlledCabinetCooler,
+        { tagList: [{ mfgCode: null, namespaceId: RefrigeratorTag.Refrigerator.namespaceId, tag: RefrigeratorTag.Refrigerator.tag, label: RefrigeratorTag.Refrigerator.label }] },
+        true,
+      );
+      refrigerator.log.logName = `Refrigerator (cabinet Refrigerator)`;
+      refrigerator.createDefaultIdentifyClusterServer();
+      Appliances.createLevelTemperatureControlClusterServer(refrigerator, 2, ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5']);
+      refrigerator.createDefaultTemperatureMeasurementClusterServer(1000);
+      Appliances.createDefaultRefrigeratorAndTemperatureControlledCabinetModeClusterServer(refrigerator, 1);
+
+      // Temperature Controlled Cabinet Cooler
+      const freezer = this.addChildDeviceType(
+        'Freezer',
+        temperatureControlledCabinetCooler,
+        { tagList: [{ mfgCode: null, namespaceId: RefrigeratorTag.Freezer.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label }] },
+        true,
+      );
+      freezer.log.logName = `Refrigerator (cabinet Freezer)`;
+      freezer.createDefaultIdentifyClusterServer();
+      Appliances.createLevelTemperatureControlClusterServer(freezer, 2, ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5']);
+      freezer.createDefaultTemperatureMeasurementClusterServer(-2000);
+      Appliances.createDefaultRefrigeratorAndTemperatureControlledCabinetModeClusterServer(freezer, 1);
+    } else if (deviceType.name === oven.name) {
+      // Oven
       this.createDefaultIdentifyClusterServer();
-      this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Temperature Controlled Cabinet Cooler');
-      this.createLevelTemperatureControlClusterServer(1, ['Cold', 'Warm', 'Hot']);
-      this.createDefaultTemperatureMeasurementClusterServer(1500);
-      this.createDefaultRefrigeratorAndTemperatureControlledCabinetModeClusterServer(1);
-    } else if (deviceType.name === Appliances.temperatureControlledCabinetHeater.name) {
+      this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Oven');
+
       // Temperature Controlled Cabinet Heater
+      const cabinettop = this.addChildDeviceType(
+        'Oven (top)',
+        temperatureControlledCabinetHeater,
+        { tagList: [{ mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label }] },
+        true,
+      );
+      cabinettop.log.logName = `Oven (top)`;
+      cabinettop.createDefaultIdentifyClusterServer();
+      Appliances.createLevelTemperatureControlClusterServer(cabinettop, 2, ['Defrost', '180°', '200°', '250°', '300°']);
+      cabinettop.createDefaultTemperatureMeasurementClusterServer(20000);
+      Appliances.createDefaultOvenModeClusterServer(cabinettop, 1);
+
+      // Temperature Controlled Cabinet Cooler
+      const cabinetbottom = this.addChildDeviceType(
+        'Oven (bottom)',
+        temperatureControlledCabinetHeater,
+        { tagList: [{ mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label }] },
+        true,
+      );
+      cabinetbottom.log.logName = `Oven (bottom)`;
+      cabinetbottom.createDefaultIdentifyClusterServer();
+      Appliances.createLevelTemperatureControlClusterServer(cabinetbottom, 2, ['Defrost', '180°', '200°', '250°', '300°']);
+      cabinetbottom.createDefaultTemperatureMeasurementClusterServer(30000);
+      Appliances.createDefaultOvenModeClusterServer(cabinetbottom, 1);
+    } else if (deviceType.name === microwaveOven.name) {
+      // Microwave Oven
       this.createDefaultIdentifyClusterServer();
-      this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Temperature Controlled Cabinet Heater');
-      this.createLevelTemperatureControlClusterServer(1, ['Cold', 'Warm', 'Hot']);
-      this.createDefaultTemperatureMeasurementClusterServer(2500);
-      this.createDefaultOvenModeClusterServer(3);
-      this.createDefaultOvenCavityOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
+      this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Microwave Oven');
+      this.createDefaultOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
+      this.createDefaultMicrowaveOvenModeClusterServer();
+      this.createDefaultMicrowaveOvenControlClusterServer();
+    } else if (deviceType.name === extractorHood.name) {
+      // Extractor Hood
+      this.createDefaultIdentifyClusterServer();
+      this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Extractor Hood');
+      this.createBaseFanControlClusterServer();
+      this.createDefaultHepaFilterMonitoringClusterServer();
+      this.createDefaultActivatedCarbonFilterMonitoringClusterServer();
+    } else if (deviceType.name === cooktop.name) {
+      // Cooktop
+      this.createDefaultIdentifyClusterServer();
+      this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Cooktop');
+      this.createOffOnlyOnOffClusterServer(true);
+
+      const cookSurface1 = this.addChildDeviceType(
+        'Surface 1',
+        cookSurface,
+        { tagList: [{ mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: PositionTag.Left.label }] },
+        true,
+      );
+      cookSurface1.log.logName = `Cook surface (right)`;
+      cookSurface1.createDefaultIdentifyClusterServer();
+      Appliances.createLevelTemperatureControlClusterServer(cookSurface1, 2, ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5']);
+      cookSurface1.createDefaultTemperatureMeasurementClusterServer(10000);
+      cookSurface1.createOffOnlyOnOffClusterServer(true);
+
+      const cookSurface2 = this.addChildDeviceType(
+        'Surface 2',
+        cookSurface,
+        { tagList: [{ mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: PositionTag.Right.label }] },
+        true,
+      );
+      cookSurface2.log.logName = `Cook surface (left)`;
+      cookSurface2.createDefaultIdentifyClusterServer();
+      Appliances.createLevelTemperatureControlClusterServer(cookSurface2, 3, ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5']);
+      cookSurface2.createDefaultTemperatureMeasurementClusterServer(12000);
+      cookSurface2.createOffOnlyOnOffClusterServer(true);
+
+      // Turn off cook surfaces when the cooktop is turned off
+      this.eventsOf(MatterbridgeOnOffServer).onOff$Changed.on(async (value) => {
+        if (!value) {
+          this.log.notice('Turning off all cook surfaces');
+          await cookSurface1.setStateOf(MatterbridgeOnOffServer, { onOff: false });
+          await cookSurface2.setStateOf(MatterbridgeOnOffServer, { onOff: false });
+        }
+      });
     }
   }
 
@@ -215,19 +249,48 @@ export class Appliances extends MatterbridgeEndpoint {
   /**
    * Creates a default RefrigeratorAndTemperatureControlledCabinetMode Cluster Server.
    *
+   * @param {MatterbridgeEndpoint} endpoint - The Matterbridge endpoint instance.
    * @param {number} currentMode - The current mode of the oven.
    *
-   * @returns {this} The current MatterbridgeEndpoint instance for chaining.
+   * @returns {MatterbridgeEndpoint} The current MatterbridgeEndpoint instance for chaining.
    */
-  createDefaultRefrigeratorAndTemperatureControlledCabinetModeClusterServer(currentMode?: number): this {
-    this.behaviors.require(RefrigeratorAndTemperatureControlledCabinetModeServer, {
+  static createDefaultRefrigeratorAndTemperatureControlledCabinetModeClusterServer(endpoint: MatterbridgeEndpoint, currentMode?: number): MatterbridgeEndpoint {
+    endpoint.behaviors.require(RefrigeratorAndTemperatureControlledCabinetModeServer, {
       supportedModes: [
+        { label: 'Auto', mode: 0, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.Auto }] },
         { label: 'RapidCool', mode: 1, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.RapidCool }] },
         { label: 'RapidFreeze', mode: 2, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.RapidFreeze }] },
       ],
       currentMode,
     });
-    return this;
+    return endpoint;
+  }
+
+  /**
+   * Creates a default OvenMode Cluster Server.
+   *
+   * @param {MatterbridgeEndpoint} endpoint - The Matterbridge endpoint instance.
+   * @param {number} currentMode - The current mode of the oven.
+   *
+   * @returns {MatterbridgeEndpoint} The current MatterbridgeEndpoint instance for chaining.
+   */
+  static createDefaultOvenModeClusterServer(endpoint: MatterbridgeEndpoint, currentMode?: number): MatterbridgeEndpoint {
+    endpoint.behaviors.require(OvenModeServer, {
+      supportedModes: [
+        { label: 'Bake', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Bake }] },
+        { label: 'Convection', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
+        { label: 'Grill', mode: 3, modeTags: [{ value: OvenMode.ModeTag.Grill }] },
+        { label: 'Roast', mode: 4, modeTags: [{ value: OvenMode.ModeTag.Roast }] },
+        { label: 'Clean', mode: 5, modeTags: [{ value: OvenMode.ModeTag.Clean }] },
+        { label: 'Convection Bake', mode: 6, modeTags: [{ value: OvenMode.ModeTag.ConvectionBake }] },
+        { label: 'Convection Roast', mode: 7, modeTags: [{ value: OvenMode.ModeTag.ConvectionRoast }] },
+        { label: 'Warming', mode: 8, modeTags: [{ value: OvenMode.ModeTag.Warming }] },
+        { label: 'Proofing', mode: 9, modeTags: [{ value: OvenMode.ModeTag.Proofing }] },
+        { label: 'Steam', mode: 10, modeTags: [{ value: OvenMode.ModeTag.Steam }] },
+      ],
+      currentMode,
+    });
+    return endpoint;
   }
 
   /**
@@ -265,6 +328,55 @@ export class Appliances extends MatterbridgeEndpoint {
         { label: 'Whites', mode: 4, modeTags: [{ value: LaundryWasherMode.ModeTag.Whites }] },
       ],
       currentMode,
+    });
+    return this;
+  }
+
+  /**
+   * Creates a default MicrowaveOvenMode Cluster Server.
+   *
+   * @param {number} currentMode - The current mode of the oven. Default is 1.
+   * @param {MicrowaveOvenMode.ModeOption[]} supportedModes - The supported modes. Default is an array of all modes.
+   *
+   * @returns {MatterbridgeEndpoint} The current MatterbridgeEndpoint instance for chaining.
+   */
+  createDefaultMicrowaveOvenModeClusterServer(currentMode?: number, supportedModes?: MicrowaveOvenMode.ModeOption[]): this {
+    this.behaviors.require(MicrowaveOvenModeServer, {
+      supportedModes: supportedModes ?? [
+        { label: 'Auto', mode: 1, modeTags: [{ value: MicrowaveOvenMode.ModeTag.Auto }] },
+        { label: 'Quick', mode: 2, modeTags: [{ value: MicrowaveOvenMode.ModeTag.Quick }] },
+        { label: 'Quiet', mode: 3, modeTags: [{ value: MicrowaveOvenMode.ModeTag.Quiet }] },
+        { label: 'Min', mode: 4, modeTags: [{ value: MicrowaveOvenMode.ModeTag.Min }] },
+        { label: 'Max', mode: 5, modeTags: [{ value: MicrowaveOvenMode.ModeTag.Max }] },
+        { label: 'Normal', mode: 6, modeTags: [{ value: MicrowaveOvenMode.ModeTag.Normal }] },
+        { label: 'Defrost', mode: 7, modeTags: [{ value: MicrowaveOvenMode.ModeTag.Defrost }] },
+      ],
+      currentMode: currentMode ?? 1,
+    });
+    return this;
+  }
+
+  /**
+   * Creates a default MicrowaveOvenControl Cluster Server.
+   *
+   * @param {number} selectedWattIndex - The selected watt index. Default is 5.
+   * @param {number[]} supportedWatts - The supported watt values. Default is [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000].
+   * @param {number} cookTime - The initial cook time. Default is 1.
+   * @param {number} maxCookTime - The maximum cook time. Default is 60.
+   *
+   * @returns {this} The current MatterbridgeEndpoint instance for chaining.
+   */
+  createDefaultMicrowaveOvenControlClusterServer(
+    selectedWattIndex = 5,
+    supportedWatts: number[] = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+    cookTime = 60, // 1 minute
+    maxCookTime = 3600, // 1 hour
+  ): this {
+    this.behaviors.require(MatterbridgeMicrowaveOvenControlServer.with(MicrowaveOvenControl.Feature.PowerInWatts), {
+      supportedWatts,
+      selectedWattIndex,
+      cookTime,
+      maxCookTime,
     });
     return this;
   }
@@ -344,32 +456,6 @@ export class Appliances extends MatterbridgeEndpoint {
   }
 
   /**
-   * Creates a default OvenMode Cluster Server.
-   *
-   * @param {number} currentMode - The current mode of the oven.
-   *
-   * @returns {this} The current MatterbridgeEndpoint instance for chaining.
-   */
-  createDefaultOvenModeClusterServer(currentMode?: number): this {
-    this.behaviors.require(OvenModeServer, {
-      supportedModes: [
-        { label: 'Bake', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Bake }] },
-        { label: 'Convection', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
-        { label: 'Grill', mode: 3, modeTags: [{ value: OvenMode.ModeTag.Grill }] },
-        { label: 'Roast', mode: 4, modeTags: [{ value: OvenMode.ModeTag.Roast }] },
-        { label: 'Clean', mode: 5, modeTags: [{ value: OvenMode.ModeTag.Clean }] },
-        { label: 'Convection Bake', mode: 6, modeTags: [{ value: OvenMode.ModeTag.ConvectionBake }] },
-        { label: 'Convection Roast', mode: 7, modeTags: [{ value: OvenMode.ModeTag.ConvectionRoast }] },
-        { label: 'Warming', mode: 8, modeTags: [{ value: OvenMode.ModeTag.Warming }] },
-        { label: 'Proofing', mode: 9, modeTags: [{ value: OvenMode.ModeTag.Proofing }] },
-        { label: 'Steam', mode: 10, modeTags: [{ value: OvenMode.ModeTag.Steam }] },
-      ],
-      currentMode,
-    });
-    return this;
-  }
-
-  /**
    * Creates a TemperatureControl Cluster Server with feature TemperatureLevel.
    *
    * @param {number} selectedTemperatureLevel - The selected temperature level.
@@ -383,6 +469,17 @@ export class Appliances extends MatterbridgeEndpoint {
       supportedTemperatureLevels,
     });
     return this;
+  }
+  static createLevelTemperatureControlClusterServer(
+    endpoint: MatterbridgeEndpoint,
+    selectedTemperatureLevel = 1,
+    supportedTemperatureLevels = ['Cold', 'Warm', 'Hot'],
+  ): MatterbridgeEndpoint {
+    endpoint.behaviors.require(MatterbridgeLevelTemperatureControlServer.with(TemperatureControl.Feature.TemperatureLevel), {
+      selectedTemperatureLevel,
+      supportedTemperatureLevels,
+    });
+    return endpoint;
   }
 
   /**
@@ -403,18 +500,33 @@ export class Appliances extends MatterbridgeEndpoint {
     });
     return this;
   }
+  static createNumberTemperatureControlClusterServer(
+    endpoint: MatterbridgeEndpoint,
+    temperatureSetpoint: number,
+    minTemperature: number,
+    maxTemperature: number,
+    step = 1,
+  ): MatterbridgeEndpoint {
+    endpoint.behaviors.require(MatterbridgeNumberTemperatureControlServer.with(TemperatureControl.Feature.TemperatureNumber, TemperatureControl.Feature.TemperatureStep), {
+      temperatureSetpoint,
+      minTemperature,
+      maxTemperature,
+      step,
+    });
+    return endpoint;
+  }
 }
 
 class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
   override initialize() {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('MatterbridgeOperationalStateServer initialized: setting operational state to Stopped');
     this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
   }
 
   override pause(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('MatterbridgeOperationalStateServer: pause called setting operational state to Paused');
     this.state.operationalState = OperationalState.OperationalStateEnum.Paused;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
@@ -424,7 +536,7 @@ class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
   }
 
   override stop(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('MatterbridgeOperationalStateServer: stop called setting operational state to Stopped');
     this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
@@ -434,7 +546,7 @@ class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
   }
 
   override start(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('MatterbridgeOperationalStateServer: start called setting operational state to Running');
     this.state.operationalState = OperationalState.OperationalStateEnum.Running;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
@@ -444,7 +556,7 @@ class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
   }
 
   override resume(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('MatterbridgeOperationalStateServer: resume called setting operational state to Running');
     this.state.operationalState = OperationalState.OperationalStateEnum.Running;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
@@ -457,14 +569,13 @@ class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
 class MatterbridgeLevelTemperatureControlServer extends TemperatureControlBehavior.with(TemperatureControl.Feature.TemperatureLevel) {
   override initialize() {
     if (this.state.supportedTemperatureLevels.length >= 2) {
-      const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-      device.log.info('MatterbridgeLevelTemperatureControlServer initialized: setting selectedTemperatureLevel to 1');
-      this.state.selectedTemperatureLevel = 1;
+      const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+      device.log.info('MatterbridgeLevelTemperatureControlServer initialized');
     }
   }
 
   override setTemperature(request: TemperatureControl.SetTemperatureRequest): MaybePromise {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     if (request.targetTemperatureLevel !== undefined && request.targetTemperatureLevel >= 0 && request.targetTemperatureLevel < this.state.supportedTemperatureLevels.length) {
       device.log.info(
         `MatterbridgeLevelTemperatureControlServer: setTemperature called setting selectedTemperatureLevel to ${request.targetTemperatureLevel}: ${this.state.supportedTemperatureLevels[request.targetTemperatureLevel]}`,
@@ -478,17 +589,43 @@ class MatterbridgeLevelTemperatureControlServer extends TemperatureControlBehavi
 
 class MatterbridgeNumberTemperatureControlServer extends TemperatureControlBehavior.with(TemperatureControl.Feature.TemperatureNumber) {
   override initialize() {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('MatterbridgeNumberTemperatureControlServer initialized');
   }
 
   override setTemperature(request: TemperatureControl.SetTemperatureRequest): MaybePromise {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     if (request.targetTemperature !== undefined && request.targetTemperature >= this.state.minTemperature && request.targetTemperature <= this.state.maxTemperature) {
       device.log.info(`MatterbridgeNumberTemperatureControlServer: setTemperature called setting temperatureSetpoint to ${request.targetTemperature}`);
       this.state.temperatureSetpoint = request.targetTemperature;
     } else {
       device.log.error(`MatterbridgeNumberTemperatureControlServer: setTemperature called with invalid targetTemperature ${request.targetTemperature}`);
+    }
+  }
+}
+
+class MatterbridgeMicrowaveOvenControlServer extends MicrowaveOvenControlBehavior.with(MicrowaveOvenControl.Feature.PowerInWatts) {
+  override initialize() {
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    device.log.info('MatterbridgeMicrowaveOvenControlServer initialized');
+  }
+
+  override setCookingParameters(request: MicrowaveOvenControl.SetCookingParametersRequest): MaybePromise {
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    if (request.wattSettingIndex !== undefined && request.wattSettingIndex >= 0 && request.wattSettingIndex < this.state.supportedWatts.length) {
+      device.log.info(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called setting selectedWattIndex to ${request.wattSettingIndex}`);
+      this.state.selectedWattIndex = request.wattSettingIndex;
+    } else {
+      device.log.error(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called with invalid wattSettingIndex ${request.wattSettingIndex}`);
+    }
+  }
+  override addMoreTime(request: MicrowaveOvenControl.AddMoreTimeRequest): MaybePromise {
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    if (request.timeToAdd !== undefined && request.timeToAdd >= 0) {
+      device.log.info(`MatterbridgeMicrowaveOvenControlServer: addMoreTime called setting cookTime to ${this.state.cookTime + request.timeToAdd}`);
+      this.state.cookTime += request.timeToAdd;
+    } else {
+      device.log.error(`MatterbridgeMicrowaveOvenControlServer: addMoreTime called with invalid cookTime ${request.timeToAdd}`);
     }
   }
 }
@@ -519,14 +656,14 @@ export namespace OvenCavityOperationalStateBehavior {
 // Server for OvenCavityOperationalState
 export class OvenCavityOperationalStateServer extends OvenCavityOperationalStateBehavior {
   override initialize() {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('OvenCavityOperationalStateServer initialized: setting operational state to Stopped and operational error to No error');
     this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
   }
 
   override stop(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('OvenCavityOperationalStateServer: stop called setting operational state to Stopped and operational error to No error');
     this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
@@ -536,7 +673,7 @@ export class OvenCavityOperationalStateServer extends OvenCavityOperationalState
   }
 
   override start(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('OvenCavityOperationalStateServer: start called setting operational state to Running and operational error to No error');
     this.state.operationalState = OperationalState.OperationalStateEnum.Running;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
@@ -572,16 +709,15 @@ export namespace RefrigeratorAndTemperatureControlledCabinetModeBehavior {
 // Server for RefrigeratorAndTemperatureControlledCabinetMode
 class RefrigeratorAndTemperatureControlledCabinetModeServer extends RefrigeratorAndTemperatureControlledCabinetModeBehavior {
   override initialize() {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer initialized: setting currentMode to 1');
     this.state.currentMode = 1;
   }
   override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    if (this.state.supportedModes.find((mode) => mode.mode === request.newMode)) {
-      device.log.info(
-        `MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer: changeToMode called with mode ${request.newMode} = ${this.state.supportedModes[request.newMode].label}`,
-      );
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
+    if (supportedMode) {
+      device.log.info(`MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
       this.state.currentMode = request.newMode;
       return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
     } else {
@@ -592,7 +728,6 @@ class RefrigeratorAndTemperatureControlledCabinetModeServer extends Refrigerator
 }
 
 /** ************************************************************** OvenMode ***********************************************************/
-
 // Interface for the OvenMode
 export namespace OvenModeInterface {
   export interface Base {
@@ -615,14 +750,15 @@ export namespace OvenModeBehavior {
 // Server for OvenMode
 class OvenModeServer extends OvenModeBehavior {
   override initialize() {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('OvenModeServer initialized: setting currentMode to 3');
     this.state.currentMode = 3;
   }
   override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    if (this.state.supportedModes.find((mode) => mode.mode === request.newMode)) {
-      device.log.info(`OvenModeServer: changeToMode called with mode ${request.newMode} = ${this.state.supportedModes[request.newMode].label}`);
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
+    if (supportedMode) {
+      device.log.info(`OvenModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
       this.state.currentMode = request.newMode;
       return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
     } else {
@@ -656,7 +792,7 @@ export namespace DishwasherModeBehavior {
 // Server for DishwasherMode
 class DishwasherModeServer extends DishwasherModeBehavior {
   override initialize() {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('DishwasherModeServer initialized: setting currentMode to 3');
     this.state.currentMode = 2;
     this.reactTo(this.agent.get(MatterbridgeOnOffServer).events.onOff$Changed, this.handleOnOffChange);
@@ -664,7 +800,7 @@ class DishwasherModeServer extends DishwasherModeBehavior {
 
   // Dead Front OnOff Cluster
   protected handleOnOffChange(onOff: boolean) {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     if (onOff === false) {
       device.log.info('***OnOffServer changed to OFF: setting Dead Front state to Manufacturer Specific');
       this.state.currentMode = 2;
@@ -672,7 +808,7 @@ class DishwasherModeServer extends DishwasherModeBehavior {
   }
 
   override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
     if (supportedMode) {
       device.log.info(`DishwasherModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
@@ -709,7 +845,7 @@ export namespace LaundryWasherModeBehavior {
 // Server for LaundryWasherMode
 class LaundryWasherModeServer extends LaundryWasherModeBehavior {
   override initialize() {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('LaundryWasherModeServer initialized: setting currentMode to 3');
     this.state.currentMode = 2;
     this.reactTo(this.agent.get(MatterbridgeOnOffServer).events.onOff$Changed, this.handleOnOffChange);
@@ -717,15 +853,15 @@ class LaundryWasherModeServer extends LaundryWasherModeBehavior {
 
   // Dead Front OnOff Cluster
   protected handleOnOffChange(onOff: boolean) {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     if (onOff === false) {
-      device.log.info('***OnOffServer changed to OFF: setting Dead Front state to Manufacturer Specific');
+      device.log.notice('OnOffServer changed to OFF: setting Dead Front state to Manufacturer Specific');
       this.state.currentMode = 2;
     }
   }
 
   override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
     if (supportedMode) {
       device.log.info(`LaundryWasherModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);

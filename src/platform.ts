@@ -3,7 +3,6 @@ import {
   MatterbridgeEndpoint,
   MatterbridgeDynamicPlatform,
   PlatformConfig,
-  airConditioner,
   airQualitySensor,
   bridgedNode,
   colorTemperatureLight,
@@ -27,6 +26,15 @@ import {
   pumpDevice,
   waterValve,
   genericSwitch,
+  airConditioner,
+  laundryWasher,
+  cooktop,
+  extractorHood,
+  microwaveOven,
+  oven,
+  refrigerator,
+  dishwasher,
+  laundryDryer,
   // onOffMountedSwitch,
   // dimmableMountedSwitch,
 } from 'matterbridge';
@@ -956,7 +964,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultFanControlClusterServer()
       .createDefaultTemperatureMeasurementClusterServer(20 * 100)
       .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .createDefaultActivatedCarbonFilterMonitoringClusterServer()
+      .createDefaultHepaFilterMonitoringClusterServer();
     this.setSelectDevice(this.airPurifier.serialNumber ?? '', this.airPurifier.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.airPurifier.deviceName ?? '')) {
       await this.registerDevice(this.airPurifier);
@@ -1034,8 +1044,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.airConditioner?.addCommandHandler('on', async () => {
       this.airConditioner?.log.info('Command on called');
-      await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner?.log);
+      // await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 20 * 100, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 20 * 100, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner?.log);
@@ -1044,7 +1053,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.airConditioner?.addCommandHandler('off', async () => {
       this.airConditioner?.log.info('Command off called');
-      await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.airConditioner?.log);
+      // await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
@@ -1426,39 +1435,60 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     /** ********************* Create the appliances ***********************/
 
-    const laundryWasher = new Appliances(Appliances.laundryWasher, 'Laundry Washer', '1234567890');
-    this.setSelectDevice(laundryWasher.serialNumber ?? '', laundryWasher.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(laundryWasher.deviceName ?? '')) {
-      await this.registerDevice(laundryWasher);
-      this.bridgedDevices.set(laundryWasher.deviceName ?? '', laundryWasher);
+    const laundryWasherDevice = new Appliances(laundryWasher, 'Laundry Washer', '1234567890');
+    this.setSelectDevice(laundryWasherDevice.serialNumber ?? '', laundryWasherDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(laundryWasherDevice.deviceName ?? '')) {
+      await this.registerDevice(laundryWasherDevice);
+      this.bridgedDevices.set(laundryWasherDevice.deviceName ?? '', laundryWasherDevice);
     }
 
-    const laundryDryer = new Appliances(Appliances.laundryDryer, 'Laundry Dryer', '1235227890');
-    this.setSelectDevice(laundryDryer.serialNumber ?? '', laundryDryer.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(laundryDryer.deviceName ?? '')) {
-      await this.registerDevice(laundryDryer);
-      this.bridgedDevices.set(laundryDryer.deviceName ?? '', laundryDryer);
+    const laundryDryerDevice = new Appliances(laundryDryer, 'Laundry Dryer', '1235227890');
+    this.setSelectDevice(laundryDryerDevice.serialNumber ?? '', laundryDryerDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(laundryDryerDevice.deviceName ?? '')) {
+      await this.registerDevice(laundryDryerDevice);
+      this.bridgedDevices.set(laundryDryerDevice.deviceName ?? '', laundryDryerDevice);
     }
 
-    const dishwasher = new Appliances(Appliances.dishwasher, 'Dishwasher', '0987654321');
-    this.setSelectDevice(dishwasher.serialNumber ?? '', dishwasher.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(dishwasher.deviceName ?? '')) {
-      await this.registerDevice(dishwasher);
-      this.bridgedDevices.set(dishwasher.deviceName ?? '', dishwasher);
+    const dishwasherDevice = new Appliances(dishwasher, 'Dishwasher', '0987654321');
+    this.setSelectDevice(dishwasherDevice.serialNumber ?? '', dishwasherDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(dishwasherDevice.deviceName ?? '')) {
+      await this.registerDevice(dishwasherDevice);
+      this.bridgedDevices.set(dishwasherDevice.deviceName ?? '', dishwasherDevice);
     }
 
-    const temperatureControlledCabinetCooler = new Appliances(Appliances.temperatureControlledCabinetCooler, 'Temperature Controlled Cabinet Cooler', '0986594321');
-    this.setSelectDevice(temperatureControlledCabinetCooler.serialNumber ?? '', temperatureControlledCabinetCooler.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(temperatureControlledCabinetCooler.deviceName ?? '')) {
-      await this.registerDevice(temperatureControlledCabinetCooler);
-      this.bridgedDevices.set(temperatureControlledCabinetCooler.deviceName ?? '', temperatureControlledCabinetCooler);
+    const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', '9987654322');
+    this.setSelectDevice(refrigeratorDevice.serialNumber ?? '', refrigeratorDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(refrigeratorDevice.deviceName ?? '')) {
+      await this.registerDevice(refrigeratorDevice);
+      this.bridgedDevices.set(refrigeratorDevice.deviceName ?? '', refrigeratorDevice);
     }
 
-    const temperatureControlledCabinetHeater = new Appliances(Appliances.temperatureControlledCabinetHeater, 'Temperature Controlled Cabinet Heater', '0986554421');
-    this.setSelectDevice(temperatureControlledCabinetHeater.serialNumber ?? '', temperatureControlledCabinetHeater.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(temperatureControlledCabinetHeater.deviceName ?? '')) {
-      await this.registerDevice(temperatureControlledCabinetHeater);
-      this.bridgedDevices.set(temperatureControlledCabinetHeater.deviceName ?? '', temperatureControlledCabinetHeater);
+    const ovenDevice = new Appliances(oven, 'Oven', '1298867891');
+    this.setSelectDevice(ovenDevice.serialNumber ?? '', ovenDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(ovenDevice.deviceName ?? '')) {
+      await this.registerDevice(ovenDevice);
+      this.bridgedDevices.set(ovenDevice.deviceName ?? '', ovenDevice);
+    }
+
+    const microwaveOvenDevice = new Appliances(microwaveOven, 'Microwave Oven', '1234567892');
+    this.setSelectDevice(microwaveOvenDevice.serialNumber ?? '', microwaveOvenDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(microwaveOvenDevice.deviceName ?? '')) {
+      await this.registerDevice(microwaveOvenDevice);
+      this.bridgedDevices.set(microwaveOvenDevice.deviceName ?? '', microwaveOvenDevice);
+    }
+
+    const extractorHoodDevice = new Appliances(extractorHood, 'Extractor Hood', '1234567893');
+    this.setSelectDevice(extractorHoodDevice.serialNumber ?? '', extractorHoodDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(extractorHoodDevice.deviceName ?? '')) {
+      await this.registerDevice(extractorHoodDevice);
+      this.bridgedDevices.set(extractorHoodDevice.deviceName ?? '', extractorHoodDevice);
+    }
+
+    const cooktopDevice = new Appliances(cooktop, 'Cooktop', '1255887894');
+    this.setSelectDevice(cooktopDevice.serialNumber ?? '', cooktopDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(cooktopDevice.deviceName ?? '')) {
+      await this.registerDevice(cooktopDevice);
+      this.bridgedDevices.set(cooktopDevice.deviceName ?? '', cooktopDevice);
     }
   }
 
@@ -1866,6 +1896,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     clearInterval(this.genericSwitchInterval);
     await super.onShutdown(reason);
     this.log.info('onShutdown called with reason:', reason ?? 'none');
-    if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices(250);
+    if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices(500);
   }
 }
