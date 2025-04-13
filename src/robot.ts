@@ -1,15 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Matterbridge
-import { Matterbridge, MatterbridgeServer, MatterbridgeEndpoint, roboticVacuumCleaner } from 'matterbridge';
+import { Matterbridge, MatterbridgeServer, MatterbridgeEndpoint, roboticVacuumCleaner, bridge, EndpointNumber, onOffOutlet } from 'matterbridge';
 
 // Matter.js implementations nad overrides
 
 // Matter.js
-import { MaybePromise, LogLevel as MatterLogLevel, LogFormat as MatterLogFormat, EndpointServer, logEndpoint, DeviceTypeId, VendorId } from 'matterbridge/matter';
+import {
+  MaybePromise,
+  LogLevel as MatterLogLevel,
+  LogFormat as MatterLogFormat,
+  EndpointServer,
+  logEndpoint,
+  DeviceTypeId,
+  VendorId,
+  ServerNode,
+  Endpoint,
+} from 'matterbridge/matter';
+import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
 import { Status } from 'matterbridge/matter/types';
-import { ModeBase, OperationalState, PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea } from 'matterbridge/matter/clusters';
-import { RvcCleanModeBehavior, RvcOperationalStateBehavior, RvcRunModeBehavior, ServiceAreaBehavior } from 'matterbridge/matter/behaviors';
+import { ModeBase, OperationalState, PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea, Actions } from 'matterbridge/matter/clusters';
+import { ActionsServer, RvcCleanModeBehavior, RvcOperationalStateBehavior, RvcRunModeBehavior, ServiceAreaBehavior } from 'matterbridge/matter/behaviors';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
 
 export class Robot extends MatterbridgeEndpoint {
@@ -158,6 +169,8 @@ export class MatterbridgeServiceAreaServer extends ServiceAreaBehavior {
     }
     // device.selectAreas({ newAreas });
     this.state.selectedAreas = newAreas;
+    this.state.currentArea = newAreas[0];
+    device.log.info(`***MatterbridgeServiceAreaServer selectAreas called with: ${newAreas.map((area) => area.toString()).join(', ')}`);
     return { status: ServiceArea.SelectAreasStatus.Success, statusText: 'Succesfully selected new areas' };
   }
 }
@@ -327,6 +340,14 @@ export class MatterbridgeRvcOperationalStateServer extends RvcOperationalStateBe
   }
 }
 
+function createEndpointActionsClusterServer(endpoint: Endpoint<AggregatorEndpoint>, endpointLists: Actions.EndpointList[]) {
+  endpoint.behaviors.require(ActionsServer, {
+    actionList: [],
+    endpointLists,
+  });
+  return endpoint;
+}
+
 if (process.argv.includes('-testRobot')) {
   // Create a MatterbridgeEdge instance
   const matterbridge = await Matterbridge.loadInstance(false);
@@ -344,9 +365,10 @@ if (process.argv.includes('-testRobot')) {
   await (matterbridge as any).startMatterStorage();
 
   // Create the Matter server
-  const deviceType = roboticVacuumCleaner; // Change this to the desired device type
+  // const deviceType = roboticVacuumCleaner; // Change this to the desired device type
+  const deviceType = bridge; // Change this to the desired device type
   const context = await (matterbridge as any).createServerNodeContext(
-    'Jest',
+    'Matterbridge',
     deviceType.name,
     DeviceTypeId(deviceType.code),
     VendorId(0xfff1),
@@ -354,9 +376,48 @@ if (process.argv.includes('-testRobot')) {
     0x8000,
     'Matterbridge device',
   );
-  const server = await (matterbridge as any).createServerNode(context);
+  const server = (await (matterbridge as any).createServerNode(context)) as ServerNode<ServerNode.RootEndpoint>;
 
-  /*
+  // Create the Matterbridge aggregator
+  const aggregator = (await (matterbridge as any).createAggregatorNode(context)) as Endpoint<AggregatorEndpoint>;
+  createEndpointActionsClusterServer(aggregator, [
+    {
+      endpointListId: 1,
+      name: 'Living room',
+      type: Actions.EndpointListType.Room,
+      endpoints: [EndpointNumber(2)],
+    },
+  ]);
+  await server.add(aggregator);
+
+  // Create an outlet
+  const outlet = new MatterbridgeEndpoint(onOffOutlet, { uniqueStorageKey: 'Outlet' }, true)
+    .createDefaultIdentifyClusterServer()
+    .createDefaultBridgedDeviceBasicInformationClusterServer('Outlet', '99914248654', 0xfff1, 'Matterbridge', 'Matterbridge Outlet')
+    .createDefaultOnOffClusterServer()
+    .createDefaultGroupsClusterServer()
+    .createDefaultPowerSourceRechargeableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 5900)
+    .addRequiredClusterServers();
+  await aggregator.add(outlet);
+
+  // Create a new Robot instance
+  const device = new Robot('Robot Vacuum', '99914248654');
+  await aggregator.add(device);
+  // await server.add(device);
+  // logEndpoint(EndpointServer.forEndpoint(device));
+
+  await (matterbridge as any).startServerNode(server);
+
+  logEndpoint(EndpointServer.forEndpoint(server));
+
+  matterbridge.log.info(
+    `Matterbridge server started. ServerNode id ${server.id}-${server.number}. Aggregator id ${aggregator.id}-${aggregator.number}. Device id ${device.id}-${device.number}.`,
+  );
+
+  // await server.close();
+  // await server.env.get(MdnsService)[Symbol.asyncDispose](); // loadInstance(false) so destroyInstance() does not stop the mDNS service
+}
+/*
   const device = new MatterbridgeEndpoint(deviceType, { uniqueStorageKey: 'SmokeCo' }, true);
   device.addRequiredClusterServers();
   device.behaviors.require(CarbonMonoxideConcentrationMeasurementServer.with(CarbonMonoxideConcentrationMeasurement.Feature.LevelIndication), {
@@ -372,29 +433,3 @@ if (process.argv.includes('-testRobot')) {
     measurementMedium: CarbonMonoxideConcentrationMeasurement.MeasurementMedium.Air,
   });
   */
-
-  /*
-  const device = new MatterbridgeEndpoint(deviceType, { uniqueStorageKey: 'OnOffLight' }, true);
-  device.createDefaultOnOffClusterServer(true, false, 10, 14);
-  device.addRequiredClusterServers();
-  await server.add(device);
-  logEndpoint(EndpointServer.forEndpoint(device));
-  */
-
-  /*
-  const dishwasher = new Appliances(Appliances.dishwasher, 'Dishwasher', '0987654321');
-  await server.add(dishwasher);
-  */
-
-  // Create a new Robot instance
-  const device = new Robot('Robot Vacuum', '99914248654');
-  await server.add(device);
-  logEndpoint(EndpointServer.forEndpoint(device));
-
-  await (matterbridge as any).startServerNode(server);
-
-  logEndpoint(EndpointServer.forEndpoint(server));
-
-  // await server.close();
-  // await server.env.get(MdnsService)[Symbol.asyncDispose](); // loadInstance(false) so destroyInstance() does not stop the mDNS service
-}
