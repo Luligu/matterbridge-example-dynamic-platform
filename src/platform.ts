@@ -35,6 +35,8 @@ import {
   refrigerator,
   dishwasher,
   laundryDryer,
+  onOffMountedSwitch,
+  dimmableMountedSwitch,
   // onOffMountedSwitch,
   // dimmableMountedSwitch,
 } from 'matterbridge';
@@ -121,6 +123,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   genericSwitchInterval: NodeJS.Timeout | undefined;
   genericSwitchLastEvent: 'Single' | 'Double' | 'Long' | 'Press' | 'Release' = 'Release';
 
+  intervalOnOff = false;
+  intervalLevel = 0;
+
   bridgedDevices = new Map<string, MatterbridgeEndpoint>();
 
   fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
@@ -185,7 +190,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a mounted onOff switch device
-    /*
     this.mountedOnOffSwitch = new MatterbridgeEndpoint([onOffMountedSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'OnOffMountedSwitch' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -271,7 +275,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.mountedDimmerSwitch?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.mountedDimmerSwitch.log);
       this.mountedDimmerSwitch?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
-    */
 
     // Create a on off light device
     this.lightOnOff = new MatterbridgeEndpoint([onOffLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (on/off)' }, this.config.debug as boolean)
@@ -327,7 +330,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
-      .createDefaultPowerSourceReplaceableBatteryClusterServer(70);
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 2990, '2 x AA', 2);
     this.setSelectDevice(this.dimmer.serialNumber ?? '', this.dimmer.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.dimmer.deviceName ?? '')) {
       await this.registerDevice(this.dimmer);
@@ -1497,17 +1500,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.log.info('onConfigure called');
 
     // Set switch to off
-    await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.switch.log);
-    this.switch?.log.info('Set switch initial onOff to false');
+    await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.switch.log);
+    await this.mountedOnOffSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.mountedOnOffSwitch.log);
+    this.switch?.log.info(`Set switch initial onOff to ${this.intervalOnOff}`);
     if (this.config.useInterval) {
       // Toggle switch onOff every minute
       this.switchInterval = setInterval(
         async () => {
-          const status = this.switch?.getAttribute(OnOff.Cluster.id, 'onOff', this.switch.log);
-          if (isValidBoolean(status)) {
-            await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', !status, this.switch.log);
-            this.switch?.log.info(`Set switch onOff to ${!status}`);
-          }
+          await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.switch.log);
+          await this.mountedOnOffSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.mountedOnOffSwitch.log);
+          this.log.info(`Set switches onOff to ${this.intervalOnOff}`);
+          this.intervalOnOff = !this.intervalOnOff;
         },
         60 * 1000 + 100,
       );
@@ -1517,9 +1520,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightOnOff.log);
     this.lightOnOff?.log.info('Set light initial onOff to false.');
 
-    // Set light on/off to off
+    // Set dimmer on/off to off
     await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.dimmer.log);
     await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 1, this.dimmer.log);
+    await this.mountedDimmerSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.mountedDimmerSwitch.log);
+    await this.mountedDimmerSwitch?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 1, this.mountedDimmerSwitch.log);
     this.dimmer?.log.info(`Set dimmer initial onOff to false, currentLevel to 1.`);
 
     // Set light to off, level to 0 and hue to 0 and saturation to 50% (pink color)
@@ -1556,40 +1561,33 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.config.useInterval) {
       this.lightInterval = setInterval(
         async () => {
-          const state = this.light?.getAttribute(OnOff.Cluster.id, 'onOff', this.light.log);
-          let level = this.light?.getAttribute(LevelControl.Cluster.id, 'currentLevel', this.light.log);
-          if (isValidBoolean(state) && isValidNumber(level, 0, 254)) {
-            level += 10;
-            if (level >= 250) {
-              level = 1;
-              await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightOnOff.log);
-              await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.dimmer.log);
-              await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.light.log);
-              await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightXY.log);
-              await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightHS.log);
-              await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightCT.log);
-              this.log.info('Set lights onOff to false');
-              await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.dimmer.log);
-              await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.light.log);
-              await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightXY.log);
-              await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightHS.log);
-              await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightCT.log);
-              this.log.info(`Set lights currentLevel to ${level}`);
-            } else {
-              await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightOnOff?.log);
-              await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dimmer.log);
-              await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.light.log);
-              await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightXY.log);
-              await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightHS.log);
-              await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightCT.log);
-              this.log.info('Set lights onOff to true');
-              await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.dimmer.log);
-              await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.light.log);
-              await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightXY.log);
-              await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightHS.log);
-              await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightCT.log);
-              this.log.info(`Set lights currentLevel to ${level}`);
-            }
+          this.intervalLevel += 10;
+          if (this.intervalLevel >= 250) {
+            this.intervalLevel = 0;
+            await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightOnOff.log);
+            await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.dimmer.log);
+            await this.mountedDimmerSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.mountedDimmerSwitch.log);
+            await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.light.log);
+            await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightXY.log);
+            await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightHS.log);
+            await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightCT.log);
+            this.log.info('Set lights onOff to false');
+          } else {
+            await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightOnOff?.log);
+            await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dimmer.log);
+            await this.mountedDimmerSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.mountedDimmerSwitch.log);
+            await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.light.log);
+            await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightXY.log);
+            await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightHS.log);
+            await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightCT.log);
+            this.log.info('Set lights onOff to true');
+            await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.dimmer.log);
+            await this.mountedDimmerSwitch?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.mountedDimmerSwitch.log);
+            await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.light.log);
+            await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.lightXY.log);
+            await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.lightHS.log);
+            await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.lightCT.log);
+            this.log.info(`Set lights currentLevel to ${this.intervalLevel}`);
           }
         },
         60 * 1000 + 200,
