@@ -1,24 +1,22 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-/* eslint-disable @typescript-eslint/no-empty-object-type */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Matterbridge
-import { MatterbridgeServer, MatterbridgeEndpoint, roboticVacuumCleaner } from 'matterbridge';
+import { Matterbridge, MatterbridgeServer, MatterbridgeEndpoint, roboticVacuumCleaner } from 'matterbridge';
 
-// Matter.js implementations
-import { RvcOperationalState } from './implementations/roboticVacuumCleanerClusters.js';
+// Matter.js implementations nad overrides
 
 // Matter.js
-import { ClusterBehavior, MaybePromise } from 'matterbridge/matter';
+import { MaybePromise, LogLevel as MatterLogLevel, LogFormat as MatterLogFormat, EndpointServer, logEndpoint, DeviceTypeId, VendorId } from 'matterbridge/matter';
 import { Status } from 'matterbridge/matter/types';
-import { ModeBase, OperationalState, PowerSource, RvcRunMode, RvcCleanMode, ServiceArea } from 'matterbridge/matter/clusters';
-import { OnOffServer, ServiceAreaBehavior } from 'matterbridge/matter/behaviors';
+import { ModeBase, OperationalState, PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea } from 'matterbridge/matter/clusters';
+import { RvcCleanModeBehavior, RvcOperationalStateBehavior, RvcRunModeBehavior, ServiceAreaBehavior } from 'matterbridge/matter/behaviors';
+import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
 
 export class Robot extends MatterbridgeEndpoint {
   constructor(name: string, serial: string) {
     super(roboticVacuumCleaner, { uniqueStorageKey: `${name}-${serial}` }, true);
     this.createDefaultIdentifyClusterServer()
       .createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Matterbridge Robot Vacuum Cleaner')
-      .createDefaultOnOffClusterServer()
       .createDefaultRvcRunModeClusterServer()
       .createDefaultRvcOperationalStateClusterServer()
       .createDefaultRvcCleanModeClusterServer()
@@ -29,17 +27,20 @@ export class Robot extends MatterbridgeEndpoint {
   /**
    * Creates a default RvcRunMode Cluster Server.
    *
+   * @param {number} [currentMode] - The current mode of the RvcRunMode cluster. Defaults to 1 (Idle).
+   * @param {RvcRunMode.ModeOption[]} [supportedModes] - The supported modes for the RvcRunMode cluster. Defaults to a predefined set of modes.
+   *
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
-  createDefaultRvcRunModeClusterServer(): this {
+  createDefaultRvcRunModeClusterServer(currentMode?: number, supportedModes?: RvcRunMode.ModeOption[]): this {
     this.behaviors.require(MatterbridgeRvcRunModeServer, {
-      supportedModes: [
+      supportedModes: supportedModes ?? [
         { label: 'Idle', mode: 1, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
         { label: 'Cleaning', mode: 2, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }] },
         { label: 'Mapping', mode: 3, modeTags: [{ value: RvcRunMode.ModeTag.Mapping }] },
         { label: 'SpotCleaning', mode: 4, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }, { value: RvcRunMode.ModeTag.Max }] },
       ],
-      currentMode: 1,
+      currentMode: currentMode ?? 1,
     });
     return this;
   }
@@ -47,16 +48,19 @@ export class Robot extends MatterbridgeEndpoint {
   /**
    * Creates a default RvcCleanMode Cluster Server.
    *
+   * @param {number} [currentMode] - The current mode of the RvcCleanMode cluster. Defaults to 1 (Vacuum).
+   * @param {RvcCleanMode.ModeOption[]} [supportedModes] - The supported modes for the RvcCleanMode cluster. Defaults to a predefined set of modes.
+   *
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
-  createDefaultRvcCleanModeClusterServer(): this {
+  createDefaultRvcCleanModeClusterServer(currentMode?: number, supportedModes?: RvcCleanMode.ModeOption[]): this {
     this.behaviors.require(MatterbridgeRvcCleanModeServer, {
-      supportedModes: [
+      supportedModes: supportedModes ?? [
         { label: 'Vacuum', mode: 1, modeTags: [{ value: RvcCleanMode.ModeTag.Vacuum }] },
         { label: 'Mop', mode: 2, modeTags: [{ value: RvcCleanMode.ModeTag.Mop }] },
         { label: 'Clean', mode: 3, modeTags: [{ value: RvcCleanMode.ModeTag.DeepClean }] },
       ],
-      currentMode: 1,
+      currentMode: currentMode ?? 1,
     });
     return this;
   }
@@ -102,13 +106,24 @@ export class Robot extends MatterbridgeEndpoint {
   /**
    * Creates a default RvcOperationalState Cluster Server.
    *
+   * @param {string[] | null} [phaseList] - The list of phases for the RvcOperationalState cluster. Defaults to null.
+   * @param {number | null} [currentPhase] - The current phase of the RvcOperationalState cluster. Defaults to null.
+   * @param {RvcOperationalState.OperationalStateStruct[]} [operationalStateList] - The list of operational states for the RvcOperationalState cluster. Defaults to a predefined set of states.
+   * @param {RvcOperationalState.OperationalState} [operationalState] - The current operational state of the RvcOperationalState cluster. Defaults to Docked.
+   * @param {RvcOperationalState.ErrorStateStruct} [operationalError] - The current operational error of the RvcOperationalState cluster. Defaults to NoError.
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
-  createDefaultRvcOperationalStateClusterServer(): this {
+  createDefaultRvcOperationalStateClusterServer(
+    phaseList: string[] | null = null,
+    currentPhase: number | null = null,
+    operationalStateList?: RvcOperationalState.OperationalStateStruct[],
+    operationalState?: RvcOperationalState.OperationalState,
+    operationalError?: RvcOperationalState.ErrorStateStruct,
+  ): this {
     this.behaviors.require(MatterbridgeRvcOperationalStateServer, {
-      phaseList: [],
-      currentPhase: null,
-      operationalStateList: [
+      phaseList,
+      currentPhase,
+      operationalStateList: operationalStateList ?? [
         { operationalStateId: RvcOperationalState.OperationalState.Stopped, operationalStateLabel: 'Stopped' },
         { operationalStateId: RvcOperationalState.OperationalState.Running, operationalStateLabel: 'Running' },
         { operationalStateId: RvcOperationalState.OperationalState.Paused, operationalStateLabel: 'Paused' },
@@ -117,8 +132,8 @@ export class Robot extends MatterbridgeEndpoint {
         { operationalStateId: RvcOperationalState.OperationalState.Charging, operationalStateLabel: 'Charging' }, // N RVC Pause Compatibility Y RVC Resume Compatibility
         { operationalStateId: RvcOperationalState.OperationalState.Docked, operationalStateLabel: 'Docked' }, // N RVC Pause Compatibility Y RVC Resume Compatibility
       ],
-      operationalState: RvcOperationalState.OperationalState.Docked,
-      operationalError: { errorStateId: RvcOperationalState.ErrorState.NoError, errorStateLabel: 'No Error', errorStateDetails: 'Fully operational' },
+      operationalState: operationalState ?? RvcOperationalState.OperationalState.Docked,
+      operationalError: operationalError ?? { errorStateId: RvcOperationalState.ErrorState.NoError, errorStateLabel: 'No Error', errorStateDetails: 'Fully operational' },
     });
     return this;
   }
@@ -149,6 +164,7 @@ export class MatterbridgeServiceAreaServer extends ServiceAreaBehavior {
 
 /** ************************************************************** RvcRunMode ***********************************************************/
 
+/*
 // RvcRunModeInterface
 export namespace RvcRunModeInterface {
   export interface Base {
@@ -167,6 +183,7 @@ type RvcRunModeStateType = InstanceType<typeof RvcRunModeBehavior.State>;
 export namespace RvcRunModeBehavior {
   export interface State extends RvcRunModeStateType {}
 }
+*/
 
 // RvcRunModeServer
 export class MatterbridgeRvcRunModeServer extends RvcRunModeBehavior /* .with(RvcRunMode.Feature.OnOff)*/ {
@@ -176,23 +193,23 @@ export class MatterbridgeRvcRunModeServer extends RvcRunModeBehavior /* .with(Rv
 
   override changeToMode({ newMode }: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
     const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    const supported = this.state.supportedModes.find((mode) => mode.mode === newMode);
-    if (!supported) {
+    const changedMode = this.state.supportedModes.find((mode) => mode.mode === newMode);
+    if (!changedMode) {
       device.log.error('MatterbridgeRvcRunModeServer changeToMode called with unsupported newMode:', newMode);
       return { status: Status.InvalidCommand, statusText: 'Invalid command' } as ModeBase.ChangeToModeResponse;
     }
     device.changeToMode({ newMode });
     this.state.currentMode = newMode;
-    if (supported.modeTags.find((tag) => tag.value === RvcRunMode.ModeTag.Cleaning)) {
+    if (changedMode.modeTags.find((tag) => tag.value === RvcRunMode.ModeTag.Cleaning)) {
       device.log.info('***MatterbridgeRvcRunModeServer changeToMode called with newMode Cleaning => Running');
       this.agent.get(MatterbridgeRvcOperationalStateServer).state.operationalState = RvcOperationalState.OperationalState.Running;
       return { status: Status.Success, statusText: 'Running' } as ModeBase.ChangeToModeResponse;
-    } else if (supported.modeTags.find((tag) => tag.value === RvcRunMode.ModeTag.Idle)) {
+    } else if (changedMode.modeTags.find((tag) => tag.value === RvcRunMode.ModeTag.Idle)) {
       device.log.info('***MatterbridgeRvcRunModeServer changeToMode called with newMode Idle => Docked');
       this.agent.get(MatterbridgeRvcOperationalStateServer).state.operationalState = RvcOperationalState.OperationalState.Docked;
       return { status: Status.Success, statusText: 'Docked' } as ModeBase.ChangeToModeResponse;
     }
-    device.log.info(`***MatterbridgeRvcRunModeServer changeToMode called with newMode ${newMode} => ${supported.label}`);
+    device.log.info(`***MatterbridgeRvcRunModeServer changeToMode called with newMode ${newMode} => ${changedMode.label}`);
     this.agent.get(MatterbridgeRvcOperationalStateServer).state.operationalState = RvcOperationalState.OperationalState.Running;
     return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
   }
@@ -200,6 +217,7 @@ export class MatterbridgeRvcRunModeServer extends RvcRunModeBehavior /* .with(Rv
 
 /** ************************************************************** RvcCleanMode ***********************************************************/
 
+/*
 // RvcCleanModeInterface
 export namespace RvcCleanModeInterface {
   export interface Base {
@@ -218,6 +236,7 @@ type RvcCleanModeStateType = InstanceType<typeof RvcCleanModeBehavior.State>;
 export namespace RvcCleanModeBehavior {
   export interface State extends RvcCleanModeStateType {}
 }
+*/
 
 // RvcCleanModeServer
 export class MatterbridgeRvcCleanModeServer extends RvcCleanModeBehavior /* .with(RvcRunMode.Feature.OnOff)*/ {
@@ -241,13 +260,12 @@ export class MatterbridgeRvcCleanModeServer extends RvcCleanModeBehavior /* .wit
 
 /** ************************************************************** RvcOperationalState ***********************************************************/
 
+/*
 // RvcOperationalStateInterface
 export namespace RvcOperationalStateInterface {
   export interface Base {
     pause(): MaybePromise<RvcOperationalState.OperationalCommandResponse>;
     resume(): MaybePromise<RvcOperationalState.OperationalCommandResponse>;
-    // start(): MaybePromise<RvcOperationalState.OperationalCommandResponse>;
-    // stop(): MaybePromise<RvcOperationalState.OperationalCommandResponse>;
     goHome(): MaybePromise<RvcOperationalState.OperationalCommandResponse>;
   }
 }
@@ -263,6 +281,7 @@ type RvcOperationalStateStateType = InstanceType<typeof RvcOperationalStateBehav
 export namespace RvcOperationalStateBehavior {
   export interface State extends RvcOperationalStateStateType {}
 }
+*/
 
 // RvcOperationalStateServer
 export class MatterbridgeRvcOperationalStateServer extends RvcOperationalStateBehavior {
@@ -271,22 +290,6 @@ export class MatterbridgeRvcOperationalStateServer extends RvcOperationalStateBe
     device.log.info('***MatterbridgeRvcOperationalStateServer initialized: setting operational state to Docked');
     this.state.operationalState = RvcOperationalState.OperationalState.Docked;
     this.state.operationalError = { errorStateId: RvcOperationalState.ErrorState.NoError, errorStateLabel: 'No Error', errorStateDetails: 'Fully operational' };
-    this.reactTo(this.agent.get(OnOffServer).events.onOff$Changed, this.handleOnOffChange);
-  }
-
-  protected handleOnOffChange(onOff: boolean) {
-    const device = this.agent.get(MatterbridgeServer).state.deviceCommand;
-    if (onOff) {
-      device.log.info('***OnOffServer changed to ON: setting operational state to Running');
-      this.agent.get(MatterbridgeRvcRunModeServer).state.currentMode = 2; // RvcRunMode.ModeTag.Cleaning
-      this.state.operationalState = RvcOperationalState.OperationalState.Running;
-      this.state.operationalError = { errorStateId: RvcOperationalState.ErrorState.NoError, errorStateLabel: 'No Error', errorStateDetails: 'Fully operational' };
-    } else {
-      device.log.info('***OnOffServer changed to OFF: setting operational state to Docked');
-      this.agent.get(MatterbridgeRvcRunModeServer).state.currentMode = 1; // RvcRunMode.ModeTag.Idle
-      this.state.operationalState = RvcOperationalState.OperationalState.Docked;
-      this.state.operationalError = { errorStateId: RvcOperationalState.ErrorState.NoError, errorStateLabel: 'No Error', errorStateDetails: 'Fully operational' };
-    }
   }
 
   override pause(): MaybePromise<OperationalState.OperationalCommandResponse> {
@@ -322,4 +325,76 @@ export class MatterbridgeRvcOperationalStateServer extends RvcOperationalStateBe
       commandResponseState: { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' },
     } as OperationalState.OperationalCommandResponse;
   }
+}
+
+if (process.argv.includes('-testRobot')) {
+  // Create a MatterbridgeEdge instance
+  const matterbridge = await Matterbridge.loadInstance(false);
+  matterbridge.log = new AnsiLogger({ logName: 'Matterbridge', logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
+
+  // Setup matter environment
+  matterbridge.environment.vars.set('log.level', MatterLogLevel.DEBUG);
+  matterbridge.environment.vars.set('log.format', MatterLogFormat.ANSI);
+  matterbridge.environment.vars.set('path.root', 'matterstorage');
+  matterbridge.environment.vars.set('runtime.signals', true);
+  matterbridge.environment.vars.set('runtime.exitcode', true);
+  matterbridge.environment.vars.set('mdns.networkInterface', 'Wi-Fi');
+
+  // Start the Matter storage
+  await (matterbridge as any).startMatterStorage();
+
+  // Create the Matter server
+  const deviceType = roboticVacuumCleaner; // Change this to the desired device type
+  const context = await (matterbridge as any).createServerNodeContext(
+    'Jest',
+    deviceType.name,
+    DeviceTypeId(deviceType.code),
+    VendorId(0xfff1),
+    'Matterbridge',
+    0x8000,
+    'Matterbridge device',
+  );
+  const server = await (matterbridge as any).createServerNode(context);
+
+  /*
+  const device = new MatterbridgeEndpoint(deviceType, { uniqueStorageKey: 'SmokeCo' }, true);
+  device.addRequiredClusterServers();
+  device.behaviors.require(CarbonMonoxideConcentrationMeasurementServer.with(CarbonMonoxideConcentrationMeasurement.Feature.LevelIndication), {
+    levelValue: CarbonMonoxideConcentrationMeasurement.LevelValue.High,
+    measurementMedium: CarbonMonoxideConcentrationMeasurement.MeasurementMedium.Air,
+  });
+  device.behaviors.require(CarbonMonoxideConcentrationMeasurementServer.with(CarbonMonoxideConcentrationMeasurement.Feature.NumericMeasurement), {
+    measuredValue: 2000,
+    minMeasuredValue: 500,
+    maxMeasuredValue: 3500,
+    uncertainty: 1,
+    measurementUnit: CarbonMonoxideConcentrationMeasurement.MeasurementUnit.Ppm,
+    measurementMedium: CarbonMonoxideConcentrationMeasurement.MeasurementMedium.Air,
+  });
+  */
+
+  /*
+  const device = new MatterbridgeEndpoint(deviceType, { uniqueStorageKey: 'OnOffLight' }, true);
+  device.createDefaultOnOffClusterServer(true, false, 10, 14);
+  device.addRequiredClusterServers();
+  await server.add(device);
+  logEndpoint(EndpointServer.forEndpoint(device));
+  */
+
+  /*
+  const dishwasher = new Appliances(Appliances.dishwasher, 'Dishwasher', '0987654321');
+  await server.add(dishwasher);
+  */
+
+  // Create a new Robot instance
+  const device = new Robot('Robot Vacuum', '99914248654');
+  await server.add(device);
+  logEndpoint(EndpointServer.forEndpoint(device));
+
+  await (matterbridge as any).startServerNode(server);
+
+  logEndpoint(EndpointServer.forEndpoint(server));
+
+  // await server.close();
+  // await server.env.get(MdnsService)[Symbol.asyncDispose](); // loadInstance(false) so destroyInstance() does not stop the mDNS service
 }

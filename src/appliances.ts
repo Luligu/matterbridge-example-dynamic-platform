@@ -1,17 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-namespace */
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 
 import {
-  DeviceTypeId,
   DeviceTypeDefinition,
-  Matterbridge,
   MatterbridgeEndpoint,
   MatterbridgeServer,
   MatterbridgeOnOffServer,
   Status,
-  VendorId,
-  smokeCoAlarm,
   RefrigeratorTag,
   PositionTag,
   laundryWasher,
@@ -26,7 +21,7 @@ import {
   cooktop,
   cookSurface,
 } from 'matterbridge';
-import { ClusterBehavior, MaybePromise, LogLevel as MatterLogLevel, LogFormat as MatterLogFormat, EndpointServer, logEndpoint } from 'matterbridge/matter';
+import { ClusterBehavior, MaybePromise } from 'matterbridge/matter';
 import {
   OperationalState,
   TemperatureControl,
@@ -39,6 +34,7 @@ import {
   RefrigeratorAndTemperatureControlledCabinetMode,
   MicrowaveOvenMode,
   MicrowaveOvenControl,
+  OvenCavityOperationalState,
 } from 'matterbridge/matter/clusters';
 import {
   DishwasherAlarmServer,
@@ -49,9 +45,6 @@ import {
   OperationalStateBehavior,
   TemperatureControlBehavior,
 } from 'matterbridge/matter/behaviors';
-import { OvenCavityOperationalState } from './implementations/ovenCavityOperationalStateCluster.js';
-import { AnsiLogger, TimestampFormat, LogLevel } from 'matterbridge/logger';
-import { Robot } from './robot.js';
 
 export class Appliances extends MatterbridgeEndpoint {
   constructor(deviceType: DeviceTypeDefinition, name: string, serial: string) {
@@ -872,74 +865,4 @@ class LaundryWasherModeServer extends LaundryWasherModeBehavior {
       return { status: Status.InvalidCommand, statusText: 'Invalid mode' } as ModeBase.ChangeToModeResponse;
     }
   }
-}
-
-if (process.argv.includes('-testRobot')) {
-  // Create a MatterbridgeEdge instance
-  const matterbridge = await Matterbridge.loadInstance(false);
-  matterbridge.log = new AnsiLogger({ logName: 'Matterbridge', logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
-
-  // Setup matter environment
-  matterbridge.environment.vars.set('log.level', MatterLogLevel.DEBUG);
-  matterbridge.environment.vars.set('log.format', MatterLogFormat.ANSI);
-  matterbridge.environment.vars.set('path.root', 'matterstorage');
-  matterbridge.environment.vars.set('runtime.signals', true);
-  matterbridge.environment.vars.set('runtime.exitcode', true);
-  matterbridge.environment.vars.set('mdns.networkInterface', 'Wi-Fi');
-
-  await (matterbridge as any).startMatterStorage();
-
-  const deviceType = smokeCoAlarm; // Change this to the desired device type
-  const context = await (matterbridge as any).createServerNodeContext(
-    'Jest',
-    deviceType.name,
-    DeviceTypeId(deviceType.code),
-    VendorId(0xfff1),
-    'Matterbridge',
-    0x8000,
-    'Matterbridge device',
-  );
-  const server = await (matterbridge as any).createServerNode(context);
-
-  /*
-  const device = new MatterbridgeEndpoint(deviceType, { uniqueStorageKey: 'SmokeCo' }, true);
-  device.addRequiredClusterServers();
-  device.behaviors.require(CarbonMonoxideConcentrationMeasurementServer.with(CarbonMonoxideConcentrationMeasurement.Feature.LevelIndication), {
-    levelValue: CarbonMonoxideConcentrationMeasurement.LevelValue.High,
-    measurementMedium: CarbonMonoxideConcentrationMeasurement.MeasurementMedium.Air,
-  });
-  device.behaviors.require(CarbonMonoxideConcentrationMeasurementServer.with(CarbonMonoxideConcentrationMeasurement.Feature.NumericMeasurement), {
-    measuredValue: 2000,
-    minMeasuredValue: 500,
-    maxMeasuredValue: 3500,
-    uncertainty: 1,
-    measurementUnit: CarbonMonoxideConcentrationMeasurement.MeasurementUnit.Ppm,
-    measurementMedium: CarbonMonoxideConcentrationMeasurement.MeasurementMedium.Air,
-  });
-  */
-
-  /*
-  const device = new MatterbridgeEndpoint(deviceType, { uniqueStorageKey: 'OnOffLight' }, true);
-  device.createDefaultOnOffClusterServer(true, false, 10, 14);
-  device.addRequiredClusterServers();
-  await server.add(device);
-  logEndpoint(EndpointServer.forEndpoint(device));
-  */
-
-  const device = new Robot('Robot Vacuum', '99914248654');
-
-  /*
-  const dishwasher = new Appliances(Appliances.dishwasher, 'Dishwasher', '0987654321');
-  await server.add(dishwasher);
-  */
-
-  await server.add(device);
-  logEndpoint(EndpointServer.forEndpoint(device));
-
-  await (matterbridge as any).startServerNode(server);
-
-  logEndpoint(EndpointServer.forEndpoint(server));
-
-  // await server.close();
-  // await server.env.get(MdnsService)[Symbol.asyncDispose](); // loadInstance(false) so destroyInstance() does not stop the mDNS service
 }
