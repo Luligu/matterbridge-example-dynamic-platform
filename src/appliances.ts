@@ -6,7 +6,6 @@ import {
   MatterbridgeEndpoint,
   MatterbridgeServer,
   MatterbridgeOnOffServer,
-  Status,
   RefrigeratorTag,
   PositionTag,
   laundryWasher,
@@ -712,10 +711,10 @@ class RefrigeratorAndTemperatureControlledCabinetModeServer extends Refrigerator
     if (supportedMode) {
       device.log.info(`MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
       this.state.currentMode = request.newMode;
-      return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.Success, statusText: 'Success' };
     } else {
       device.log.info(`MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer: changeToMode called with invalid mode ${request.newMode}`);
-      return { status: Status.InvalidCommand, statusText: 'Invalid mode' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.InvalidInMode, statusText: 'Invalid mode' };
     }
   }
 }
@@ -753,10 +752,10 @@ class OvenModeServer extends OvenModeBehavior {
     if (supportedMode) {
       device.log.info(`OvenModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
       this.state.currentMode = request.newMode;
-      return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.Success, statusText: 'Success' };
     } else {
       device.log.info(`OvenModeServer: changeToMode called with invalid mode ${request.newMode}`);
-      return { status: Status.InvalidCommand, statusText: 'Invalid mode' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.InvalidInMode, statusText: 'Invalid mode' };
     }
   }
 }
@@ -806,10 +805,10 @@ class DishwasherModeServer extends DishwasherModeBehavior {
     if (supportedMode) {
       device.log.info(`DishwasherModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
       this.state.currentMode = request.newMode;
-      return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.Success, statusText: 'Success' };
     } else {
       device.log.error(`DishwasherModeServer: changeToMode called with invalid mode ${request.newMode}`);
-      return { status: Status.InvalidCommand, statusText: 'Invalid mode' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.InvalidInMode, statusText: 'Invalid mode' };
     }
   }
 }
@@ -859,10 +858,10 @@ class LaundryWasherModeServer extends LaundryWasherModeBehavior {
     if (supportedMode) {
       device.log.info(`LaundryWasherModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
       this.state.currentMode = request.newMode;
-      return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.Success, statusText: 'Success' };
     } else {
       device.log.error(`LaundryWasherModeServer: changeToMode called with invalid mode ${request.newMode}`);
-      return { status: Status.InvalidCommand, statusText: 'Invalid mode' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.InvalidInMode, statusText: 'Invalid mode' };
     }
   }
 }

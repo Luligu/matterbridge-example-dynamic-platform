@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Matterbridge
-import { Matterbridge, MatterbridgeServer, MatterbridgeEndpoint, roboticVacuumCleaner, bridge, EndpointNumber, onOffOutlet } from 'matterbridge';
+import { Matterbridge, MatterbridgeServer, MatterbridgeEndpoint, roboticVacuumCleaner, bridge, EndpointNumber, onOffOutlet, smokeCoAlarm, dishwasher } from 'matterbridge';
 
 // Matter.js implementations nad overrides
 
@@ -18,10 +18,10 @@ import {
   Endpoint,
 } from 'matterbridge/matter';
 import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
-import { Status } from 'matterbridge/matter/types';
 import { ModeBase, OperationalState, PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea, Actions } from 'matterbridge/matter/clusters';
 import { ActionsServer, RvcCleanModeBehavior, RvcOperationalStateBehavior, RvcRunModeBehavior, ServiceAreaBehavior } from 'matterbridge/matter/behaviors';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
+import { Appliances } from './appliances.js';
 
 export class Robot extends MatterbridgeEndpoint {
   constructor(name: string, serial: string) {
@@ -209,22 +209,22 @@ export class MatterbridgeRvcRunModeServer extends RvcRunModeBehavior /* .with(Rv
     const changedMode = this.state.supportedModes.find((mode) => mode.mode === newMode);
     if (!changedMode) {
       device.log.error('MatterbridgeRvcRunModeServer changeToMode called with unsupported newMode:', newMode);
-      return { status: Status.InvalidCommand, statusText: 'Invalid command' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.InvalidInMode, statusText: 'Invalid mode' };
     }
     device.changeToMode({ newMode });
     this.state.currentMode = newMode;
     if (changedMode.modeTags.find((tag) => tag.value === RvcRunMode.ModeTag.Cleaning)) {
       device.log.info('***MatterbridgeRvcRunModeServer changeToMode called with newMode Cleaning => Running');
       this.agent.get(MatterbridgeRvcOperationalStateServer).state.operationalState = RvcOperationalState.OperationalState.Running;
-      return { status: Status.Success, statusText: 'Running' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.Success, statusText: 'Running' };
     } else if (changedMode.modeTags.find((tag) => tag.value === RvcRunMode.ModeTag.Idle)) {
       device.log.info('***MatterbridgeRvcRunModeServer changeToMode called with newMode Idle => Docked');
       this.agent.get(MatterbridgeRvcOperationalStateServer).state.operationalState = RvcOperationalState.OperationalState.Docked;
-      return { status: Status.Success, statusText: 'Docked' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.Success, statusText: 'Docked' };
     }
     device.log.info(`***MatterbridgeRvcRunModeServer changeToMode called with newMode ${newMode} => ${changedMode.label}`);
     this.agent.get(MatterbridgeRvcOperationalStateServer).state.operationalState = RvcOperationalState.OperationalState.Running;
-    return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
+    return { status: ModeBase.ModeChangeStatus.Success, statusText: 'Success' };
   }
 }
 
@@ -262,12 +262,12 @@ export class MatterbridgeRvcCleanModeServer extends RvcCleanModeBehavior /* .wit
     const supported = this.state.supportedModes.find((mode) => mode.mode === newMode);
     if (!supported) {
       device.log.error('***MatterbridgeRvcCleanModeServer changeToMode called with unsupported newMode:', newMode);
-      return { status: Status.InvalidCommand, statusText: 'Invalid command' } as ModeBase.ChangeToModeResponse;
+      return { status: ModeBase.ModeChangeStatus.InvalidInMode, statusText: 'Invalid mode' };
     }
     device.changeToMode({ newMode });
     this.state.currentMode = newMode;
     device.log.info(`***MatterbridgeRvcCleanModeServer changeToMode called with newMode ${newMode} => ${supported.label}`);
-    return { status: Status.Success, statusText: 'Success' } as ModeBase.ChangeToModeResponse;
+    return { status: ModeBase.ModeChangeStatus.Success, statusText: 'Success' };
   }
 }
 
@@ -340,7 +340,7 @@ export class MatterbridgeRvcOperationalStateServer extends RvcOperationalStateBe
   }
 }
 
-function createEndpointActionsClusterServer(endpoint: Endpoint<AggregatorEndpoint>, endpointLists: Actions.EndpointList[]) {
+function createEndpointActionsClusterServer(endpoint: Endpoint, endpointLists: Actions.EndpointList[]) {
   endpoint.behaviors.require(ActionsServer, {
     actionList: [],
     endpointLists,
@@ -366,7 +366,7 @@ if (process.argv.includes('-testRobot')) {
 
   // Create the Matter server
   // const deviceType = roboticVacuumCleaner; // Change this to the desired device type
-  const deviceType = bridge; // Change this to the desired device type
+  const deviceType = dishwasher; // Change this to the desired device type
   const context = await (matterbridge as any).createServerNodeContext(
     'Matterbridge',
     deviceType.name,
@@ -379,18 +379,21 @@ if (process.argv.includes('-testRobot')) {
   const server = (await (matterbridge as any).createServerNode(context)) as ServerNode<ServerNode.RootEndpoint>;
 
   // Create the Matterbridge aggregator
+  /*
   const aggregator = (await (matterbridge as any).createAggregatorNode(context)) as Endpoint<AggregatorEndpoint>;
   createEndpointActionsClusterServer(aggregator, [
     {
       endpointListId: 1,
       name: 'Living room',
       type: Actions.EndpointListType.Room,
-      endpoints: [EndpointNumber(2)],
+      endpoints: [EndpointNumber(1)],
     },
   ]);
   await server.add(aggregator);
+  */
 
   // Create an outlet
+  /*
   const outlet = new MatterbridgeEndpoint(onOffOutlet, { uniqueStorageKey: 'Outlet' }, true)
     .createDefaultIdentifyClusterServer()
     .createDefaultBridgedDeviceBasicInformationClusterServer('Outlet', '99914248654', 0xfff1, 'Matterbridge', 'Matterbridge Outlet')
@@ -399,37 +402,45 @@ if (process.argv.includes('-testRobot')) {
     .createDefaultPowerSourceRechargeableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 5900)
     .addRequiredClusterServers();
   await aggregator.add(outlet);
+  */
 
+  // Create a smoke alarm
+  /*
+  const smoke = new MatterbridgeEndpoint(smokeCoAlarm, { uniqueStorageKey: 'Smoke' }, true)
+    .createDefaultIdentifyClusterServer()
+    .createDefaultBridgedDeviceBasicInformationClusterServer('Smoke', '999142888654', 0xfff1, 'Matterbridge', 'Matterbridge Smoke')
+    .createDefaultPowerSourceRechargeableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 6500)
+    .addRequiredClusterServers()
+    .addOptionalClusterServers();
+  await aggregator.add(smoke);
+  */
+
+  /*
   // Create a new Robot instance
   const device = new Robot('Robot Vacuum', '99914248654');
+  createEndpointActionsClusterServer(device, [
+    {
+      endpointListId: 1,
+      name: 'Living room',
+      type: Actions.EndpointListType.Room,
+      endpoints: [EndpointNumber(2)],
+    },
+  ]);
   await aggregator.add(device);
   // await server.add(device);
   // logEndpoint(EndpointServer.forEndpoint(device));
+  */
 
+  // Create a new dishwasher instance
+  const device = new Appliances(deviceType, 'Dish Washer', '97754248654');
+  // await aggregator.add(device);
+  await server.add(device);
+  // logEndpoint(EndpointServer.forEndpoint(device));
+
+  // Start the server node and log the server node endpoint
   await (matterbridge as any).startServerNode(server);
-
   logEndpoint(EndpointServer.forEndpoint(server));
-
-  matterbridge.log.info(
-    `Matterbridge server started. ServerNode id ${server.id}-${server.number}. Aggregator id ${aggregator.id}-${aggregator.number}. Device id ${device.id}-${device.number}.`,
-  );
 
   // await server.close();
   // await server.env.get(MdnsService)[Symbol.asyncDispose](); // loadInstance(false) so destroyInstance() does not stop the mDNS service
 }
-/*
-  const device = new MatterbridgeEndpoint(deviceType, { uniqueStorageKey: 'SmokeCo' }, true);
-  device.addRequiredClusterServers();
-  device.behaviors.require(CarbonMonoxideConcentrationMeasurementServer.with(CarbonMonoxideConcentrationMeasurement.Feature.LevelIndication), {
-    levelValue: CarbonMonoxideConcentrationMeasurement.LevelValue.High,
-    measurementMedium: CarbonMonoxideConcentrationMeasurement.MeasurementMedium.Air,
-  });
-  device.behaviors.require(CarbonMonoxideConcentrationMeasurementServer.with(CarbonMonoxideConcentrationMeasurement.Feature.NumericMeasurement), {
-    measuredValue: 2000,
-    minMeasuredValue: 500,
-    maxMeasuredValue: 3500,
-    uncertainty: 1,
-    measurementUnit: CarbonMonoxideConcentrationMeasurement.MeasurementUnit.Ppm,
-    measurementMedium: CarbonMonoxideConcentrationMeasurement.MeasurementMedium.Air,
-  });
-  */
