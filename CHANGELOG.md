@@ -12,11 +12,17 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
+- [platform]: Added OnOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant).
+- [platform]: Added Dimmer Mounted Switch device (supported by SmartThings, Alexa, Home Assistant).
 - [platform]: Added Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and Apple Home).
 - [platform]: Added Laundry Washer device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Laundry Dryer device (supported by SmartThings, Alexa and Home Assistant).
 - [platform]: Added Dishwasher device (supported by SmartThings, Alexa and Home Assistant).
-- [platform]: Added Temperature Controlled Cabinet Cooler device (supported by SmartThings, Alexa and Home Assistant).
-- [platform]: Added Temperature Controlled Cabinet Heater device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Refrigerator device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Oven device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Microwave Oven device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Extractor Hood device (supported by SmartThings, Alexa and Home Assistant).
+- [platform]: Added Cooktop device (supported by SmartThings, Alexa and Home Assistant).
 
 ### Changed
 

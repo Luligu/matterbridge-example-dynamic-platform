@@ -326,6 +326,8 @@ export class Appliances extends MatterbridgeEndpoint {
 
   /**
    * Creates a default MicrowaveOvenMode Cluster Server.
+   * There is no changeToMode command in the spec, so this is not implemented.
+   * The Microwave is controlled by the MicrowaveOvenControl cluster.
    *
    * @param {number} currentMode - The current mode of the oven. Default is 1.
    * @param {MicrowaveOvenMode.ModeOption[]} supportedModes - The supported modes. Default is an array of all modes.
@@ -604,11 +606,26 @@ class MatterbridgeMicrowaveOvenControlServer extends MicrowaveOvenControlBehavio
 
   override setCookingParameters(request: MicrowaveOvenControl.SetCookingParametersRequest): MaybePromise {
     const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    if (request.cookMode !== undefined) {
+      device.log.info(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called setting cookMode to ${request.cookMode}`);
+      this.endpoint.setStateOf(MicrowaveOvenModeServer, { currentMode: request.cookMode });
+    } else {
+      device.log.info(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called with no cookMode so set to Normal`);
+      this.endpoint.setStateOf(MicrowaveOvenModeServer, { currentMode: 6 }); // Default to Normal mode
+    }
+    if (request.cookTime !== undefined && request.cookTime >= 0 && request.cookTime <= this.state.maxCookTime) {
+      device.log.info(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called setting cookTime to ${request.cookTime}`);
+      this.state.cookTime = request.cookTime;
+    } else {
+      device.log.info(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called with no cookTime so set to 30sec.`);
+      this.state.cookTime = 30; // Default to 30 seconds
+    }
     if (request.wattSettingIndex !== undefined && request.wattSettingIndex >= 0 && request.wattSettingIndex < this.state.supportedWatts.length) {
       device.log.info(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called setting selectedWattIndex to ${request.wattSettingIndex}`);
       this.state.selectedWattIndex = request.wattSettingIndex;
     } else {
-      device.log.error(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called with invalid wattSettingIndex ${request.wattSettingIndex}`);
+      device.log.info(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called with no wattSettingIndex so set to the highest Watt setting for the selected CookMode`);
+      this.state.selectedWattIndex = this.state.supportedWatts.length - 1; // Default the highest Watt setting for the selected CookMode
     }
   }
   override addMoreTime(request: MicrowaveOvenControl.AddMoreTimeRequest): MaybePromise {

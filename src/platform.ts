@@ -37,6 +37,7 @@ import {
   laundryDryer,
   onOffMountedSwitch,
   dimmableMountedSwitch,
+  extendedColorLight,
   // onOffMountedSwitch,
   // dimmableMountedSwitch,
 } from 'matterbridge';
@@ -125,6 +126,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
   intervalOnOff = false;
   intervalLevel = 0;
+  intervalColorTemperature = 147;
 
   bridgedDevices = new Map<string, MatterbridgeEndpoint>();
 
@@ -360,7 +362,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device
-    this.light = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, HS and CT)' }, this.config.debug as boolean)
+    this.light = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, HS and CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer(
@@ -493,7 +495,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a light device with XY color control
-    this.lightXY = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, CT)' }, this.config.debug as boolean)
+    this.lightXY = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer(
@@ -1014,13 +1016,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // Create a airConditioner device
-    this.airConditioner = new MatterbridgeEndpoint([airConditioner, bridgedNode, powerSource], { uniqueStorageKey: 'Air conditioner' }, this.config.debug as boolean)
+    this.airConditioner = new MatterbridgeEndpoint([airConditioner, bridgedNode, powerSource], { uniqueStorageKey: 'Air Conditioner' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Air conditioner',
+        'Air Conditioner',
         '0x96382864AC',
         0xfff1,
         'Matterbridge',
-        'Matterbridge Air conditioner',
+        'Matterbridge Air Conditioner',
         parseInt(this.version.replace(/\D/g, '')),
         this.version === '' ? 'Unknown' : this.version,
         parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
@@ -1591,6 +1593,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.lightCT.log);
             this.log.info(`Set lights currentLevel to ${this.intervalLevel}`);
           }
+          this.intervalColorTemperature += 50;
+          if (this.intervalColorTemperature > 500) {
+            this.intervalColorTemperature = 147;
+          }
+          await this.light?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', this.intervalColorTemperature, this.light.log);
+          await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', this.intervalColorTemperature, this.lightHS.log);
+          await this.lightXY?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', this.intervalColorTemperature, this.lightXY.log);
+          await this.lightCT?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', this.intervalColorTemperature, this.lightCT.log);
+          await this.light?.configureColorControlMode(ColorControl.ColorMode.ColorTemperatureMireds);
+          await this.lightHS?.configureColorControlMode(ColorControl.ColorMode.ColorTemperatureMireds);
+          await this.lightXY?.configureColorControlMode(ColorControl.ColorMode.ColorTemperatureMireds);
+          await this.lightCT?.configureColorControlMode(ColorControl.ColorMode.ColorTemperatureMireds);
+          this.log.info(`Set lights colorTemperatureMireds to ${this.intervalColorTemperature}`);
         },
         60 * 1000 + 200,
       );
@@ -1852,6 +1867,31 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         60 * 1000 + 1100,
       );
     }
+
+    // Set dead front onOff on for Appliances: brings the appliances out of the "dead front" state
+    const airConditionerDevice = this.bridgedDevices.get('Air Conditioner');
+    await airConditionerDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, airConditionerDevice.log);
+
+    const laundryWasherDevice = this.bridgedDevices.get('Laundry Washer');
+    await laundryWasherDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, laundryWasherDevice.log);
+
+    const laundryDryerDevice = this.bridgedDevices.get('Laundry Dryer');
+    await laundryDryerDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, laundryDryerDevice.log);
+
+    const dishwasherDevice = this.bridgedDevices.get('Dishwasher');
+    await dishwasherDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, dishwasherDevice.log);
+    this.log.info(`Set appliances dead front OnOff to on`);
+
+    // Set onOff only on for Appliances: brings the appliances on
+    const cooktopDevice = this.bridgedDevices.get('Cooktop');
+    await cooktopDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, cooktopDevice.log);
+    cooktopDevice?.log.info(`Set Cooktop onOff only OnOff to on`);
+    const surface1 = cooktopDevice?.getChildEndpointByName('Surface1');
+    await surface1?.setAttribute(OnOff.Cluster.id, 'onOff', true, surface1.log);
+    surface1?.log.info(`Set Surface 1 onOff only OnOff to on`);
+    const surface2 = cooktopDevice?.getChildEndpointByName('Surface2');
+    await surface2?.setAttribute(OnOff.Cluster.id, 'onOff', true, surface2.log);
+    surface2?.log.info(`Set Surface 2 onOff only OnOff to on`);
 
     if (this.config.useInterval) {
       // Trigger the switches every minute

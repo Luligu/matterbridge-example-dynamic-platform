@@ -206,7 +206,7 @@ describe('TestPlatform', () => {
   it('should call onStart with reason', async () => {
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(27);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(38);
   }, 60000);
 
   it('should start the server', async () => {
@@ -270,12 +270,16 @@ describe('TestPlatform', () => {
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.High);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.On);
-        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto);
+        if (device.deviceName === 'Fan') {
+          await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto);
+        }
 
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 50);
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 10);
-        await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
-        await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
+        if (device.deviceName === 'Fan') {
+          await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
+          await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
+        }
       }
 
       if (device.hasClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))) {
