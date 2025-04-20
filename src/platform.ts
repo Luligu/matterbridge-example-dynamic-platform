@@ -1031,6 +1031,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDeadFrontOnOffClusterServer(true)
       .createDefaultThermostatClusterServer(20, 18, 22)
+      .createDefaultThermostatUserInterfaceConfigurationClusterServer()
       .createDefaultFanControlClusterServer(FanControl.FanMode.Auto)
       .createDefaultTemperatureMeasurementClusterServer(20 * 100)
       .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
