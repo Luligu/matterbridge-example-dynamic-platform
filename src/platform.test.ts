@@ -321,7 +321,7 @@ describe('TestPlatform', () => {
 
     jest.useRealTimers();
 
-    expect(mockLog.info).toHaveBeenCalledTimes(1);
+    expect(mockLog.info).toHaveBeenCalledTimes(2);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
     expect(loggerLogSpy).toHaveBeenCalled();
   }, 300000);
