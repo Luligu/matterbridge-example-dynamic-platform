@@ -19,6 +19,7 @@ import {
   extractorHood,
   cooktop,
   cookSurface,
+  powerSource,
 } from 'matterbridge';
 import { ClusterBehavior, MaybePromise } from 'matterbridge/matter';
 import {
@@ -47,11 +48,12 @@ import {
 
 export class Appliances extends MatterbridgeEndpoint {
   constructor(deviceType: DeviceTypeDefinition, name: string, serial: string) {
-    super(deviceType, { uniqueStorageKey: `${name}-${serial}` }, true);
+    super([deviceType, powerSource], { uniqueStorageKey: `${name}-${serial}` }, true);
     if (deviceType.code === laundryWasher.code) {
       // Laundry Washer
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Laundry Washer');
+      this.createDefaultPowerSourceWiredClusterServer();
       this.createDeadFrontOnOffClusterServer();
       // this.createNumberTemperatureControlClusterServer(4000, 2000, 8000, 1000);
       this.createLevelTemperatureControlClusterServer(3, ['Cold', '30°', '40°', '60°', '80°']);
@@ -62,6 +64,7 @@ export class Appliances extends MatterbridgeEndpoint {
       // Laundry Dryer
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Laundry Dryer');
+      this.createDefaultPowerSourceWiredClusterServer();
       this.createDeadFrontOnOffClusterServer();
       // this.createNumberTemperatureControlClusterServer(4000, 2000, 8000, 1000);
       this.createLevelTemperatureControlClusterServer(3, ['Cold', '30°', '40°', '60°', '80°']);
@@ -72,6 +75,7 @@ export class Appliances extends MatterbridgeEndpoint {
       // Dishwasher (subborted by SmartThings, not supported by Home App)
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Dishwasher');
+      this.createDefaultPowerSourceWiredClusterServer();
       this.createDeadFrontOnOffClusterServer();
       // this.createNumberTemperatureControlClusterServer(6000, 2000, 8000, 1000);
       this.createLevelTemperatureControlClusterServer(1, ['Cold', '30°', '40°', '60°']);
@@ -82,6 +86,7 @@ export class Appliances extends MatterbridgeEndpoint {
       // Refrigerator
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Refrigerator');
+      this.createDefaultPowerSourceWiredClusterServer();
 
       // Temperature Controlled Cabinet Cooler
       const refrigerator = this.addChildDeviceType(
@@ -112,6 +117,7 @@ export class Appliances extends MatterbridgeEndpoint {
       // Oven
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Oven');
+      this.createDefaultPowerSourceWiredClusterServer();
 
       // Temperature Controlled Cabinet Heater
       const cabinettop = this.addChildDeviceType(
@@ -142,6 +148,7 @@ export class Appliances extends MatterbridgeEndpoint {
       // Microwave Oven
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Microwave Oven');
+      this.createDefaultPowerSourceWiredClusterServer();
       this.createDefaultOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
       this.createDefaultMicrowaveOvenModeClusterServer();
       this.createDefaultMicrowaveOvenControlClusterServer();
@@ -149,6 +156,7 @@ export class Appliances extends MatterbridgeEndpoint {
       // Extractor Hood
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Extractor Hood');
+      this.createDefaultPowerSourceWiredClusterServer();
       this.createBaseFanControlClusterServer();
       this.createDefaultHepaFilterMonitoringClusterServer();
       this.createDefaultActivatedCarbonFilterMonitoringClusterServer();
@@ -156,6 +164,7 @@ export class Appliances extends MatterbridgeEndpoint {
       // Cooktop
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Cooktop');
+      this.createDefaultPowerSourceWiredClusterServer();
       this.createOffOnlyOnOffClusterServer(true);
 
       const cookSurface1 = this.addChildDeviceType(

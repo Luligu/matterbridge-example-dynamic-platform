@@ -40,7 +40,7 @@
       "default": true
     },
     "enableConcentrationMeasurements": {
-      "description": "Enable the ConcentrationMeasurements in the Air Quality device and SmokeCoSensor devices (Apple Home 18.4 will discard these devices when enabled)",
+      "description": "Enable the ConcentrationMeasurements in the Air Quality device and SmokeCoSensor device (Apple Home 18.4 will discard these devices when enabled)",
       "type": "boolean",
       "default": true
     },

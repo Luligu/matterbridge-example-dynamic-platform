@@ -1134,7 +1134,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a fan device
-    this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean)
+    this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Fan',
         'serial_980545631228',
@@ -1146,6 +1146,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
         this.matterbridge.matterbridgeVersion,
       )
+      .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
     this.setSelectDevice(this.fan.serialNumber ?? '', this.fan.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.fan.deviceName ?? '')) {
@@ -1202,7 +1203,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     /** ********************* Create a waterLeakDetector device ***********************/
-    this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean)
+    this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Water leak detector',
         'serial_98745631222',
@@ -1214,6 +1215,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
         this.matterbridge.matterbridgeVersion,
       )
+      .createDefaultPowerSourceRechargeableBatteryClusterServer()
       .createDefaultBooleanStateClusterServer(false)
       .addRequiredClusterServers()
       .addOptionalClusterServers();
@@ -1226,7 +1228,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a waterFreezeDetector device ***********************/
-    this.waterFreeze = new MatterbridgeEndpoint([waterFreezeDetector, bridgedNode], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean)
+    this.waterFreeze = new MatterbridgeEndpoint([waterFreezeDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Water freeze detector',
         'serial_98745631223',
@@ -1238,6 +1240,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
         this.matterbridge.matterbridgeVersion,
       )
+      .createDefaultPowerSourceRechargeableBatteryClusterServer()
       .createDefaultBooleanStateClusterServer(false)
       .addRequiredClusterServers()
       .addOptionalClusterServers();
@@ -1250,7 +1253,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a rainSensor device ***********************/
-    this.rain = new MatterbridgeEndpoint([rainSensor, bridgedNode], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean)
+    this.rain = new MatterbridgeEndpoint([rainSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Rain sensor',
         'serial_98745631224',
@@ -1262,6 +1265,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
         this.matterbridge.matterbridgeVersion,
       )
+      .createDefaultPowerSourceRechargeableBatteryClusterServer()
       .createDefaultIdentifyClusterServer()
       .createDefaultBooleanStateClusterServer(false)
       .createDefaultBooleanStateConfigurationClusterServer();
@@ -1274,7 +1278,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a smokeCoAlarm device ***********************/
-    this.smokeCo = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'SmokeCo alarm sensor' }, this.config.debug as boolean)
+    this.smokeCo = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'SmokeCo alarm sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'SmokeCo alarm sensor',
         'serial_94745631225',
@@ -1287,7 +1291,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.matterbridge.matterbridgeVersion,
       )
       .createDefaultIdentifyClusterServer()
-      .createDefaultSmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Normal);
+      .createDefaultSmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Normal)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer();
     // The Home App 18.4 does not support the following cluster: if present the device will be discarded
     if (this.config.enableConcentrationMeasurements === true) this.smokeCo.createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
     this.setSelectDevice(this.smokeCo.serialNumber ?? '', this.smokeCo.deviceName ?? '', undefined, 'hub');
@@ -1299,9 +1304,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a smokeCoAlarm smoke only device ***********************/
-    this.smokeOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'Smoke only SmokeCo alarm sensor' }, this.config.debug as boolean)
+    this.smokeOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Smoke only SmokeCo alarm sensor',
+        'Smoke alarm sensor',
         'serial_94755661225',
         0xfff1,
         'Matterbridge',
@@ -1312,7 +1317,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.matterbridge.matterbridgeVersion,
       )
       .createDefaultIdentifyClusterServer()
-      .createSmokeOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal);
+      .createSmokeOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer();
     this.setSelectDevice(this.smokeOnly.serialNumber ?? '', this.smokeOnly.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.smokeOnly.deviceName ?? '')) {
       await this.registerDevice(this.smokeOnly);
@@ -1322,9 +1328,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a smokeCoAlarm co only device ***********************/
-    this.coOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode], { uniqueStorageKey: 'Co only SmokeCo alarm sensor' }, this.config.debug as boolean)
+    this.coOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Co alarm sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Co only SmokeCo alarm sensor',
+        'Co alarm sensor',
         'serial_947456317488',
         0xfff1,
         'Matterbridge',
@@ -1335,7 +1341,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.matterbridge.matterbridgeVersion,
       )
       .createDefaultIdentifyClusterServer()
-      .createCoOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal);
+      .createCoOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer();
     // The Home App 18.4 does not support the following cluster: if present the device will be discarded
     if (this.config.enableConcentrationMeasurements === true) this.coOnly.createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
     this.setSelectDevice(this.coOnly.serialNumber ?? '', this.coOnly.deviceName ?? '', undefined, 'hub');
@@ -1347,7 +1354,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create an airQuality device ***********************/
-    this.airQuality = new MatterbridgeEndpoint([airQualitySensor, bridgedNode], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean)
+    this.airQuality = new MatterbridgeEndpoint([airQualitySensor, bridgedNode, powerSource], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Air quality sensor',
         'serial_987484318322',
@@ -1359,6 +1366,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
         this.matterbridge.matterbridgeVersion,
       )
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Warning, 2900, 'CR2450', 1)
       .addRequiredClusterServers()
       .addClusterServers([TemperatureMeasurement.Cluster.id, RelativeHumidityMeasurement.Cluster.id]);
     // The Home App 18.4 does not support the following clusters: if present the device will be discarded
@@ -1463,6 +1471,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', '9987654322');
+    refrigeratorDevice.addFixedLabel('composed', 'Refrigerator');
     this.setSelectDevice(refrigeratorDevice.serialNumber ?? '', refrigeratorDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(refrigeratorDevice.deviceName ?? '')) {
       await this.registerDevice(refrigeratorDevice);
@@ -1470,6 +1479,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     const ovenDevice = new Appliances(oven, 'Oven', '1298867891');
+    ovenDevice.addFixedLabel('composed', 'Oven');
     this.setSelectDevice(ovenDevice.serialNumber ?? '', ovenDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(ovenDevice.deviceName ?? '')) {
       await this.registerDevice(ovenDevice);
