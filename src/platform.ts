@@ -136,15 +136,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('2.2.7')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "2.2.7". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.0.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
     this.log.info('Initializing platform:', this.config.name);
     if (config.whiteList === undefined) config.whiteList = [];
     if (config.blackList === undefined) config.blackList = [];
+    if (config.enableConcentrationMeasurements === undefined) config.enableConcentrationMeasurements = false;
+    if (config.enableRVC === undefined) config.enableRVC = false;
   }
 
   override async onStart(reason?: string) {
@@ -1439,12 +1441,25 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a vacuum ***********************/
+    /*
+    The RVC is supported correctly by the Home app (all commands work).
 
-    const robot = new Robot('Robot Vacuum', '1238777820');
-    this.setSelectDevice(robot.serialNumber ?? '', robot.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(robot.deviceName ?? '')) {
-      await this.registerDevice(robot);
-      this.bridgedDevices.set(robot.deviceName ?? '', robot);
+    The bad news is that right now the Apple Home app only shows the RVC as a single device (not bridged). 
+    If the RVC is in a bridge, the whole Home app crashes... so don't try it. If your controller is Apple, put the RVC in the black list.
+    
+    If you want to try the RVC with the Home app:
+    - update matterbridge to the latest (i.e. version >= 3.0.0);
+    - update matterbridge dynamic plugin to the latest version (i.e. version >= 1.2.0);
+    - use child bridge mode;
+    - put the RVC in the white list alone (in this way it will be a single device in the dynamic plugin child bridge).
+    */
+    if (this.config.enableRVC === true) {
+      const robot = new Robot('Robot Vacuum', '1238777820');
+      this.setSelectDevice(robot.serialNumber ?? '', robot.deviceName ?? '', undefined, 'hub');
+      if (this.validateDevice(robot.deviceName ?? '')) {
+        await this.registerDevice(robot);
+        this.bridgedDevices.set(robot.deviceName ?? '', robot);
+      }
     }
 
     /** ********************* Create the appliances ***********************/

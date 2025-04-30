@@ -432,6 +432,7 @@ if (process.argv.includes('-testRobot')) {
   // logEndpoint(EndpointServer.forEndpoint(device));
   */
 
+  /*
   // Create a new dishwasher instance
   const device = new Appliances(deviceType, 'Dish Washer', '97754248654');
   // await aggregator.add(device);
@@ -441,6 +442,7 @@ if (process.argv.includes('-testRobot')) {
   // Start the server node and log the server node endpoint
   await (matterbridge as any).startServerNode(server);
   logEndpoint(EndpointServer.forEndpoint(server));
+  */
 
   // await server.close();
   // await server.env.get(MdnsService)[Symbol.asyncDispose](); // loadInstance(false) so destroyInstance() does not stop the mDNS service

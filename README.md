@@ -46,6 +46,17 @@ It exposes:
 - an airQuality device with all concentration measurements clusters (supported by Apple Home only without the concentration measurements)
 - a momentary switch
 - a latching switch
+- a Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read also https://github.com/Luligu/matterbridge/discussions/264.
+- a onOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
+- a dimmer Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
+- a laundry Washer device (supported by SmartThings, Alexa and Home Assistant)
+- a laundry Dryer device (supported by SmartThings, Alexa and Home Assistant)
+- a dishwasher device (supported by SmartThings, Alexa and Home Assistant)
+- a refrigerator device (supported by SmartThings, Alexa and Home Assistant)
+- an oven device (supported by SmartThings, Alexa and Home Assistant)
+- a microwave Oven device (supported by SmartThings, Alexa and Home Assistant)
+- an extractor Hood device (supported by SmartThings, Alexa and Home Assistant)
+- a cooktop device (supported by SmartThings, Alexa and Home Assistant)
 
 All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices), how to subscribe to attributes and how to trigger events.
 
