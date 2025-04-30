@@ -16,7 +16,7 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes:
+It exposes 38 devices:
 
 - a switch with onOff cluster
 - a light with onOff
