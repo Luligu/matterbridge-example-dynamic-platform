@@ -54,8 +54,9 @@ describe('TestPlatform', () => {
     matterbridgeDirectory: './jest/matterbridge',
     matterbridgePluginDirectory: './jest/plugins',
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '2.2.7',
-    edge: true,
+    matterbridgeVersion: '3.0.0',
+    enableConcentrationMeasurements: true,
+    enableRVC: true,
     log: mockLog,
     getDevices: jest.fn(() => {
       // console.log('getDevices called');
@@ -85,6 +86,7 @@ describe('TestPlatform', () => {
     blackList: [],
     useInterval: true,
     enableConcentrationMeasurements: true,
+    enableRVC: true,
     debug: true,
     unregisterOnShutdown: false,
   } as PlatformConfig;
@@ -192,9 +194,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "2.2.7". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.0.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '2.2.7';
+    mockMatterbridge.matterbridgeVersion = '3.0.0';
   });
 
   it('should initialize platform with config name', () => {
@@ -206,7 +208,7 @@ describe('TestPlatform', () => {
   it('should call onStart with reason', async () => {
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(27);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(38);
   }, 60000);
 
   it('should start the server', async () => {
@@ -270,12 +272,16 @@ describe('TestPlatform', () => {
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.High);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.On);
-        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto);
+        if (device.deviceName === 'Fan') {
+          await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto);
+        }
 
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 50);
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 10);
-        await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
-        await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
+        if (device.deviceName === 'Fan') {
+          await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
+          await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
+        }
       }
 
       if (device.hasClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))) {
@@ -317,7 +323,7 @@ describe('TestPlatform', () => {
 
     jest.useRealTimers();
 
-    expect(mockLog.info).toHaveBeenCalledTimes(1);
+    expect(mockLog.info).toHaveBeenCalledTimes(2);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
     expect(loggerLogSpy).toHaveBeenCalled();
   }, 300000);
