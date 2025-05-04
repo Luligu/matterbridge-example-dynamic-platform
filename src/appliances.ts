@@ -42,7 +42,6 @@ import {
   LaundryWasherControlsServer,
   MicrowaveOvenControlBehavior,
   MicrowaveOvenModeServer,
-  OperationalStateBehavior,
   TemperatureControlBehavior,
 } from 'matterbridge/matter/behaviors';
 
@@ -200,29 +199,6 @@ export class Appliances extends MatterbridgeEndpoint {
         }
       });
     }
-  }
-
-  /**
-   * Creates a default OperationalState Cluster Server.
-   *
-   * @param {OperationalState.OperationalStateEnum} operationalState - The initial operational state.
-   *
-   * @returns {this} The current MatterbridgeEndpoint instance for chaining.
-   */
-  createDefaultOperationalStateClusterServer(operationalState: OperationalState.OperationalStateEnum = OperationalState.OperationalStateEnum.Stopped): this {
-    this.behaviors.require(MatterbridgeOperationalStateServer, {
-      phaseList: [],
-      currentPhase: null,
-      operationalStateList: [
-        { operationalStateId: OperationalState.OperationalStateEnum.Stopped, operationalStateLabel: 'Stopped' },
-        { operationalStateId: OperationalState.OperationalStateEnum.Running, operationalStateLabel: 'Running' },
-        { operationalStateId: OperationalState.OperationalStateEnum.Paused, operationalStateLabel: 'Paused' },
-        { operationalStateId: OperationalState.OperationalStateEnum.Error, operationalStateLabel: 'Error' },
-      ],
-      operationalState,
-      operationalError: { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' },
-    });
-    return this;
   }
 
   /**
@@ -517,55 +493,6 @@ export class Appliances extends MatterbridgeEndpoint {
       step,
     });
     return endpoint;
-  }
-}
-
-class MatterbridgeOperationalStateServer extends OperationalStateBehavior {
-  override initialize() {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer initialized: setting operational state to Stopped');
-    this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
-    this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
-  }
-
-  override pause(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer: pause called setting operational state to Paused');
-    this.state.operationalState = OperationalState.OperationalStateEnum.Paused;
-    this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
-    return {
-      commandResponseState: { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' },
-    } as OperationalState.OperationalCommandResponse;
-  }
-
-  override stop(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer: stop called setting operational state to Stopped');
-    this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
-    this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
-    return {
-      commandResponseState: { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' },
-    } as OperationalState.OperationalCommandResponse;
-  }
-
-  override start(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer: start called setting operational state to Running');
-    this.state.operationalState = OperationalState.OperationalStateEnum.Running;
-    this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
-    return {
-      commandResponseState: { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' },
-    } as OperationalState.OperationalCommandResponse;
-  }
-
-  override resume(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
-    device.log.info('MatterbridgeOperationalStateServer: resume called setting operational state to Running');
-    this.state.operationalState = OperationalState.OperationalStateEnum.Running;
-    this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
-    return {
-      commandResponseState: { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' },
-    } as OperationalState.OperationalCommandResponse;
   }
 }
 
