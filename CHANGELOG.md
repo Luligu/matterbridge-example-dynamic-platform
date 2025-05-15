@@ -24,7 +24,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
-- [platform]: Added Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read carefully the readme please.
+- [platform]: Added Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read carefully the readme please and https://github.com/Luligu/matterbridge/discussions/264.
 - [platform]: Added OnOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant).
 - [platform]: Added Dimmer Mounted Switch device (supported by SmartThings, Alexa, Home Assistant).
 - [platform]: Added Laundry Washer device (supported by SmartThings, Alexa and Home Assistant).
