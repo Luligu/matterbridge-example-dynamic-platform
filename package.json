@@ -74,18 +74,18 @@
     "install:jest": "npm install jest ts-jest @types/jest eslint-plugin-jest --save-dev --omit=dev"
   },
   "devDependencies": {
-    "@eslint/js": "9.25.1",
+    "@eslint/js": "9.26.0",
     "@types/jest": "29.5.14",
-    "@types/node": "22.15.3",
-    "eslint-config-prettier": "10.1.2",
+    "@types/node": "22.15.18",
+    "eslint-config-prettier": "10.1.5",
     "eslint-plugin-jest": "28.11.0",
-    "eslint-plugin-n": "17.17.0",
-    "eslint-plugin-prettier": "5.2.6",
+    "eslint-plugin-n": "17.18.0",
+    "eslint-plugin-prettier": "5.4.0",
     "jest": "29.7.0",
     "prettier": "3.5.3",
-    "ts-jest": "29.3.2",
+    "ts-jest": "29.3.3",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.31.1"
+    "typescript-eslint": "8.32.1"
   },
   "dependencies": {
     "node-ansi-logger": "3.0.1",

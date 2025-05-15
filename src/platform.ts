@@ -145,7 +145,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.log.info('Initializing platform:', this.config.name);
     if (config.whiteList === undefined) config.whiteList = [];
     if (config.blackList === undefined) config.blackList = [];
-    if (config.enableConcentrationMeasurements === undefined) config.enableConcentrationMeasurements = false;
     if (config.enableRVC === undefined) config.enableRVC = false;
   }
 
@@ -1294,9 +1293,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultIdentifyClusterServer()
       .createDefaultSmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Normal)
-      .createDefaultPowerSourceReplaceableBatteryClusterServer();
-    // The Home App 18.4 does not support the following cluster: if present the device will be discarded
-    if (this.config.enableConcentrationMeasurements === true) this.smokeCo.createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
+      .createDefaultPowerSourceReplaceableBatteryClusterServer()
+      .createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
     this.setSelectDevice(this.smokeCo.serialNumber ?? '', this.smokeCo.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.smokeCo.deviceName ?? '')) {
       await this.registerDevice(this.smokeCo);
@@ -1344,9 +1342,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultIdentifyClusterServer()
       .createCoOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal)
-      .createDefaultPowerSourceReplaceableBatteryClusterServer();
-    // The Home App 18.4 does not support the following cluster: if present the device will be discarded
-    if (this.config.enableConcentrationMeasurements === true) this.coOnly.createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
+      .createDefaultPowerSourceReplaceableBatteryClusterServer()
+      .createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
     this.setSelectDevice(this.coOnly.serialNumber ?? '', this.coOnly.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.coOnly.deviceName ?? '')) {
       await this.registerDevice(this.coOnly);
@@ -1370,20 +1367,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Warning, 2900, 'CR2450', 1)
       .addRequiredClusterServers()
-      .addClusterServers([TemperatureMeasurement.Cluster.id, RelativeHumidityMeasurement.Cluster.id]);
-    // The Home App 18.4 does not support the following clusters: if present the device will be discarded
-    if (this.config.enableConcentrationMeasurements === true) {
-      this.airQuality.createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(10);
-      this.airQuality.createDefaultCarbonDioxideConcentrationMeasurementClusterServer(400);
-      this.airQuality.createDefaultNitrogenDioxideConcentrationMeasurementClusterServer(1);
-      this.airQuality.createDefaultOzoneConcentrationMeasurementClusterServer(1);
-      this.airQuality.createDefaultFormaldehydeConcentrationMeasurementClusterServer(1);
-      this.airQuality.createDefaultPm1ConcentrationMeasurementClusterServer(100);
-      this.airQuality.createDefaultPm25ConcentrationMeasurementClusterServer(100);
-      this.airQuality.createDefaultPm10ConcentrationMeasurementClusterServer(100);
-      this.airQuality.createDefaultRadonConcentrationMeasurementClusterServer(100);
-      this.airQuality.createDefaultTvocMeasurementClusterServer(100);
-    }
+      .addClusterServers([TemperatureMeasurement.Cluster.id, RelativeHumidityMeasurement.Cluster.id])
+      .createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(10)
+      .createDefaultCarbonDioxideConcentrationMeasurementClusterServer(400)
+      .createDefaultNitrogenDioxideConcentrationMeasurementClusterServer(1)
+      .createDefaultOzoneConcentrationMeasurementClusterServer(1)
+      .createDefaultFormaldehydeConcentrationMeasurementClusterServer(1)
+      .createDefaultPm1ConcentrationMeasurementClusterServer(100)
+      .createDefaultPm25ConcentrationMeasurementClusterServer(100)
+      .createDefaultPm10ConcentrationMeasurementClusterServer(100)
+      .createDefaultRadonConcentrationMeasurementClusterServer(100)
+      .createDefaultTvocMeasurementClusterServer(100);
+
     this.setSelectDevice(this.airQuality.serialNumber ?? '', this.airQuality.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.airQuality.deviceName ?? '')) {
       await this.registerDevice(this.airQuality);

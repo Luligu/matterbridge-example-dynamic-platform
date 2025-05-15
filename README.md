@@ -43,7 +43,7 @@ It exposes 38 devices:
 - an airPurifier device with temperature and humidity sensor (supported by Apple Home)
 - a pumpDevice device
 - a waterValve device
-- an airQuality device with all concentration measurements clusters (supported by Apple Home only without the concentration measurements)
+- an airQuality device with all concentration measurements clusters (supported by Apple Home with the concentration measurements from version 18.5)
 - a momentary switch
 - a latching switch
 - a Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read also https://github.com/Luligu/matterbridge/discussions/264.

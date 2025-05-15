@@ -6,8 +6,6 @@ import {
   MatterbridgeEndpoint,
   MatterbridgeServer,
   MatterbridgeOnOffServer,
-  RefrigeratorTag,
-  PositionTag,
   laundryWasher,
   laundryDryer,
   dishwasher,
@@ -21,7 +19,7 @@ import {
   cookSurface,
   powerSource,
 } from 'matterbridge';
-import { ClusterBehavior, MaybePromise } from 'matterbridge/matter';
+import { ClusterBehavior, MaybePromise, PositionTag, RefrigeratorTag } from 'matterbridge/matter';
 import {
   OperationalState,
   TemperatureControl,

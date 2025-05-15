@@ -2,27 +2,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Matterbridge
-import { Matterbridge, MatterbridgeServer, MatterbridgeEndpoint, roboticVacuumCleaner, bridge, EndpointNumber, onOffOutlet, smokeCoAlarm, dishwasher } from 'matterbridge';
+import { Matterbridge, MatterbridgeServer, MatterbridgeEndpoint, roboticVacuumCleaner, dishwasher } from 'matterbridge';
 
 // Matter.js implementations nad overrides
 
 // Matter.js
-import {
-  MaybePromise,
-  LogLevel as MatterLogLevel,
-  LogFormat as MatterLogFormat,
-  EndpointServer,
-  logEndpoint,
-  DeviceTypeId,
-  VendorId,
-  ServerNode,
-  Endpoint,
-} from 'matterbridge/matter';
-import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
+import { MaybePromise, LogLevel as MatterLogLevel, LogFormat as MatterLogFormat, DeviceTypeId, VendorId, ServerNode, Endpoint } from 'matterbridge/matter';
 import { ModeBase, OperationalState, PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea, Actions } from 'matterbridge/matter/clusters';
 import { ActionsServer, RvcCleanModeBehavior, RvcOperationalStateBehavior, RvcRunModeBehavior, ServiceAreaBehavior } from 'matterbridge/matter/behaviors';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
-import { Appliances } from './appliances.js';
 
 export class Robot extends MatterbridgeEndpoint {
   constructor(name: string, serial: string) {
