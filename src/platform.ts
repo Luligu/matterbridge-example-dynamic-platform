@@ -38,8 +38,6 @@ import {
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
-  // onOffMountedSwitch,
-  // dimmableMountedSwitch,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
