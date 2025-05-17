@@ -70,9 +70,12 @@ import {
   ThermostatCluster,
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
+  WaterHeaterManagement,
+  WaterHeaterMode,
 } from 'matterbridge/matter/clusters';
 import { BitFlag, TypeFromPartialBitSchema } from 'matterbridge/matter/types';
 import { Appliances } from './appliances.js';
+import { Energy } from './energy.js';
 import { Robot } from './robot.js';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
