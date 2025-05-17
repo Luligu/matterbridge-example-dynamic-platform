@@ -18,6 +18,7 @@ import {
   cooktop,
   cookSurface,
   powerSource,
+  waterHeater,
 } from 'matterbridge';
 import { ClusterBehavior, MaybePromise, PositionTag, RefrigeratorTag } from 'matterbridge/matter';
 import {
@@ -41,6 +42,8 @@ import {
   MicrowaveOvenControlBehavior,
   MicrowaveOvenModeServer,
   TemperatureControlBehavior,
+  WaterHeaterManagementBehavior,
+  WaterHeaterModeBehavior,
 } from 'matterbridge/matter/behaviors';
 
 export class Appliances extends MatterbridgeEndpoint {
