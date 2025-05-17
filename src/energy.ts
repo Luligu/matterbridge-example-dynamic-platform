@@ -56,3 +56,56 @@ export class Energy extends MatterbridgeEndpoint {
     return this;
   }
 
+
+/** ************************************************************** WaterHeaterMode ***********************************************************/
+
+// Interface for the WaterHeaterMode
+export namespace WaterHeaterModeInterface {
+  export interface Base {
+    changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse>;
+  }
+}
+export interface WaterHeaterModeInterface {
+  components: [{ flags: {}; methods: WaterHeaterModeInterface.Base }];
+}
+
+// Behavior for WaterHeaterMode
+export const WaterHeaterModeBehavior = ClusterBehavior.withInterface<WaterHeaterModeInterface>().for(WaterHeaterMode.Cluster);
+type WaterHeaterModeBehaviorType = InstanceType<typeof WaterHeaterModeBehavior>;
+export interface WaterHeaterModeBehavior extends WaterHeaterModeBehaviorType {}
+type WaterHeaterModeStateType = InstanceType<typeof WaterHeaterModeBehavior.State>;
+export namespace WaterHeaterModeBehavior {
+  export interface State extends WaterHeaterModeStateType {}
+}
+
+// Server for WaterHeaterMode
+class WaterHeaterModeServer extends WaterHeaterModeBehavior {
+  override initialize() {
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    device.log.info('WaterHeaterModeServer initialized: setting currentMode to 3');
+    this.state.currentMode = 2;
+    this.reactTo(this.agent.get(MatterbridgeOnOffServer).events.onOff$Changed, this.handleOnOffChange);
+  }
+
+  // Dead Front OnOff Cluster
+  protected handleOnOffChange(onOff: boolean) {
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    if (onOff === false) {
+      device.log.info('***OnOffServer changed to OFF: setting Dead Front state to Manufacturer Specific');
+      this.state.currentMode = 2;
+    }
+  }
+
+  override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
+    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
+    if (supportedMode) {
+      device.log.info(`WaterHeaterModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
+      this.state.currentMode = request.newMode;
+      return { status: ModeBase.ModeChangeStatus.Success, statusText: 'Success' };
+    } else {
+      device.log.error(`WaterHeaterModeServer: changeToMode called with invalid mode ${request.newMode}`);
+      return { status: ModeBase.ModeChangeStatus.InvalidInMode, statusText: 'Invalid mode' };
+    }
+  }
+}
