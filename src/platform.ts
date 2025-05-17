@@ -1519,6 +1519,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.registerDevice(cooktopDevice);
       this.bridgedDevices.set(cooktopDevice.deviceName ?? '', cooktopDevice);
     }
+
+    const waterHeaterDevice = new Energy(waterheater, 'Water Heater', '8735654320');
+    this.setSelectDevice(waterHeaterDevice.serialNumber ?? '', waterHeaterDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(waterHeaterDevice.deviceName ?? '')) {
+      await this.registerDevice(waterHeaterDevice);
+      this.bridgedDevices.set(waterHeaterDevice.deviceName ?? '', waterHeaterDevice);
+    }
   }
 
   override async onConfigure() {
