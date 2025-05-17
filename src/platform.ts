@@ -38,6 +38,7 @@ import {
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
+  waterHeater,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
@@ -69,9 +70,12 @@ import {
   ThermostatCluster,
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
+  WaterHeaterManagement,
+  WaterHeaterMode,
 } from 'matterbridge/matter/clusters';
 import { BitFlag, TypeFromPartialBitSchema } from 'matterbridge/matter/types';
 import { Appliances } from './appliances.js';
+import { Energy } from './energy.js';
 import { Robot } from './robot.js';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
@@ -105,6 +109,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   momentarySwitch: MatterbridgeEndpoint | undefined;
   latchingSwitch: MatterbridgeEndpoint | undefined;
   vacuum: MatterbridgeEndpoint | undefined;
+  waterHeater: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1513,6 +1518,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.validateDevice(cooktopDevice.deviceName ?? '')) {
       await this.registerDevice(cooktopDevice);
       this.bridgedDevices.set(cooktopDevice.deviceName ?? '', cooktopDevice);
+    }
+
+    const waterHeaterDevice = new Energy(waterheater, 'Water Heater', '8735654320');
+    this.setSelectDevice(waterHeaterDevice.serialNumber ?? '', waterHeaterDevice.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(waterHeaterDevice.deviceName ?? '')) {
+      await this.registerDevice(waterHeaterDevice);
+      this.bridgedDevices.set(waterHeaterDevice.deviceName ?? '', waterHeaterDevice);
     }
   }
 
