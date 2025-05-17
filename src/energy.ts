@@ -12,11 +12,12 @@ import {
 import { ClusterBehavior, MaybePromise, } from 'matterbridge/matter';
 import {
   ModeBase,
+  WaterHeaterManagement,
+  WaterHeaterMode,
 } from 'matterbridge/matter/clusters';
 import {
-  // LaundryWasherControlsServer,
-  WaterHeaterManagementBehavior,
-  WaterHeaterModeBehavior,
+  WaterHeaterManagementServer,
+  WaterHeaterModeServer,
 } from 'matterbridge/matter/behaviors';
 
 export class Energy extends MatterbridgeEndpoint {
