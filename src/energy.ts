@@ -49,7 +49,7 @@ export class Energy extends MatterbridgeEndpoint {
         { label: 'LowNoise', mode: 3, modeTags: [{ value: WaterHeaterMode.ModeTag.LowNoise }] },
         { label: 'Off', mode: 0x4000, modeTags: [{ value: WaterHeaterMode.ModeTag.Off }] },
         { label: 'Manual', mode: 0x4001, modeTags: [{ value: WaterHeaterMode.ModeTag.Manual }] },
-        { label: 'Timed', mode: 0x4002, modeTags: [{ value: WaterHeaterMode.ModeTag.Manual }] },
+        { label: 'Timed', mode: 0x4002, modeTags: [{ value: WaterHeaterMode.ModeTag.Timed }] },
         
       ],
       currentMode,
