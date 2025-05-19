@@ -38,6 +38,8 @@ import {
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
+  RoboticVacuumCleaner,
+  WaterHeater,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
@@ -72,7 +74,6 @@ import {
 } from 'matterbridge/matter/clusters';
 import { BitFlag, TypeFromPartialBitSchema } from 'matterbridge/matter/types';
 import { Appliances } from './appliances.js';
-import { Robot } from './robot.js';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   switch: MatterbridgeEndpoint | undefined;
@@ -105,6 +106,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   momentarySwitch: MatterbridgeEndpoint | undefined;
   latchingSwitch: MatterbridgeEndpoint | undefined;
   vacuum: MatterbridgeEndpoint | undefined;
+  heater: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1447,12 +1449,20 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     - put the RVC in the white list alone (in this way it will be a single device in the dynamic plugin child bridge).
     */
     if (this.config.enableRVC === true) {
-      const robot = new Robot('Robot Vacuum', '1238777820');
+      const robot = new RoboticVacuumCleaner('Robot Vacuum', '1238777820');
       this.setSelectDevice(robot.serialNumber ?? '', robot.deviceName ?? '', undefined, 'hub');
       if (this.validateDevice(robot.deviceName ?? '')) {
         await this.registerDevice(robot);
         this.bridgedDevices.set(robot.deviceName ?? '', robot);
       }
+    }
+
+    /** ********************* Create a water heater ***********************/
+    const heater = new WaterHeater('Water Heater', '3456177820');
+    this.setSelectDevice(heater.serialNumber ?? '', heater.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(heater.deviceName ?? '')) {
+      await this.registerDevice(heater);
+      this.bridgedDevices.set(heater.deviceName ?? '', heater);
     }
 
     /** ********************* Create the appliances ***********************/

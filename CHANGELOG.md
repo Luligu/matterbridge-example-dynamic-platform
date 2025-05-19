@@ -8,6 +8,22 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.2.2] - 2025-05-19
+
+### Changed
+
+- [package]: Added waterHeater device type (not supported by Alexa and Apple Home)
+
+### Changed
+
+- [package]: Changed the RVC from local implementation to the new RoboticVacuumCleaner class from matterbridge.
+- [package]: Updated package.
+- [package]: Updated dependencies.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.2.1] - 2025-05-15
 
 ### Changed
