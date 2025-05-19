@@ -28,7 +28,7 @@ export class Energy extends MatterbridgeEndpoint {
     waterTemperature = 50,
     minHeatSetpointLimit = 20,
     maxHeatSetpointLimit = 80,
-    heaterTypes: { immersionElement1?: boolean; immersionElement2?: boolean; heatPump?: boolean; boiler?: boolean; other?: boolean } = { immersionElement1: true },	      
+    heaterTypes: { immersionElement1?: boolean, immersionElement2?: boolean, heatPump?: boolean, boiler?: boolean, other?: boolean } = { immersionElement1: true },	      
     ) {
     super([deviceType, powerSource], { uniqueStorageKey: `${name}-${serial}` }, true);
     if (deviceType.code === waterHeater.code) {
@@ -46,15 +46,15 @@ export class Energy extends MatterbridgeEndpoint {
   /**
    * Creates a default WaterHeaterManagement Cluster Server.
    *
-   * @param {{ immersionElement1?: boolean; immersionElement2?: boolean; heatPump?: boolean; boiler?: boolean; other?: boolean }} [heaterTypes] - Indicates the heat sources that the water heater can call on for heating. Defaults to { immersionElement1: true }.
-   * @param {{ immersionElement1?: boolean; immersionElement2?: boolean; heatPump?: boolean; boiler?: boolean; other?: boolean }} [heatDemand] - Indicates if the water heater is heating water. Defaults to all heat sources unset.
+   * @param {{{ immersionElement1?: boolean, immersionElement2?: boolean, heatPump?: boolean, boiler?: boolean, other?: boolean }} [heaterTypes] - Indicates the heat sources that the water heater can call on for heating. Defaults to { immersionElement1: true }.
+   * @param {{ immersionElement1?: boolean, immersionElement2?: boolean, heatPump?: boolean, boiler?: boolean, other?: boolean }} [heatDemand] - Indicates if the water heater is heating water. Defaults to all heat sources unset.
    * @param {number} [tankPercentage] - The current tank percentage of the WaterHeaterManagement cluster. Defaults to 100.
    * @param {WaterHeaterManagement.BoostState} [boostState] - The current boost state of the WaterHeaterManagement cluster. Defaults to Inactive.
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
   createDefaultWaterHeaterManagementClusterServer(
-    heaterTypes?: { immersionElement1?: boolean; immersionElement2?: boolean; heatPump?: boolean; boiler?: boolean; other?: boolean },
-    heatDemand?: { immersionElement1?: boolean; immersionElement2?: boolean; heatPump?: boolean; boiler?: boolean; other?: boolean },
+    heaterTypes?: { immersionElement1?: boolean, immersionElement2?: boolean, heatPump?: boolean, boiler?: boolean, other?: boolean },
+    heatDemand?: { immersionElement1?: boolean, immersionElement2?: boolean, heatPump?: boolean, boiler?: boolean, other?: boolean },
     tankPercentage?: number,
     boostState?: WaterHeaterManagement.BoostState,
   ): this {
