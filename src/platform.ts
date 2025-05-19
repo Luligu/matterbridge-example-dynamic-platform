@@ -136,9 +136,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.1')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.3')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.0.1". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.0.3". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1096,14 +1096,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.pump?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.pump?.log.info(`Command identify called identifyTime:${identifyTime}`);
-    });
-    this.pump?.addCommandHandler('on', async () => {
-      this.pump?.log.info('Command on called');
-      await this.pump?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.pump?.log);
-    });
-    this.pump?.addCommandHandler('off', async () => {
-      this.pump?.log.info('Command off called');
-      await this.pump?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.pump?.log);
     });
 
     // Create a waterValve device

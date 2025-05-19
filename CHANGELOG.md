@@ -17,6 +17,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Changed
 
 - [package]: Changed the RVC from local implementation to the new RoboticVacuumCleaner class from matterbridge.
+- [package]: Require matterbridge 3.0.3.
 - [package]: Updated package.
 - [package]: Updated dependencies.
 
