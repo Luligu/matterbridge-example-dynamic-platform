@@ -10,7 +10,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [1.2.2] - 2025-05-19
 
-### Changed
+### Added
 
 - [package]: Added waterHeater device type (not supported by Alexa and Apple Home)
 
