@@ -1051,7 +1051,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.airConditioner?.addCommandHandler('on', async () => {
       this.airConditioner?.log.info('Command on called');
-      // await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 20 * 100, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 20 * 100, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner?.log);
@@ -1060,7 +1059,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.airConditioner?.addCommandHandler('off', async () => {
       this.airConditioner?.log.info('Command off called');
-      // await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
@@ -1096,6 +1094,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.pump?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.pump?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.pump?.addCommandHandler('on', async () => {
+      this.pump?.log.info('Command on called');
+    });
+    this.pump?.addCommandHandler('off', async () => {
+      this.pump?.log.info('Command off called');
+    });
+    this.pump?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+      this.pump?.log.info(`Command moveToLevel called request: ${level}`);
+    });
+    this.pump?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+      this.pump?.log.info(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
     // Create a waterValve device
