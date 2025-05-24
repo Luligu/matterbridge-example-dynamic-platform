@@ -8,6 +8,22 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.2.3] - 2025-05-25
+
+### Added
+
+- [platform]: Added a cover device with both lift and tilt (supported by the Home app).
+
+### Changed
+
+- [package]: Require matterbridge 3.0.4.
+- [package]: Updated package.
+- [package]: Updated dependencies.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.2.2] - 2025-05-19
 
 ### Added

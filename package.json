@@ -1,6 +1,6 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Matterbridge dynamic plugin",
   "author": "https://github.com/Luligu",
   "license": "MIT",
@@ -25,7 +25,11 @@
     "matter",
     "matter.js",
     "example",
-    "plugin"
+    "plugin",
+    "dynamic",
+    "platform",
+    "virtual device",
+    "virtual devices"
   ],
   "engines": {
     "node": ">=18.0.0 <19.0.0 || >=20.0.0 <21.0.0 || >=22.0.0"
@@ -51,7 +55,7 @@
     "cleanBuild": "npm run clean && npm run build",
     "cleanBuildProduction": "npm run clean && npm run buildProduction",
     "deepClean": "npx rimraf tsconfig.tsbuildinfo package-lock.json npm-shrinkwrap.json ./dist ./node_modules",
-    "deepCleanBuild": "npm run deepClean && npm install && npm link matterbridge && npm run build",
+    "deepCleanBuild": "npm run deepClean && npm install && npm link matterbridge && npm run build && npx jest --clearCache",
     "checkDependencies": "npx npm-check-updates",
     "updateDependencies": "npx npm-check-updates -u && npm run deepCleanBuild",
     "git:status": "git status && git branch -vv && git diff main origin/main",

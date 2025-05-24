@@ -86,7 +86,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   lightHS: MatterbridgeEndpoint | undefined;
   lightCT: MatterbridgeEndpoint | undefined;
   outlet: MatterbridgeEndpoint | undefined;
-  cover: MatterbridgeEndpoint | undefined;
+  coverLift: MatterbridgeEndpoint | undefined;
+  coverLiftTilt: MatterbridgeEndpoint | undefined;
   lock: MatterbridgeEndpoint | undefined;
   thermoAuto: MatterbridgeEndpoint | undefined;
   thermoHeat: MatterbridgeEndpoint | undefined;
@@ -136,9 +137,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.3')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.4')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.0.3". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.0.4". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -641,12 +642,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Create a window covering device
     // Matter uses 10000 = fully closed   0 = fully opened
-    this.cover = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Cover' }, this.config.debug as boolean)
+    this.coverLift = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { uniqueStorageKey: 'CoverLift' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Cover',
-        '0x01020564',
+        'Cover lift',
+        'CL01020564',
         0xfff1,
         'Matterbridge',
         'Matterbridge Cover',
@@ -657,15 +658,15 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultWindowCoveringClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(86);
-    this.setSelectDevice(this.cover.serialNumber ?? '', this.cover.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.cover.deviceName ?? '')) {
-      await this.registerDevice(this.cover);
-      this.bridgedDevices.set(this.cover.deviceName ?? '', this.cover);
+    this.setSelectDevice(this.coverLift.serialNumber ?? '', this.coverLift.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.coverLift.deviceName ?? '')) {
+      await this.registerDevice(this.coverLift);
+      this.bridgedDevices.set(this.coverLift.deviceName ?? '', this.coverLift);
     } else {
-      this.cover = undefined;
+      this.coverLift = undefined;
     }
 
-    this.cover?.subscribeAttribute(
+    await this.coverLift?.subscribeAttribute(
       WindowCovering.Cluster.id,
       'mode',
       (
@@ -682,35 +683,90 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           ledFeedback: BitFlag;
         }>,
       ) => {
-        this.cover?.log.info(
+        this.coverLift?.log.info(
           `Attribute mode changed from ${oldValue} to ${newValue}. Reverse: ${newValue.motorDirectionReversed}. Calibration: ${newValue.calibrationMode}. Maintenance: ${newValue.maintenanceMode}. LED: ${newValue.ledFeedback}`,
         );
       },
-      this.cover.log,
+      this.coverLift.log,
     );
 
-    this.cover?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
-      this.cover?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    this.coverLift?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.coverLift?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
 
-    this.cover?.addCommandHandler('stopMotion', async () => {
-      await this.cover?.setWindowCoveringTargetAsCurrentAndStopped();
-      this.cover?.log.info(`Command stopMotion called`);
+    this.coverLift?.addCommandHandler('stopMotion', async () => {
+      await this.coverLift?.setWindowCoveringTargetAsCurrentAndStopped();
+      this.coverLift?.log.info(`Command stopMotion called`);
     });
 
-    this.cover?.addCommandHandler('downOrClose', async () => {
-      await this.cover?.setWindowCoveringCurrentTargetStatus(10000, 10000, WindowCovering.MovementStatus.Stopped);
-      this.cover?.log.info(`Command downOrClose called`);
+    this.coverLift?.addCommandHandler('downOrClose', async () => {
+      await this.coverLift?.setWindowCoveringCurrentTargetStatus(10000, 10000, WindowCovering.MovementStatus.Stopped);
+      this.coverLift?.log.info(`Command downOrClose called`);
     });
 
-    this.cover?.addCommandHandler('upOrOpen', async () => {
-      await this.cover?.setWindowCoveringCurrentTargetStatus(0, 0, WindowCovering.MovementStatus.Stopped);
-      this.cover?.log.info(`Command upOrOpen called`);
+    this.coverLift?.addCommandHandler('upOrOpen', async () => {
+      await this.coverLift?.setWindowCoveringCurrentTargetStatus(0, 0, WindowCovering.MovementStatus.Stopped);
+      this.coverLift?.log.info(`Command upOrOpen called`);
     });
 
-    this.cover?.addCommandHandler('goToLiftPercentage', async ({ request: { liftPercent100thsValue } }) => {
-      await this.cover?.setWindowCoveringCurrentTargetStatus(liftPercent100thsValue, liftPercent100thsValue, WindowCovering.MovementStatus.Stopped);
-      this.cover?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} called`);
+    this.coverLift?.addCommandHandler('goToLiftPercentage', async ({ request: { liftPercent100thsValue } }) => {
+      await this.coverLift?.setWindowCoveringCurrentTargetStatus(liftPercent100thsValue, liftPercent100thsValue, WindowCovering.MovementStatus.Stopped);
+      this.coverLift?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} called`);
+    });
+
+    // Create a tilt window covering device
+    // Matter uses 10000 = fully closed   0 = fully opened
+    this.coverLiftTilt = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { uniqueStorageKey: 'CoverLiftTilt' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Cover lift and tilt',
+        'CLT01020554',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Cover',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultLiftTiltWindowCoveringClusterServer()
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(86);
+    this.setSelectDevice(this.coverLiftTilt.serialNumber ?? '', this.coverLiftTilt.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.coverLiftTilt.deviceName ?? '')) {
+      await this.registerDevice(this.coverLiftTilt);
+      this.bridgedDevices.set(this.coverLiftTilt.deviceName ?? '', this.coverLiftTilt);
+    } else {
+      this.coverLiftTilt = undefined;
+    }
+    this.coverLiftTilt?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.coverLiftTilt?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+
+    this.coverLiftTilt?.addCommandHandler('stopMotion', async () => {
+      await this.coverLiftTilt?.setWindowCoveringTargetAsCurrentAndStopped();
+      this.coverLiftTilt?.log.info(`Command stopMotion called`);
+    });
+
+    this.coverLiftTilt?.addCommandHandler('downOrClose', async () => {
+      await this.coverLiftTilt?.setWindowCoveringCurrentTargetStatus(10000, 10000, WindowCovering.MovementStatus.Stopped);
+      this.coverLiftTilt?.log.info(`Command downOrClose called`);
+    });
+
+    this.coverLiftTilt?.addCommandHandler('upOrOpen', async () => {
+      await this.coverLiftTilt?.setWindowCoveringCurrentTargetStatus(0, 0, WindowCovering.MovementStatus.Stopped);
+      this.coverLiftTilt?.log.info(`Command upOrOpen called`);
+    });
+
+    this.coverLiftTilt?.addCommandHandler('goToLiftPercentage', async ({ request: { liftPercent100thsValue } }) => {
+      await this.coverLiftTilt?.setWindowCoveringCurrentTargetStatus(liftPercent100thsValue, liftPercent100thsValue, WindowCovering.MovementStatus.Stopped);
+      this.coverLiftTilt?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} called`);
+    });
+
+    this.coverLiftTilt?.addCommandHandler('goToTiltPercentage', async ({ request: { tiltPercent100thsValue } }) => {
+      const position = this.coverLiftTilt?.getAttribute(WindowCovering.Cluster.id, 'currentPositionLiftPercent100ths', this.coverLiftTilt?.log);
+      await this.coverLiftTilt?.setWindowCoveringTargetAndCurrentPosition(position, tiltPercent100thsValue);
+      this.coverLiftTilt?.log.info(`Command goToTiltPercentage ${tiltPercent100thsValue} called`);
     });
 
     // Create a lock device
@@ -810,27 +866,27 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.thermoAuto?.log.info('Set occupiedCoolingSetpoint:', setpoint);
       }
     });
-    this.thermoAuto?.subscribeAttribute(
+    await this.thermoAuto?.subscribeAttribute(
       ThermostatCluster.id,
       'systemMode',
-      async (value) => {
+      (value) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
         this.thermoAuto?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
       },
       this.thermoAuto.log,
     );
-    this.thermoAuto?.subscribeAttribute(
+    await this.thermoAuto?.subscribeAttribute(
       ThermostatCluster.id,
       'occupiedHeatingSetpoint',
-      async (value) => {
+      (value) => {
         this.thermoAuto?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
       },
       this.thermoAuto.log,
     );
-    this.thermoAuto?.subscribeAttribute(
+    await this.thermoAuto?.subscribeAttribute(
       ThermostatCluster.id,
       'occupiedCoolingSetpoint',
-      async (value) => {
+      (value) => {
         this.thermoAuto?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
       },
       this.thermoAuto.log,
@@ -882,19 +938,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoHeat?.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
       this.thermoHeat?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
     });
-    this.thermoHeat?.subscribeAttribute(
+    await this.thermoHeat?.subscribeAttribute(
       ThermostatCluster.id,
       'systemMode',
-      async (value) => {
+      (value) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
         this.thermoHeat?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
       },
       this.thermoHeat.log,
     );
-    this.thermoHeat?.subscribeAttribute(
+    await this.thermoHeat?.subscribeAttribute(
       ThermostatCluster.id,
       'occupiedHeatingSetpoint',
-      async (value) => {
+      (value) => {
         this.thermoHeat?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
       },
       this.thermoHeat.log,
@@ -931,19 +987,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoCool?.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
       this.thermoCool?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
     });
-    this.thermoCool?.subscribeAttribute(
+    await this.thermoCool?.subscribeAttribute(
       ThermostatCluster.id,
       'systemMode',
-      async (value) => {
+      (value) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
         this.thermoCool?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
       },
       this.thermoCool.log,
     );
-    this.thermoCool?.subscribeAttribute(
+    await this.thermoCool?.subscribeAttribute(
       ThermostatCluster.id,
       'occupiedCoolingSetpoint',
-      async (value) => {
+      (value) => {
         this.thermoCool?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
       },
       this.thermoCool.log,
@@ -985,33 +1041,35 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.airPurifier?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     // Apple sends Off and High
-    this.airPurifier?.subscribeAttribute(
+    await this.airPurifier?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
-      async (newValue: FanControl.FanMode, oldValue: FanControl.FanMode) => {
-        this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]}`);
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.airPurifier?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+        );
         if (newValue === FanControl.FanMode.Off) {
-          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airPurifier?.log);
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Low) {
-          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airPurifier?.log);
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Medium) {
-          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airPurifier?.log);
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.High) {
-          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.On) {
-          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Auto) {
-          await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.airPurifier?.log);
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.airPurifier?.log);
         }
       },
       this.airPurifier.log,
     );
-    this.airPurifier?.subscribeAttribute(
+    await this.airPurifier?.subscribeAttribute(
       FanControl.Cluster.id,
       'percentSetting',
-      async (newValue: number | null, oldValue: number | null) => {
-        this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue}`);
-        if (isValidNumber(newValue, 0, 100)) await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airPurifier?.log);
+      (newValue: number | null, oldValue: number | null, context) => {
+        this.airPurifier?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (isValidNumber(newValue, 0, 100)) this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airPurifier?.log);
       },
       this.airPurifier.log,
     );
@@ -1159,48 +1217,48 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.fan = undefined;
     }
 
-    this.fan?.subscribeAttribute(
+    await this.fan?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
-      async (newValue: FanControl.FanMode, oldValue: FanControl.FanMode) => {
-        this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]}`);
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`);
         if (newValue === FanControl.FanMode.Off) {
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fan?.log);
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Low) {
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fan?.log);
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Medium) {
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fan?.log);
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fan?.log);
         } else if (newValue === FanControl.FanMode.High) {
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fan?.log);
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
         } else if (newValue === FanControl.FanMode.On) {
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fan?.log);
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
         } else if (newValue === FanControl.FanMode.Auto) {
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fan?.log);
-          await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fan?.log);
+          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fan?.log);
         }
       },
       this.fan.log,
     );
-    this.fan?.subscribeAttribute(
+    await this.fan?.subscribeAttribute(
       FanControl.Cluster.id,
       'percentSetting',
-      async (newValue: number | null, oldValue: number | null) => {
-        this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue}`);
-        if (isValidNumber(newValue, 0, 100)) await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fan?.log);
+      (newValue: number | null, oldValue: number | null, context) => {
+        this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
     );
-    this.fan?.subscribeAttribute(
+    await this.fan?.subscribeAttribute(
       FanControl.Cluster.id,
       'speedSetting',
-      async (newValue: number | null, oldValue: number | null) => {
-        this.fan?.log.info(`Speed setting changed from ${oldValue} to ${newValue}`);
-        if (isValidNumber(newValue, 0, 100)) await this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', newValue, this.fan?.log);
+      (newValue: number | null, oldValue: number | null, context) => {
+        this.fan?.log.info(`Speed setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
     );
@@ -1658,24 +1716,24 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     // Set cover to target = current position and status to stopped (current position is persisted in the cluster)
-    await this.cover?.setWindowCoveringTargetAsCurrentAndStopped();
-    this.cover?.log.info('Set cover initial targetPositionLiftPercent100ths = currentPositionLiftPercent100ths and operationalStatus to Stopped.');
+    await this.coverLift?.setWindowCoveringTargetAsCurrentAndStopped();
+    this.coverLift?.log.info('Set cover initial targetPositionLiftPercent100ths = currentPositionLiftPercent100ths and operationalStatus to Stopped.');
     if (this.config.useInterval) {
       // Increment cover position every minute
       this.coverInterval = setInterval(
         async () => {
-          let position = this.cover?.getAttribute(WindowCovering.Cluster.id, 'currentPositionLiftPercent100ths', this.cover.log);
+          let position = this.coverLift?.getAttribute(WindowCovering.Cluster.id, 'currentPositionLiftPercent100ths', this.coverLift.log);
           if (isValidNumber(position, 0, 10000)) {
             position = position > 9000 ? 0 : position + 1000;
-            await this.cover?.setAttribute(WindowCovering.Cluster.id, 'targetPositionLiftPercent100ths', position, this.cover.log);
-            await this.cover?.setAttribute(WindowCovering.Cluster.id, 'currentPositionLiftPercent100ths', position, this.cover.log);
-            await this.cover?.setAttribute(
+            await this.coverLift?.setAttribute(WindowCovering.Cluster.id, 'targetPositionLiftPercent100ths', position, this.coverLift.log);
+            await this.coverLift?.setAttribute(WindowCovering.Cluster.id, 'currentPositionLiftPercent100ths', position, this.coverLift.log);
+            await this.coverLift?.setAttribute(
               WindowCovering.Cluster.id,
               'operationalStatus',
               { global: WindowCovering.MovementStatus.Stopped, lift: WindowCovering.MovementStatus.Stopped, tilt: WindowCovering.MovementStatus.Stopped },
-              this.cover.log,
+              this.coverLift.log,
             );
-            this.cover?.log.info(`Set cover current and target positionLiftPercent100ths to ${position} and operationalStatus to Stopped`);
+            this.coverLift?.log.info(`Set cover current and target positionLiftPercent100ths to ${position} and operationalStatus to Stopped`);
           }
         },
         60 * 1000 + 400,
@@ -1924,6 +1982,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     if (this.config.useInterval) {
       // Trigger the switches every minute
+      this.genericSwitchLastEvent = 'Release';
       this.genericSwitchInterval = setInterval(
         async () => {
           if (this.genericSwitchLastEvent === 'Release') {
