@@ -26,7 +26,7 @@ It exposes 40 virtual devices:
 - a light with onOff, levelControl and colorControl (with XY and CT) clusters
 - a light with onOff, levelControl and colorControl (with CT only) clusters
 - an outlet (plug) with onOff cluster
-- a cover with windowCovering cluster
+- a cover with windowCovering cluster and lift feature
 - a cover with windowCovering cluster and both lift and tilt features
 - a lock with doorLock cluster
 - a thermo autoMode (i.e. with Auto Heat and Cool features) with thermostat cluster and 3 sub endpoints with flowMeasurement cluster, temperatureMeasurement cluster

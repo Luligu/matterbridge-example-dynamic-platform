@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-/* eslint-disable @typescript-eslint/no-empty-object-type */
-
 import {
   DeviceTypeDefinition,
   MatterbridgeEndpoint,
@@ -19,7 +16,7 @@ import {
   cookSurface,
   powerSource,
 } from 'matterbridge';
-import { ClusterBehavior, MaybePromise, PositionTag, RefrigeratorTag } from 'matterbridge/matter';
+import { MaybePromise, PositionTag, RefrigeratorTag } from 'matterbridge/matter';
 import {
   OperationalState,
   TemperatureControl,
@@ -32,14 +29,18 @@ import {
   RefrigeratorAndTemperatureControlledCabinetMode,
   MicrowaveOvenMode,
   MicrowaveOvenControl,
-  OvenCavityOperationalState,
 } from 'matterbridge/matter/clusters';
 import {
   DishwasherAlarmServer,
+  DishwasherModeBehavior,
   LaundryDryerControlsServer,
   LaundryWasherControlsServer,
+  LaundryWasherModeBehavior,
   MicrowaveOvenControlBehavior,
   MicrowaveOvenModeServer,
+  OvenCavityOperationalStateBehavior,
+  OvenModeBehavior,
+  RefrigeratorAndTemperatureControlledCabinetModeBehavior,
   TemperatureControlBehavior,
 } from 'matterbridge/matter/behaviors';
 
@@ -207,7 +208,7 @@ export class Appliances extends MatterbridgeEndpoint {
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
   createDefaultOvenCavityOperationalStateClusterServer(operationalState: OperationalState.OperationalStateEnum = OperationalState.OperationalStateEnum.Stopped): this {
-    this.behaviors.require(OvenCavityOperationalStateServer, {
+    this.behaviors.require(MatterbridgeOvenCavityOperationalStateServer, {
       phaseList: [],
       currentPhase: null,
       operationalStateList: [
@@ -230,7 +231,7 @@ export class Appliances extends MatterbridgeEndpoint {
    * @returns {MatterbridgeEndpoint} The current MatterbridgeEndpoint instance for chaining.
    */
   static createDefaultRefrigeratorAndTemperatureControlledCabinetModeClusterServer(endpoint: MatterbridgeEndpoint, currentMode?: number): MatterbridgeEndpoint {
-    endpoint.behaviors.require(RefrigeratorAndTemperatureControlledCabinetModeServer, {
+    endpoint.behaviors.require(MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer, {
       supportedModes: [
         { label: 'Auto', mode: 0, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.Auto }] },
         { label: 'RapidCool', mode: 1, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.RapidCool }] },
@@ -250,7 +251,7 @@ export class Appliances extends MatterbridgeEndpoint {
    * @returns {MatterbridgeEndpoint} The current MatterbridgeEndpoint instance for chaining.
    */
   static createDefaultOvenModeClusterServer(endpoint: MatterbridgeEndpoint, currentMode?: number): MatterbridgeEndpoint {
-    endpoint.behaviors.require(OvenModeServer, {
+    endpoint.behaviors.require(MatterbridgeOvenModeServer, {
       supportedModes: [
         { label: 'Bake', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Bake }] },
         { label: 'Convection', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
@@ -276,7 +277,7 @@ export class Appliances extends MatterbridgeEndpoint {
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
   createDefaultDishwasherModeClusterServer(currentMode?: number): this {
-    this.behaviors.require(DishwasherModeServer, {
+    this.behaviors.require(MatterbridgeDishwasherModeServer, {
       supportedModes: [
         { label: 'Light', mode: 1, modeTags: [{ value: DishwasherMode.ModeTag.Light }] },
         { label: 'Normal', mode: 2, modeTags: [{ value: DishwasherMode.ModeTag.Normal }] },
@@ -295,7 +296,7 @@ export class Appliances extends MatterbridgeEndpoint {
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
   createDefaultLaundryWasherModeClusterServer(currentMode?: number): this {
-    this.behaviors.require(LaundryWasherModeServer, {
+    this.behaviors.require(MatterbridgeLaundryWasherModeServer, {
       supportedModes: [
         { label: 'Delicate', mode: 1, modeTags: [{ value: LaundryWasherMode.ModeTag.Delicate }] },
         { label: 'Normal', mode: 2, modeTags: [{ value: LaundryWasherMode.ModeTag.Normal }] },
@@ -575,29 +576,8 @@ class MatterbridgeMicrowaveOvenControlServer extends MicrowaveOvenControlBehavio
 
 /** ************************************************************** OvenCavityOperationalState ***********************************************************/
 
-// Interface for the OvenCavityOperationalState
-export namespace OvenCavityOperationalStateInterface {
-  export interface Base {
-    stop(): MaybePromise<OperationalState.OperationalCommandResponse>;
-    start(): MaybePromise<OperationalState.OperationalCommandResponse>;
-  }
-}
-export interface OvenCavityOperationalStateInterface {
-  components: [{ flags: {}; methods: OvenCavityOperationalStateInterface.Base }];
-}
-
-// Behavior for OvenCavityOperationalState
-export const OvenCavityOperationalStateBehavior = ClusterBehavior.withInterface<OvenCavityOperationalStateInterface>().for(OvenCavityOperationalState.Cluster);
-
-type OvenCavityOperationalStateBehaviorType = InstanceType<typeof OvenCavityOperationalStateBehavior>;
-export interface OvenCavityOperationalStateBehavior extends OvenCavityOperationalStateBehaviorType {}
-type OvenCavityOperationalStateStateType = InstanceType<typeof OvenCavityOperationalStateBehavior.State>;
-export namespace OvenCavityOperationalStateBehavior {
-  export interface State extends OvenCavityOperationalStateStateType {}
-}
-
 // Server for OvenCavityOperationalState
-export class OvenCavityOperationalStateServer extends OvenCavityOperationalStateBehavior {
+export class MatterbridgeOvenCavityOperationalStateServer extends OvenCavityOperationalStateBehavior {
   override initialize() {
     const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('OvenCavityOperationalStateServer initialized: setting operational state to Stopped and operational error to No error');
@@ -627,30 +607,8 @@ export class OvenCavityOperationalStateServer extends OvenCavityOperationalState
 }
 
 /** ************************************************************** RefrigeratorAndTemperatureControlledCabinetMode ***********************************************************/
-
-// Interface for the RefrigeratorAndTemperatureControlledCabinetMode
-export namespace RefrigeratorAndTemperatureControlledCabinetModeInterface {
-  export interface Base {
-    changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse>;
-  }
-}
-export interface RefrigeratorAndTemperatureControlledCabinetModeInterface {
-  components: [{ flags: {}; methods: RefrigeratorAndTemperatureControlledCabinetModeInterface.Base }];
-}
-
-// Behavior for RefrigeratorAndTemperatureControlledCabinetMode
-export const RefrigeratorAndTemperatureControlledCabinetModeBehavior = ClusterBehavior.withInterface<RefrigeratorAndTemperatureControlledCabinetModeInterface>().for(
-  RefrigeratorAndTemperatureControlledCabinetMode.Cluster,
-);
-type RefrigeratorAndTemperatureControlledCabinetModeBehaviorType = InstanceType<typeof RefrigeratorAndTemperatureControlledCabinetModeBehavior>;
-export interface RefrigeratorAndTemperatureControlledCabinetModeBehavior extends RefrigeratorAndTemperatureControlledCabinetModeBehaviorType {}
-type StateType = InstanceType<typeof RefrigeratorAndTemperatureControlledCabinetModeBehavior.State>;
-export namespace RefrigeratorAndTemperatureControlledCabinetModeBehavior {
-  export interface State extends StateType {}
-}
-
 // Server for RefrigeratorAndTemperatureControlledCabinetMode
-class RefrigeratorAndTemperatureControlledCabinetModeServer extends RefrigeratorAndTemperatureControlledCabinetModeBehavior {
+class MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer extends RefrigeratorAndTemperatureControlledCabinetModeBehavior {
   override initialize() {
     const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer initialized: setting currentMode to 1');
@@ -671,27 +629,8 @@ class RefrigeratorAndTemperatureControlledCabinetModeServer extends Refrigerator
 }
 
 /** ************************************************************** OvenMode ***********************************************************/
-// Interface for the OvenMode
-export namespace OvenModeInterface {
-  export interface Base {
-    changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse>;
-  }
-}
-export interface OvenModeInterface {
-  components: [{ flags: {}; methods: OvenModeInterface.Base }];
-}
-
-// Behavior for OvenMode
-export const OvenModeBehavior = ClusterBehavior.withInterface<OvenModeInterface>().for(OvenMode.Cluster);
-type OvenModeBehaviorType = InstanceType<typeof OvenModeBehavior>;
-export interface OvenModeBehavior extends OvenModeBehaviorType {}
-type OvenModeStateType = InstanceType<typeof OvenModeBehavior.State>;
-export namespace OvenModeBehavior {
-  export interface State extends OvenModeStateType {}
-}
-
 // Server for OvenMode
-class OvenModeServer extends OvenModeBehavior {
+class MatterbridgeOvenModeServer extends OvenModeBehavior {
   override initialize() {
     const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('OvenModeServer initialized: setting currentMode to 3');
@@ -712,28 +651,8 @@ class OvenModeServer extends OvenModeBehavior {
 }
 
 /** ************************************************************** DishwasherMode ***********************************************************/
-
-// Interface for the DishwasherMode
-export namespace DishwasherModeInterface {
-  export interface Base {
-    changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse>;
-  }
-}
-export interface DishwasherModeInterface {
-  components: [{ flags: {}; methods: DishwasherModeInterface.Base }];
-}
-
-// Behavior for DishwasherMode
-export const DishwasherModeBehavior = ClusterBehavior.withInterface<DishwasherModeInterface>().for(DishwasherMode.Cluster);
-type DishwasherModeBehaviorType = InstanceType<typeof DishwasherModeBehavior>;
-export interface DishwasherModeBehavior extends DishwasherModeBehaviorType {}
-type DishwasherModeStateType = InstanceType<typeof DishwasherModeBehavior.State>;
-export namespace DishwasherModeBehavior {
-  export interface State extends DishwasherModeStateType {}
-}
-
 // Server for DishwasherMode
-class DishwasherModeServer extends DishwasherModeBehavior {
+class MatterbridgeDishwasherModeServer extends DishwasherModeBehavior {
   override initialize() {
     const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('DishwasherModeServer initialized: setting currentMode to 3');
@@ -765,28 +684,8 @@ class DishwasherModeServer extends DishwasherModeBehavior {
 }
 
 /** ************************************************************** LaundryWasherMode ***********************************************************/
-
-// Interface for the LaundryWasherMode
-export namespace LaundryWasherModeInterface {
-  export interface Base {
-    changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse>;
-  }
-}
-export interface LaundryWasherModeInterface {
-  components: [{ flags: {}; methods: LaundryWasherModeInterface.Base }];
-}
-
-// Behavior for LaundryWasherMode
-export const LaundryWasherModeBehavior = ClusterBehavior.withInterface<LaundryWasherModeInterface>().for(LaundryWasherMode.Cluster);
-type LaundryWasherModeBehaviorType = InstanceType<typeof LaundryWasherModeBehavior>;
-export interface LaundryWasherModeBehavior extends LaundryWasherModeBehaviorType {}
-type LaundryWasherModeStateType = InstanceType<typeof LaundryWasherModeBehavior.State>;
-export namespace LaundryWasherModeBehavior {
-  export interface State extends LaundryWasherModeStateType {}
-}
-
 // Server for LaundryWasherMode
-class LaundryWasherModeServer extends LaundryWasherModeBehavior {
+class MatterbridgeLaundryWasherModeServer extends LaundryWasherModeBehavior {
   override initialize() {
     const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
     device.log.info('LaundryWasherModeServer initialized: setting currentMode to 3');

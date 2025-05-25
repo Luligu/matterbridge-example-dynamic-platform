@@ -30,7 +30,7 @@ let consoleDebugSpy: jest.SpiedFunction<typeof console.log>;
 let consoleInfoSpy: jest.SpiedFunction<typeof console.log>;
 let consoleWarnSpy: jest.SpiedFunction<typeof console.log>;
 let consoleErrorSpy: jest.SpiedFunction<typeof console.log>;
-const debug = true; // Set to true to enable debug logs
+const debug = false; // Set to true to enable debug logs
 
 if (!debug) {
   loggerLogSpy = jest.spyOn(AnsiLogger.prototype, 'log').mockImplementation((level: string, message: string, ...parameters: any[]) => {});
@@ -82,7 +82,6 @@ describe('TestPlatform', () => {
     matterbridgePluginDirectory: path.join('jest', 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
     matterbridgeVersion: '3.0.4',
-    enableConcentrationMeasurements: true,
     enableRVC: true,
     log: mockLog,
     getDevices: jest.fn(() => {
@@ -121,10 +120,13 @@ describe('TestPlatform', () => {
   beforeAll(async () => {
     // Create a MatterbridgeEdge instance
     matterbridge = await Matterbridge.loadInstance(false);
+    matterbridge.matterbridgeDirectory = path.join('jest', '.matterbridge');
+    matterbridge.matterbridgePluginDirectory = path.join('jest', 'Matterbridge');
+
     matterbridge.log = new AnsiLogger({ logName: 'Matterbridge', logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
 
     // Setup matter environment
-    matterbridge.environment.vars.set('log.level', Level.DEBUG);
+    matterbridge.environment.vars.set('log.level', Level.NOTICE);
     matterbridge.environment.vars.set('log.format', Format.ANSI);
     matterbridge.environment.vars.set('path.root', path.join('jest', '.matterbridge', 'matterstorage'));
     matterbridge.environment.vars.set('runtime.signals', false);
@@ -158,13 +160,11 @@ describe('TestPlatform', () => {
   it('should create the server', async () => {
     server = await (matterbridge as any).createServerNode(matterbridge.matterbridgeContext);
     expect(server).toBeDefined();
-    // console.log('Server: ', server.construction.status);
   });
 
   it('should create the aggregator', async () => {
     aggregator = await (matterbridge as any).createAggregatorNode(matterbridge.matterbridgeContext);
     expect(aggregator).toBeDefined();
-    // console.log('Aggregator: ', aggregator.construction.status);
   });
 
   it('should add the aggregator to the server', async () => {
@@ -192,7 +192,24 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
   });
 
-  it('should call onStart with reason', async () => {
+  it('should call onStart with reason and add no devices', async () => {
+    mockConfig.whiteList = ['No devices'];
+    mockConfig.blackList = [];
+    await dynamicPlatform.onStart('Test reason');
+    expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(0);
+  }, 60000);
+
+  it('should call onShutdown with reason and cleanup the interval', async () => {
+    await dynamicPlatform.onShutdown('Test reason');
+    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
+    expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
+    expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(0);
+  }, 60000);
+
+  it('should call onStart with reason and add all the devices', async () => {
+    mockConfig.whiteList = [];
+    mockConfig.blackList = [];
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
     expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(40);
@@ -242,7 +259,9 @@ describe('TestPlatform', () => {
         await device.executeCommandHandler('downOrClose');
         await device.executeCommandHandler('stopMotion');
         await device.executeCommandHandler('goToLiftPercentage', { liftPercent100thsValue: 5000 });
-        device.setAttribute(WindowCoveringCluster.id, 'mode', { motorDirectionReversed: false, calibrationMode: false, maintenanceMode: false, ledFeedback: false });
+        if (device.deviceName === 'Cover lift and tilt') {
+          await device.executeCommandHandler('goToTiltPercentage', { tiltPercent100thsValue: 5000 });
+        }
       }
 
       if (device.hasClusterServer(DoorLockCluster)) {
@@ -296,6 +315,8 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledTimes(0);
     expect(loggerLogSpy).toHaveBeenCalledTimes(0);
 
+    consoleErrorSpy.mockRestore();
+
     jest.useFakeTimers();
 
     await dynamicPlatform.onConfigure();
@@ -303,14 +324,14 @@ describe('TestPlatform', () => {
 
     // Simulate multiple interval executions
     for (let i = 0; i < 100; i++) {
-      jest.advanceTimersByTime(61 * 1000);
+      jest.advanceTimersByTime(60 * 1000);
     }
 
     jest.useRealTimers();
 
     expect(mockLog.info).toHaveBeenCalledTimes(2);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalled();
+    expect(loggerLogSpy).toHaveBeenCalledTimes(1373);
   }, 60000);
 
   it('should call onShutdown with reason', async () => {

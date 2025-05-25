@@ -72,7 +72,6 @@ import {
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
-import { BitFlag, TypeFromPartialBitSchema } from 'matterbridge/matter/types';
 import { Appliances } from './appliances.js';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
@@ -666,30 +665,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLift = undefined;
     }
 
-    await this.coverLift?.subscribeAttribute(
-      WindowCovering.Cluster.id,
-      'mode',
-      (
-        newValue: TypeFromPartialBitSchema<{
-          motorDirectionReversed: BitFlag;
-          calibrationMode: BitFlag;
-          maintenanceMode: BitFlag;
-          ledFeedback: BitFlag;
-        }>,
-        oldValue: TypeFromPartialBitSchema<{
-          motorDirectionReversed: BitFlag;
-          calibrationMode: BitFlag;
-          maintenanceMode: BitFlag;
-          ledFeedback: BitFlag;
-        }>,
-      ) => {
-        this.coverLift?.log.info(
-          `Attribute mode changed from ${oldValue} to ${newValue}. Reverse: ${newValue.motorDirectionReversed}. Calibration: ${newValue.calibrationMode}. Maintenance: ${newValue.maintenanceMode}. LED: ${newValue.ledFeedback}`,
-        );
-      },
-      this.coverLift.log,
-    );
-
     this.coverLift?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.coverLift?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
@@ -1058,8 +1033,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.On) {
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
-        } else if (newValue === FanControl.FanMode.Auto) {
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.airPurifier?.log);
         }
       },
       this.airPurifier.log,
@@ -1985,22 +1958,24 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.genericSwitchLastEvent = 'Release';
       this.genericSwitchInterval = setInterval(
         async () => {
+          // console.error('Entering generic switch interval triggered', this.genericSwitchLastEvent);
           if (this.genericSwitchLastEvent === 'Release') {
-            await this.momentarySwitch?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
             this.genericSwitchLastEvent = 'Single';
+            await this.momentarySwitch?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
           } else if (this.genericSwitchLastEvent === 'Single') {
-            await this.momentarySwitch?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
             this.genericSwitchLastEvent = 'Double';
+            await this.momentarySwitch?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
           } else if (this.genericSwitchLastEvent === 'Double') {
-            await this.momentarySwitch?.triggerSwitchEvent('Long', this.momentarySwitch?.log);
             this.genericSwitchLastEvent = 'Long';
+            await this.momentarySwitch?.triggerSwitchEvent('Long', this.momentarySwitch?.log);
           } else if (this.genericSwitchLastEvent === 'Long') {
-            await this.latchingSwitch?.triggerSwitchEvent('Press', this.latchingSwitch?.log);
             this.genericSwitchLastEvent = 'Press';
+            await this.latchingSwitch?.triggerSwitchEvent('Press', this.latchingSwitch?.log);
           } else if (this.genericSwitchLastEvent === 'Press') {
-            await this.latchingSwitch?.triggerSwitchEvent('Release', this.latchingSwitch?.log);
             this.genericSwitchLastEvent = 'Release';
+            await this.latchingSwitch?.triggerSwitchEvent('Release', this.latchingSwitch?.log);
           }
+          // console.error('Exiting generic switch interval triggered', this.genericSwitchLastEvent);
         },
         60 * 1000 + 1900,
       );
