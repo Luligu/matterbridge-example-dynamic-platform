@@ -40,6 +40,7 @@ import {
   extendedColorLight,
   RoboticVacuumCleaner,
   WaterHeater,
+  Evse,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
@@ -106,7 +107,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   momentarySwitch: MatterbridgeEndpoint | undefined;
   latchingSwitch: MatterbridgeEndpoint | undefined;
   vacuum: MatterbridgeEndpoint | undefined;
-  heater: MatterbridgeEndpoint | undefined;
+  waterHeater: MatterbridgeEndpoint | undefined;
+  evse: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1491,11 +1493,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a water heater ***********************/
-    const heater = new WaterHeater('Water Heater', '3456177820');
-    this.setSelectDevice(heater.serialNumber ?? '', heater.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(heater.deviceName ?? '')) {
-      await this.registerDevice(heater);
-      this.bridgedDevices.set(heater.deviceName ?? '', heater);
+    this.waterHeater = new WaterHeater('Water Heater', '3456177820');
+    this.setSelectDevice(this.waterHeater.serialNumber ?? '', this.waterHeater.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.waterHeater.deviceName ?? '')) {
+      await this.registerDevice(this.waterHeater);
+      this.bridgedDevices.set(this.waterHeater.deviceName ?? '', this.waterHeater);
+    }
+
+    /** ********************* Create a water heater ***********************/
+    this.evse = new Evse('Evse', '3456127820');
+    this.setSelectDevice(this.evse.serialNumber ?? '', this.evse.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.evse.deviceName ?? '')) {
+      await this.registerDevice(this.evse);
+      this.bridgedDevices.set(this.evse.deviceName ?? '', this.evse);
     }
 
     /** ********************* Create the appliances ***********************/
