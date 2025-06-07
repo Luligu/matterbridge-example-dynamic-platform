@@ -40,6 +40,7 @@ import {
   extendedColorLight,
   RoboticVacuumCleaner,
   WaterHeater,
+  Evse,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
@@ -107,6 +108,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   latchingSwitch: MatterbridgeEndpoint | undefined;
   vacuum: MatterbridgeEndpoint | undefined;
   heater: MatterbridgeEndpoint | undefined;
+  evse: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1496,6 +1498,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.validateDevice(heater.deviceName ?? '')) {
       await this.registerDevice(heater);
       this.bridgedDevices.set(heater.deviceName ?? '', heater);
+    }
+    
+    /** ********************* Create an EVSE ***********************/
+    const evse = new Evse('EVSE', '3456177821');
+    this.setSelectDevice(evse.serialNumber ?? '', evse.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(evse.deviceName ?? '')) {
+      await this.registerDevice(evse);
+      this.bridgedDevices.set(evse.deviceName ?? '', evse);
     }
 
     /** ********************* Create the appliances ***********************/
