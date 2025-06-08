@@ -1502,7 +1502,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a EVSE ***********************/
-    this.evse = new Evse('Evse', '3456127820', 1, undefined);
+    this.evse = new Evse('Evse', '3456127820', 1, 0);
     this.setSelectDevice(this.evse.serialNumber ?? '', this.evse.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.evse.deviceName ?? '')) {
       await this.registerDevice(this.evse);
