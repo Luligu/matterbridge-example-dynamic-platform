@@ -13,10 +13,11 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [platform]: Added a cover device with both lift and tilt (supported by the Home app).
+- [platform]: Added evse (EV charger) device type (not supported by the Home app).
 
 ### Changed
 
-- [package]: Require matterbridge 3.0.4.
+- [package]: Require matterbridge 3.0.5.
 - [package]: Updated package.
 - [package]: Updated dependencies.
 

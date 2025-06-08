@@ -81,7 +81,7 @@ describe('TestPlatform', () => {
     matterbridgeDirectory: path.join('jest', '.matterbridge'),
     matterbridgePluginDirectory: path.join('jest', 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.0.4',
+    matterbridgeVersion: '3.0.5',
     enableRVC: true,
     log: mockLog,
     getDevices: jest.fn(() => {
@@ -181,9 +181,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "3.0.4". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.0.5". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '3.0.4';
+    mockMatterbridge.matterbridgeVersion = '3.0.5';
   });
 
   it('should initialize platform with config name', () => {
