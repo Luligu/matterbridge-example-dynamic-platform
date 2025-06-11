@@ -73,6 +73,7 @@ import {
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
   EnergyEvseMode,
+  EnergyEvse,
 } from 'matterbridge/matter/clusters';
 import { Appliances } from './appliances.js';
 
@@ -1512,11 +1513,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         { label: 'Solar Charging', mode: 3, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }] },
         { label: 'Solar Charging Scheduled', mode: 4, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }, { value: EnergyEvseMode.ModeTag.TimeOfUse }] },
       ],
-      2,
-      1,
-      0,
-      1680000,
-      3680000,
+      EnergyEvse.State.PluggedInDemand,
+      EnergyEvse.SupplyState.ChargingEnabled,
+      EnergyEvse.FaultState.NoError,
+      1_680_000,
+      3_680_000,
     );
     this.setSelectDevice(this.evse.serialNumber ?? '', this.evse.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.evse.deviceName ?? '')) {
