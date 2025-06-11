@@ -1515,8 +1515,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       2,
       1,
       0,
-      1680,
-      3680,
+      1680000,
+      3680000,
     );
     this.setSelectDevice(this.evse.serialNumber ?? '', this.evse.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.evse.deviceName ?? '')) {
