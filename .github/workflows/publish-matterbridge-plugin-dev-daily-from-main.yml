@@ -1,5 +1,5 @@
-# .github\workflows\publish-matterbridge-plugin-dev-daily.yml
-name: Plugin daily dev publish to npm
+# .github\workflows\publish-matterbridge-plugin-dev-daily-from-main.yml
+name: Plugin daily dev publish to npm from main branch
 
 on:
   # Daily at midnight UTC
