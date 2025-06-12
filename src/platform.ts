@@ -1028,14 +1028,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         );
         if (context.offline === true) return; // Do not set attributes when offline
         if (newValue === FanControl.FanMode.Off) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 0, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Low) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 33, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Medium) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 66, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.High) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 100, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.On) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 100, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         }
       },
