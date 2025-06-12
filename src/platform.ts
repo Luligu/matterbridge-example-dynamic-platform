@@ -1026,6 +1026,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.airPurifier?.log.info(
           `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
         );
+        if (context.offline === true) return; // Do not set attributes when offline
         if (newValue === FanControl.FanMode.Off) {
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Low) {
@@ -1045,6 +1046,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'percentSetting',
       (newValue: number | null, oldValue: number | null, context) => {
         this.airPurifier?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
         if (isValidNumber(newValue, 0, 100)) this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airPurifier?.log);
       },
       this.airPurifier.log,
@@ -1198,6 +1200,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'fanMode',
       (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
         this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
         if (newValue === FanControl.FanMode.Off) {
           this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fan?.log);
           this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fan?.log);
@@ -1225,6 +1228,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'percentSetting',
       (newValue: number | null, oldValue: number | null, context) => {
         this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
         if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
@@ -1234,6 +1238,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'speedSetting',
       (newValue: number | null, oldValue: number | null, context) => {
         this.fan?.log.info(`Speed setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
         if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
