@@ -23,6 +23,7 @@ import {
 } from 'matterbridge/matter/clusters';
 
 import { ExampleMatterbridgeDynamicPlatform } from './platform';
+import { rmSync } from 'node:fs';
 
 let loggerLogSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.log>;
 let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
@@ -118,6 +119,9 @@ describe('TestPlatform', () => {
   } as PlatformConfig;
 
   beforeAll(async () => {
+    // Cleanup the matter environment
+    rmSync('jest', { recursive: true, force: true });
+
     // Create a MatterbridgeEdge instance
     matterbridge = await Matterbridge.loadInstance(false);
     matterbridge.matterbridgeDirectory = path.join('jest', '.matterbridge');
@@ -283,8 +287,8 @@ describe('TestPlatform', () => {
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 50);
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 10);
         if (device.deviceName === 'Fan') {
-          await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
-          await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
+          // await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
+          // await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
         }
       }
 
@@ -331,7 +335,7 @@ describe('TestPlatform', () => {
 
     expect(mockLog.info).toHaveBeenCalledTimes(2);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(1371);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(1368);
   }, 60000);
 
   it('should call onShutdown with reason', async () => {

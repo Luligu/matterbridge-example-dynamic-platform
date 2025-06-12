@@ -1090,7 +1090,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 20 * 100, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 20 * 100, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.airConditioner?.log);
+      // await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.airConditioner?.log);
     });
     this.airConditioner?.addCommandHandler('off', async () => {
@@ -1098,7 +1098,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', null, this.airConditioner?.log);
+      // await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.airConditioner?.log);
     });
 
@@ -1233,6 +1233,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       this.fan.log,
     );
+    /*
     await this.fan?.subscribeAttribute(
       FanControl.Cluster.id,
       'speedSetting',
@@ -1243,6 +1244,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       this.fan.log,
     );
+    */
 
     /** ********************* Create a waterLeakDetector device ***********************/
     this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean)
@@ -1820,12 +1822,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     // Set fan to auto
-    this.fan?.log.info('Set fan initial fanMode to Auto, percentCurrent and percentSetting to 50 and speedCurrent and speedSetting to 50');
+    this.fan?.log.info('Set fan initial fanMode to Auto, percentCurrent and percentSetting to 50'); //  and speedCurrent and speedSetting to 50
     await this.fan?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Auto, this.fan.log);
     await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fan.log);
     await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fan.log);
-    await this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', 50, this.fan.log);
-    await this.fan?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.fan.log);
+    // await this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', 50, this.fan.log);
+    // await this.fan?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.fan.log);
     if (this.config.useInterval) {
       // Increment fan percentCurrent every minute
       this.fanInterval = setInterval(
