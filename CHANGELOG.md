@@ -10,11 +10,16 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [1.2.4] - 2025-06-11
 
+### Added
+
+- [npm]: The dev of matterbridge-example-dynamic-platform is published with tag **dev** on **npm** each day at 00:00 UTC if there is a new commit.
+
 ### Changed
 
 - [package]: Require matterbridge 3.0.6.
 - [package]: Updated package.
 - [package]: Updated dependencies.
+- [subscribe]: Prevent attribute setting when offline for air purifier and fan.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
