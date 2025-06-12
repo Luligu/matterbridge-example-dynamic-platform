@@ -19,7 +19,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Require matterbridge 3.0.6.
 - [package]: Updated package.
 - [package]: Updated dependencies.
-- [subscribe]: Prevent attribute setting when offline for air purifier and fan.
+- [subscribe]: Prevent attribute setting when context is offline for air purifier and fan.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
