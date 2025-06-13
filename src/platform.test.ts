@@ -49,6 +49,13 @@ if (!debug) {
   consoleErrorSpy = jest.spyOn(console, 'error');
 }
 
+// Cleanup the matter environment
+try {
+  rmSync('jest', { recursive: true, force: true });
+} catch (error) {
+  //
+}
+
 describe('TestPlatform', () => {
   let matterbridge: Matterbridge;
   let server: ServerNode<ServerNode.RootEndpoint>;
@@ -119,9 +126,6 @@ describe('TestPlatform', () => {
   } as PlatformConfig;
 
   beforeAll(async () => {
-    // Cleanup the matter environment
-    rmSync('jest', { recursive: true, force: true });
-
     // Create a MatterbridgeEdge instance
     matterbridge = await Matterbridge.loadInstance(false);
     matterbridge.matterbridgeDirectory = path.join('jest', '.matterbridge');
