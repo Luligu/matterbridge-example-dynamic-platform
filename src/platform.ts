@@ -41,7 +41,6 @@ import {
   RoboticVacuumCleaner,
   WaterHeater,
   Evse,
-  solarPower,
   SolarPower,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
