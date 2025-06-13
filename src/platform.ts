@@ -1178,9 +1178,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a fan device
-    this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean)
+    this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high auto' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Fan',
+        'Fan auto',
         'serial_980545631228',
         0xfff1,
         'Matterbridge',

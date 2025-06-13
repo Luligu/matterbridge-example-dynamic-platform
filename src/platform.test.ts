@@ -335,7 +335,7 @@ describe('TestPlatform', () => {
 
     expect(mockLog.info).toHaveBeenCalledTimes(2);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(1368);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(1369);
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
