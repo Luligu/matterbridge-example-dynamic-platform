@@ -42,7 +42,7 @@ import {
   WaterHeater,
   Evse,
   solarPower,
-  SolarPowerDevice,
+  SolarPower,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
