@@ -113,7 +113,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   evse: MatterbridgeEndpoint | undefined;
   solarpower: MatterbridgeEndpoint | undefined;
 
-
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
   outletInterval: NodeJS.Timeout | undefined;
