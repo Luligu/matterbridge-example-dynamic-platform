@@ -1516,8 +1516,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       EnergyEvse.State.PluggedInDemand,
       EnergyEvse.SupplyState.ChargingEnabled,
       EnergyEvse.FaultState.NoError,
-      1_680_000,
-      3_680_000,
+      8_000_000 /* min 8 kW */,
+      32_000_000 /* max 32 kW */,
     );
     this.setSelectDevice(this.evse.serialNumber ?? '', this.evse.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.evse.deviceName ?? '')) {
