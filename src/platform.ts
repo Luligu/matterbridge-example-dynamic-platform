@@ -41,6 +41,7 @@ import {
   RoboticVacuumCleaner,
   WaterHeater,
   Evse,
+  SolarPower,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
@@ -110,6 +111,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   vacuum: MatterbridgeEndpoint | undefined;
   waterHeater: MatterbridgeEndpoint | undefined;
   evse: MatterbridgeEndpoint | undefined;
+  solarpower: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1524,6 +1526,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.validateDevice(this.evse.deviceName ?? '')) {
       await this.registerDevice(this.evse);
       this.bridgedDevices.set(this.evse.deviceName ?? '', this.evse);
+    }
+
+    /** ********************* Create an SolarPower ***********************/
+    this.solarpower = new SolarPower(
+      'SolarPower',
+      '3456127821',
+      230 * 1000 /* 230 V */,
+      -3.6 * 1000 /* -3,6 A */,
+      -828 * 1000 /* -828 W */,
+      150 * 1000 * 1000 /* 150 kWh */,
+      0 /* 0 W */,
+      850 * 1000 /* 850 W */,
+    );
+    this.setSelectDevice(this.solarpower.serialNumber ?? '', this.solarpower.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.solarpower.deviceName ?? '')) {
+      await this.registerDevice(this.solarpower);
+      this.bridgedDevices.set(this.solarpower.deviceName ?? '', this.solarpower);
     }
 
     /** ********************* Create the appliances ***********************/
