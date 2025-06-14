@@ -498,13 +498,13 @@ export class Appliances extends MatterbridgeEndpoint {
 class MatterbridgeLevelTemperatureControlServer extends TemperatureControlBehavior.with(TemperatureControl.Feature.TemperatureLevel) {
   override initialize() {
     if (this.state.supportedTemperatureLevels.length >= 2) {
-      const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+      const device = this.endpoint.stateOf(MatterbridgeServer);
       device.log.info('MatterbridgeLevelTemperatureControlServer initialized');
     }
   }
 
   override setTemperature(request: TemperatureControl.SetTemperatureRequest): MaybePromise {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     if (request.targetTemperatureLevel !== undefined && request.targetTemperatureLevel >= 0 && request.targetTemperatureLevel < this.state.supportedTemperatureLevels.length) {
       device.log.info(
         `MatterbridgeLevelTemperatureControlServer: setTemperature called setting selectedTemperatureLevel to ${request.targetTemperatureLevel}: ${this.state.supportedTemperatureLevels[request.targetTemperatureLevel]}`,
@@ -518,12 +518,12 @@ class MatterbridgeLevelTemperatureControlServer extends TemperatureControlBehavi
 
 class MatterbridgeNumberTemperatureControlServer extends TemperatureControlBehavior.with(TemperatureControl.Feature.TemperatureNumber) {
   override initialize() {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     device.log.info('MatterbridgeNumberTemperatureControlServer initialized');
   }
 
   override setTemperature(request: TemperatureControl.SetTemperatureRequest): MaybePromise {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     if (request.targetTemperature !== undefined && request.targetTemperature >= this.state.minTemperature && request.targetTemperature <= this.state.maxTemperature) {
       device.log.info(`MatterbridgeNumberTemperatureControlServer: setTemperature called setting temperatureSetpoint to ${request.targetTemperature}`);
       this.state.temperatureSetpoint = request.targetTemperature;
@@ -535,12 +535,12 @@ class MatterbridgeNumberTemperatureControlServer extends TemperatureControlBehav
 
 class MatterbridgeMicrowaveOvenControlServer extends MicrowaveOvenControlBehavior.with(MicrowaveOvenControl.Feature.PowerInWatts) {
   override initialize() {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     device.log.info('MatterbridgeMicrowaveOvenControlServer initialized');
   }
 
   override setCookingParameters(request: MicrowaveOvenControl.SetCookingParametersRequest): MaybePromise {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     if (request.cookMode !== undefined) {
       device.log.info(`MatterbridgeMicrowaveOvenControlServer: setCookingParameters called setting cookMode to ${request.cookMode}`);
       this.endpoint.setStateOf(MicrowaveOvenModeServer, { currentMode: request.cookMode });
@@ -564,7 +564,7 @@ class MatterbridgeMicrowaveOvenControlServer extends MicrowaveOvenControlBehavio
     }
   }
   override addMoreTime(request: MicrowaveOvenControl.AddMoreTimeRequest): MaybePromise {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     if (request.timeToAdd !== undefined && request.timeToAdd >= 0) {
       device.log.info(`MatterbridgeMicrowaveOvenControlServer: addMoreTime called setting cookTime to ${this.state.cookTime + request.timeToAdd}`);
       this.state.cookTime += request.timeToAdd;
@@ -579,14 +579,14 @@ class MatterbridgeMicrowaveOvenControlServer extends MicrowaveOvenControlBehavio
 // Server for OvenCavityOperationalState
 export class MatterbridgeOvenCavityOperationalStateServer extends OvenCavityOperationalStateBehavior {
   override initialize() {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     device.log.info('OvenCavityOperationalStateServer initialized: setting operational state to Stopped and operational error to No error');
     this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
   }
 
   override stop(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     device.log.info('OvenCavityOperationalStateServer: stop called setting operational state to Stopped and operational error to No error');
     this.state.operationalState = OperationalState.OperationalStateEnum.Stopped;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
@@ -596,7 +596,7 @@ export class MatterbridgeOvenCavityOperationalStateServer extends OvenCavityOper
   }
 
   override start(): MaybePromise<OperationalState.OperationalCommandResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     device.log.info('OvenCavityOperationalStateServer: start called setting operational state to Running and operational error to No error');
     this.state.operationalState = OperationalState.OperationalStateEnum.Running;
     this.state.operationalError = { errorStateId: OperationalState.ErrorState.NoError, errorStateLabel: 'No error', errorStateDetails: 'Fully operational' };
@@ -610,12 +610,12 @@ export class MatterbridgeOvenCavityOperationalStateServer extends OvenCavityOper
 // Server for RefrigeratorAndTemperatureControlledCabinetMode
 class MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer extends RefrigeratorAndTemperatureControlledCabinetModeBehavior {
   override initialize() {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     device.log.info('MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer initialized: setting currentMode to 1');
     this.state.currentMode = 1;
   }
   override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
     if (supportedMode) {
       device.log.info(`MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
@@ -632,12 +632,12 @@ class MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer extends 
 // Server for OvenMode
 class MatterbridgeOvenModeServer extends OvenModeBehavior {
   override initialize() {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     device.log.info('OvenModeServer initialized: setting currentMode to 3');
     this.state.currentMode = 3;
   }
   override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
     if (supportedMode) {
       device.log.info(`OvenModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
@@ -654,7 +654,7 @@ class MatterbridgeOvenModeServer extends OvenModeBehavior {
 // Server for DishwasherMode
 class MatterbridgeDishwasherModeServer extends DishwasherModeBehavior {
   override initialize() {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     device.log.info('DishwasherModeServer initialized: setting currentMode to 3');
     this.state.currentMode = 2;
     this.reactTo(this.agent.get(MatterbridgeOnOffServer).events.onOff$Changed, this.handleOnOffChange);
@@ -662,7 +662,7 @@ class MatterbridgeDishwasherModeServer extends DishwasherModeBehavior {
 
   // Dead Front OnOff Cluster
   protected handleOnOffChange(onOff: boolean) {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     if (onOff === false) {
       device.log.info('***OnOffServer changed to OFF: setting Dead Front state to Manufacturer Specific');
       this.state.currentMode = 2;
@@ -670,7 +670,7 @@ class MatterbridgeDishwasherModeServer extends DishwasherModeBehavior {
   }
 
   override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
     if (supportedMode) {
       device.log.info(`DishwasherModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);
@@ -687,7 +687,7 @@ class MatterbridgeDishwasherModeServer extends DishwasherModeBehavior {
 // Server for LaundryWasherMode
 class MatterbridgeLaundryWasherModeServer extends LaundryWasherModeBehavior {
   override initialize() {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     device.log.info('LaundryWasherModeServer initialized: setting currentMode to 3');
     this.state.currentMode = 2;
     this.reactTo(this.agent.get(MatterbridgeOnOffServer).events.onOff$Changed, this.handleOnOffChange);
@@ -695,7 +695,7 @@ class MatterbridgeLaundryWasherModeServer extends LaundryWasherModeBehavior {
 
   // Dead Front OnOff Cluster
   protected handleOnOffChange(onOff: boolean) {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     if (onOff === false) {
       device.log.notice('OnOffServer changed to OFF: setting Dead Front state to Manufacturer Specific');
       this.state.currentMode = 2;
@@ -703,7 +703,7 @@ class MatterbridgeLaundryWasherModeServer extends LaundryWasherModeBehavior {
   }
 
   override changeToMode(request: ModeBase.ChangeToModeRequest): MaybePromise<ModeBase.ChangeToModeResponse> {
-    const device = this.endpoint.stateOf(MatterbridgeServer).deviceCommand;
+    const device = this.endpoint.stateOf(MatterbridgeServer);
     const supportedMode = this.state.supportedModes.find((supportedMode) => supportedMode.mode === request.newMode);
     if (supportedMode) {
       device.log.info(`LaundryWasherModeServer: changeToMode called with mode ${supportedMode.mode} = ${supportedMode.label}`);

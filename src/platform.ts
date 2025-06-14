@@ -140,9 +140,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.5')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.6')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.0.5". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.0.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1027,15 +1027,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.airPurifier?.log.info(
           `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
         );
+        if (context.offline === true) return; // Do not set attributes when offline
         if (newValue === FanControl.FanMode.Off) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 0, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Low) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 33, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.Medium) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 66, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.High) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 100, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         } else if (newValue === FanControl.FanMode.On) {
+          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSettings', 100, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         }
       },
@@ -1046,6 +1052,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'percentSetting',
       (newValue: number | null, oldValue: number | null, context) => {
         this.airPurifier?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
         if (isValidNumber(newValue, 0, 100)) this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airPurifier?.log);
       },
       this.airPurifier.log,
@@ -1089,7 +1096,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 20 * 100, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 20 * 100, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.airConditioner?.log);
+      // await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.airConditioner?.log);
     });
     this.airConditioner?.addCommandHandler('off', async () => {
@@ -1097,7 +1104,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', null, this.airConditioner?.log);
+      // await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'speedSetting', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.airConditioner?.log);
     });
 
@@ -1172,9 +1179,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // Create a fan device
-    this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan' }, this.config.debug as boolean)
+    this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high auto' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Fan',
+        'Fan auto',
         'serial_980545631228',
         0xfff1,
         'Matterbridge',
@@ -1199,6 +1206,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'fanMode',
       (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
         this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
         if (newValue === FanControl.FanMode.Off) {
           this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fan?.log);
           this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fan?.log);
@@ -1226,19 +1234,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'percentSetting',
       (newValue: number | null, oldValue: number | null, context) => {
         this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
         if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
     );
+    /*
     await this.fan?.subscribeAttribute(
       FanControl.Cluster.id,
       'speedSetting',
       (newValue: number | null, oldValue: number | null, context) => {
         this.fan?.log.info(`Speed setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
         if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
     );
+    */
 
     /** ********************* Create a waterLeakDetector device ***********************/
     this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean)
@@ -1826,12 +1838,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     // Set fan to auto
-    this.fan?.log.info('Set fan initial fanMode to Auto, percentCurrent and percentSetting to 50 and speedCurrent and speedSetting to 50');
+    this.fan?.log.info('Set fan initial fanMode to Auto, percentCurrent and percentSetting to 50'); //  and speedCurrent and speedSetting to 50
     await this.fan?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Auto, this.fan.log);
     await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fan.log);
     await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fan.log);
-    await this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', 50, this.fan.log);
-    await this.fan?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.fan.log);
+    // await this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', 50, this.fan.log);
+    // await this.fan?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.fan.log);
     if (this.config.useInterval) {
       // Increment fan percentCurrent every minute
       this.fanInterval = setInterval(

@@ -23,6 +23,7 @@ import {
 } from 'matterbridge/matter/clusters';
 
 import { ExampleMatterbridgeDynamicPlatform } from './platform';
+import { rmSync } from 'node:fs';
 
 let loggerLogSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.log>;
 let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
@@ -46,6 +47,13 @@ if (!debug) {
   consoleInfoSpy = jest.spyOn(console, 'info');
   consoleWarnSpy = jest.spyOn(console, 'warn');
   consoleErrorSpy = jest.spyOn(console, 'error');
+}
+
+// Cleanup the matter environment
+try {
+  rmSync('jest', { recursive: true, force: true });
+} catch (error) {
+  //
 }
 
 describe('TestPlatform', () => {
@@ -181,9 +189,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "3.0.5". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.0.6". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '3.0.5';
+    mockMatterbridge.matterbridgeVersion = '3.0.6';
   });
 
   it('should initialize platform with config name', () => {
@@ -283,8 +291,8 @@ describe('TestPlatform', () => {
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 50);
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 10);
         if (device.deviceName === 'Fan') {
-          await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
-          await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
+          // await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
+          // await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
         }
       }
 
@@ -331,7 +339,7 @@ describe('TestPlatform', () => {
 
     expect(mockLog.info).toHaveBeenCalledTimes(2);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(1373);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(1369);
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
