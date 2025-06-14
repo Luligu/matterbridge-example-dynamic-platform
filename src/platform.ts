@@ -1529,7 +1529,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create an SolarPower ***********************/
-    this.solarpower = new SolarPower('SolarPower', '3456127820', 0, 850);
+    this.solarpower = new SolarPower('SolarPower', '3456127821', 0, 850);
     this.setSelectDevice(this.solarpower.serialNumber ?? '', this.solarpower.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.solarpower.deviceName ?? '')) {
       await this.registerDevice(this.solarpower);
