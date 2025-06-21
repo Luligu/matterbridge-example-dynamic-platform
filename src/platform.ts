@@ -1540,7 +1540,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       -1500 * 1000 /* -1500 W minPower */,
       2000 * 1000 /* 2000 W MaxPower */,
       90 /* batPercentRemaining */,
-      3600 *2 /* 2 hours */,
+      3600 * 2 /* 2 hours */,
       3600 /* 1 hour */,
     );
     this.setSelectDevice(this.batteryStorage.serialNumber ?? '', this.batteryStorage.deviceName ?? '', undefined, 'hub');
@@ -1548,7 +1548,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.registerDevice(this.batteryStorage);
       this.bridgedDevices.set(this.batteryStorage.deviceName ?? '', this.batteryStorage);
     }
-  
+
     /** ********************* Create the appliances ***********************/
 
     const laundryWasherDevice = new Appliances(laundryWasher, 'Laundry Washer', '1234567890');
