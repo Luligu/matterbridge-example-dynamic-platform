@@ -41,6 +41,7 @@ import {
   RoboticVacuumCleaner,
   WaterHeater,
   Evse,
+  BatteryStorage,
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
@@ -110,6 +111,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   vacuum: MatterbridgeEndpoint | undefined;
   waterHeater: MatterbridgeEndpoint | undefined;
   evse: MatterbridgeEndpoint | undefined;
+  batteryStorage: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1526,6 +1528,27 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(this.evse.deviceName ?? '', this.evse);
     }
 
+    /** ********************* Create an BatteryStorage ***********************/
+    this.batteryStorage = new BatteryStorage(
+      'BatteryStorage',
+      '3456127822',
+      230 * 1000 /* 230 V */,
+      -4.38 * 1000 /* -4,38 A */,
+      -1000 * 1000 /* -1000 W exported to grid */,
+      50 * 1000 * 1000 /* 50 kWh imported from grid */,
+      150 * 1000 * 1000 /* 150 kWh exported to grid */,
+      -1500 * 1000 /* -1500 W minPower */,
+      2000 * 1000 /* 2000 W MaxPower */,
+      90 /* batPercentRemaining */,
+      3600 *2 /* 2 hours */,
+      3600 /* 1 hour */,
+    );
+    this.setSelectDevice(this.batteryStorage.serialNumber ?? '', this.batteryStorage.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.batteryStorage.deviceName ?? '')) {
+      await this.registerDevice(this.batteryStorage);
+      this.bridgedDevices.set(this.batteryStorage.deviceName ?? '', this.batteryStorage);
+    }
+  
     /** ********************* Create the appliances ***********************/
 
     const laundryWasherDevice = new Appliances(laundryWasher, 'Laundry Washer', '1234567890');
