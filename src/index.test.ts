@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Matterbridge, MatterbridgeEndpoint, PlatformConfig } from 'matterbridge';
 import { AnsiLogger } from 'matterbridge/logger';
-import { ExampleMatterbridgeDynamicPlatform } from './platform.js';
-import initializePlugin from './index';
 import { jest } from '@jest/globals';
+
+import initializePlugin from './index.ts';
+import { ExampleMatterbridgeDynamicPlatform } from './platform.ts';
 
 describe('initializePlugin', () => {
   const mockLog = {

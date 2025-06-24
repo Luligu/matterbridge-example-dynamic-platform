@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { jest } from '@jest/globals';
 import path from 'node:path';
+import { rmSync } from 'node:fs';
+
+import { jest } from '@jest/globals';
 import { Matterbridge, PlatformConfig, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource } from 'matterbridge';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
 import { ServerNode, Endpoint, LogLevel as Level, LogFormat as Format, MdnsService } from 'matterbridge/matter';
@@ -22,8 +21,7 @@ import {
   WindowCoveringCluster,
 } from 'matterbridge/matter/clusters';
 
-import { ExampleMatterbridgeDynamicPlatform } from './platform';
-import { rmSync } from 'node:fs';
+import { ExampleMatterbridgeDynamicPlatform } from './platform.ts';
 
 let loggerLogSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.log>;
 let consoleLogSpy: jest.SpiedFunction<typeof console.log>;

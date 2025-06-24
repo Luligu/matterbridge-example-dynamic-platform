@@ -378,9 +378,8 @@ export class Appliances extends MatterbridgeEndpoint {
   /**
    * Creates a rinse Laundry Washer Controls Cluster Server.
    *
-   * @param {number} spinSpeedCurrent - The current spin speed. Default is undefined.
-   * @param {string[]} spinSpeeds - The supported spin speeds. Default is ['400', '800', '1200', '1600'].
-   *
+   * @param {LaundryWasherControls.NumberOfRinses} numberOfRinses - The number of rinses. Default is undefined.
+   * @param {LaundryWasherControls.NumberOfRinses[]} supportedRinses  - The supported rinses. Default is [None, Normal, Extra, Max].
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
   createRinseLaundryWasherControlsClusterServer(numberOfRinses?: LaundryWasherControls.NumberOfRinses, supportedRinses?: LaundryWasherControls.NumberOfRinses[]): this {
@@ -419,8 +418,6 @@ export class Appliances extends MatterbridgeEndpoint {
 
   /**
    * Creates a default Dishwasher Alarm Cluster Server.
-   *
-   * @param {number} currentMode - The current mode of the oven.
    *
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
@@ -466,7 +463,8 @@ export class Appliances extends MatterbridgeEndpoint {
    * @param {number} temperatureSetpoint - The temperature setpoint * 100.
    * @param {number} minTemperature - The minimum temperature * 100.
    * @param {number} maxTemperature - The maximum temperature * 100.
-   *
+   * @param {number} [step] - The step size for temperature changes, default is 1.
+   
    * @returns {this} The current MatterbridgeEndpoint instance for chaining.
    */
   createNumberTemperatureControlClusterServer(temperatureSetpoint: number, minTemperature: number, maxTemperature: number, step = 1): this {
@@ -574,7 +572,7 @@ class MatterbridgeMicrowaveOvenControlServer extends MicrowaveOvenControlBehavio
   }
 }
 
-/** ************************************************************** OvenCavityOperationalState ***********************************************************/
+/** ************************************************************** OvenCavityOperationalState */
 
 // Server for OvenCavityOperationalState
 export class MatterbridgeOvenCavityOperationalStateServer extends OvenCavityOperationalStateBehavior {
@@ -606,7 +604,7 @@ export class MatterbridgeOvenCavityOperationalStateServer extends OvenCavityOper
   }
 }
 
-/** ************************************************************** RefrigeratorAndTemperatureControlledCabinetMode ***********************************************************/
+/** ************************************************************** RefrigeratorAndTemperatureControlledCabinetMode */
 // Server for RefrigeratorAndTemperatureControlledCabinetMode
 class MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer extends RefrigeratorAndTemperatureControlledCabinetModeBehavior {
   override initialize() {
@@ -628,7 +626,7 @@ class MatterbridgeRefrigeratorAndTemperatureControlledCabinetModeServer extends 
   }
 }
 
-/** ************************************************************** OvenMode ***********************************************************/
+/** ************************************************************** OvenMode */
 // Server for OvenMode
 class MatterbridgeOvenModeServer extends OvenModeBehavior {
   override initialize() {
@@ -650,7 +648,7 @@ class MatterbridgeOvenModeServer extends OvenModeBehavior {
   }
 }
 
-/** ************************************************************** DishwasherMode ***********************************************************/
+/** ************************************************************** DishwasherMode */
 // Server for DishwasherMode
 class MatterbridgeDishwasherModeServer extends DishwasherModeBehavior {
   override initialize() {
@@ -683,7 +681,7 @@ class MatterbridgeDishwasherModeServer extends DishwasherModeBehavior {
   }
 }
 
-/** ************************************************************** LaundryWasherMode ***********************************************************/
+/** ************************************************************** LaundryWasherMode */
 // Server for LaundryWasherMode
 class MatterbridgeLaundryWasherModeServer extends LaundryWasherModeBehavior {
   override initialize() {
