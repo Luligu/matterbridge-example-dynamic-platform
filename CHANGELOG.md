@@ -8,6 +8,30 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.2.5] - 2025-06-25
+
+### Added
+
+- [DevContainer]: Added support for the **Matterbridge Dev Container** with an optimized named volume for `node_modules`.
+- [GitHub]: Added GitHub issue templates for bug reports and feature requests.
+- [ESLint]: Refactored the flat config.
+- [ESLint]: Added the plugins `eslint-plugin-promise`, `eslint-plugin-jsdoc`, and `@vitest/eslint-plugin`.
+- [Jest]: Refactored the flat config.
+- [Vitest]: Added Vitest for TypeScript project testing. It will replace Jest, which does not work correctly with ESM module mocks.
+- [JSDoc]: Added missing JSDoc comments, including `@param` and `@returns` tags.
+
+### Changed
+
+- [package]: Require matterbridge 3.0.6.
+- [package]: Updated package to Automator v. 2.0.1.
+- [package]: Updated dependencies.
+- [storage]: Bumped `node-storage-manager` to 2.0.0.
+- [logger]: Bumped `node-ansi-logger` to 3.1.1.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.2.4] - 2025-06-13
 
 ### Added
