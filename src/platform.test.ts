@@ -2,7 +2,7 @@ import path from 'node:path';
 import { rmSync } from 'node:fs';
 
 import { jest } from '@jest/globals';
-import { Matterbridge, PlatformConfig, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource } from 'matterbridge';
+import { Matterbridge, PlatformConfig, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource, invokeSubscribeHandler } from 'matterbridge';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
 import { ServerNode, Endpoint, LogLevel as Level, LogFormat as Format, MdnsService } from 'matterbridge/matter';
 import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
@@ -288,10 +288,14 @@ describe('TestPlatform', () => {
 
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 50);
         await device.setAttribute(FanControlCluster.id, 'percentSetting', 10);
-        if (device.deviceName === 'Fan') {
-          // await device.setAttribute(FanControlCluster.id, 'speedSetting', 50);
-          // await device.setAttribute(FanControlCluster.id, 'speedSetting', 10);
-        }
+
+        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Off, FanControl.FanMode.Off);
+        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Low, FanControl.FanMode.Low);
+        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Medium, FanControl.FanMode.Medium);
+        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.High, FanControl.FanMode.High);
+        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.On, FanControl.FanMode.On);
+        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Auto, FanControl.FanMode.Auto);
+        await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 100, 100);
       }
 
       if (device.hasClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))) {
@@ -337,7 +341,7 @@ describe('TestPlatform', () => {
 
     expect(mockLog.info).toHaveBeenCalledTimes(2);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(1369);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(1368);
   }, 60000);
 
   it('should call onShutdown with reason', async () => {

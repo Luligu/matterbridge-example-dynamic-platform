@@ -1240,18 +1240,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       this.fan.log,
     );
-    /*
-    await this.fan?.subscribeAttribute(
-      FanControl.Cluster.id,
-      'speedSetting',
-      (newValue: number | null, oldValue: number | null, context) => {
-        this.fan?.log.info(`Speed setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', newValue, this.fan?.log);
-      },
-      this.fan.log,
-    );
-    */
 
     /** ********************* Create a waterLeakDetector device */
     this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean)
