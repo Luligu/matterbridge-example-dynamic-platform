@@ -1515,7 +1515,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(this.waterHeater.deviceName ?? '', this.waterHeater);
     }
 
-    /** ********************* Create an Evse ***********************/
+    // *********************** Create an Evse ***************************/
     this.evse = new Evse(
       'Evse',
       '3456127820',
