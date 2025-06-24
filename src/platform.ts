@@ -1436,15 +1436,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a momentary switch ***********************/
-    this.momentarySwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource],
+    this.momentarySwitch = new MatterbridgeEndpoint(
+      [genericSwitch, bridgedNode, powerSource],
       {
         tagList: [
           { mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: NumberTag.One.label },
-          { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label }
+          { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label },
         ],
-        uniqueStorageKey: 'Momentary switch' 
-
-      }, this.config.debug as boolean)
+        uniqueStorageKey: 'Momentary switch',
+      },
+      this.config.debug as boolean,
+    )
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Momentary switch',
         'serial_947942331225',
@@ -1464,7 +1466,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .addChildDeviceType('momentarySwitch2', [genericSwitch], {
         tagList: [
           { mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: NumberTag.Two.label },
-          { mfgCode: null, namespaceId: PositionTag.Middle.namespaceId, tag: PositionTag.Middle.tag, label: PositionTag.Middle.label }
+          { mfgCode: null, namespaceId: PositionTag.Middle.namespaceId, tag: PositionTag.Middle.tag, label: PositionTag.Middle.label },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -1474,7 +1476,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .addChildDeviceType('momentarySwitch3', [genericSwitch], {
         tagList: [
           { mfgCode: null, namespaceId: NumberTag.Three.namespaceId, tag: NumberTag.Three.tag, label: NumberTag.Three.label },
-          { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label }
+          { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label },
         ],
       })
       .createDefaultIdentifyClusterServer()
