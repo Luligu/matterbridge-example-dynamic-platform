@@ -1,5 +1,6 @@
 import { Matterbridge, PlatformConfig } from 'matterbridge';
 import { AnsiLogger } from 'matterbridge/logger';
+
 import { ExampleMatterbridgeDynamicPlatform } from './platform.js';
 
 /**

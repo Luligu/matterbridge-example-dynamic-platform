@@ -75,6 +75,7 @@ import {
   EnergyEvseMode,
   EnergyEvse,
 } from 'matterbridge/matter/clusters';
+
 import { Appliances } from './appliances.js';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
@@ -1252,7 +1253,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     */
 
-    /** ********************* Create a waterLeakDetector device ***********************/
+    /** ********************* Create a waterLeakDetector device */
     this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Water leak detector',
@@ -1277,7 +1278,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.waterLeak = undefined;
     }
 
-    /** ********************* Create a waterFreezeDetector device ***********************/
+    /** ********************* Create a waterFreezeDetector device */
     this.waterFreeze = new MatterbridgeEndpoint([waterFreezeDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Water freeze detector',
@@ -1302,7 +1303,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.waterFreeze = undefined;
     }
 
-    /** ********************* Create a rainSensor device ***********************/
+    /** ********************* Create a rainSensor device */
     this.rain = new MatterbridgeEndpoint([rainSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Rain sensor',
@@ -1327,7 +1328,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.rain = undefined;
     }
 
-    /** ********************* Create a smokeCoAlarm device ***********************/
+    /** ********************* Create a smokeCoAlarm device */
     this.smokeCo = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'SmokeCo alarm sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'SmokeCo alarm sensor',
@@ -1352,7 +1353,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.smokeCo = undefined;
     }
 
-    /** ********************* Create a smokeCoAlarm smoke only device ***********************/
+    /** ********************* Create a smokeCoAlarm smoke only device */
     this.smokeOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Smoke alarm sensor',
@@ -1376,7 +1377,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.smokeOnly = undefined;
     }
 
-    /** ********************* Create a smokeCoAlarm co only device ***********************/
+    /** ********************* Create a smokeCoAlarm co only device */
     this.coOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Co alarm sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Co alarm sensor',
@@ -1401,7 +1402,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coOnly = undefined;
     }
 
-    /** ********************* Create an airQuality device ***********************/
+    /** ********************* Create an airQuality device */
     this.airQuality = new MatterbridgeEndpoint([airQualitySensor, bridgedNode, powerSource], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Air quality sensor',
@@ -1436,7 +1437,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.airQuality = undefined;
     }
 
-    /** ********************* Create a momentary switch ***********************/
+    /** ********************* Create a momentary switch */
     this.momentarySwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Momentary switch' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Momentary switch',
@@ -1460,7 +1461,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.momentarySwitch = undefined;
     }
 
-    /** ********************* Create a latching switch ***********************/
+    /** ********************* Create a latching switch */
     this.latchingSwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Latching switch' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Latching switch',
@@ -1484,7 +1485,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.latchingSwitch = undefined;
     }
 
-    /** ********************* Create a vacuum ***********************/
+    /** ********************* Create a vacuum */
     /*
     The RVC is supported correctly by the Home app (all commands work).
 
@@ -1506,7 +1507,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       }
     }
 
-    /** ********************* Create a water heater ***********************/
+    /** ********************* Create a water heater */
     this.waterHeater = new WaterHeater('Water Heater', '3456177820');
     this.setSelectDevice(this.waterHeater.serialNumber ?? '', this.waterHeater.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.waterHeater.deviceName ?? '')) {
@@ -1537,7 +1538,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(this.evse.deviceName ?? '', this.evse);
     }
 
-    /** ********************* Create the appliances ***********************/
+    /** ********************* Create the appliances */
 
     const laundryWasherDevice = new Appliances(laundryWasher, 'Laundry Washer', '1234567890');
     this.setSelectDevice(laundryWasherDevice.serialNumber ?? '', laundryWasherDevice.deviceName ?? '', undefined, 'hub');
