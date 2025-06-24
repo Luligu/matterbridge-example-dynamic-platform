@@ -52,7 +52,7 @@ jobs:
           npm install -g .
           npm run test
           npm pkg delete devDependencies scripts types
-          npx rimraf ./node_modules
+          npx shx rm -rf ./node_modules
           npm install --omit=dev
           npm shrinkwrap
 
