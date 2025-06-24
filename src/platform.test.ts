@@ -49,7 +49,7 @@ if (!debug) {
 
 // Cleanup the matter environment
 try {
-  rmSync('jest', { recursive: true, force: true });
+  rmSync(path.join('jest', 'platform'), { recursive: true, force: true });
 } catch (error) {
   //
 }
@@ -62,53 +62,33 @@ describe('TestPlatform', () => {
   let dynamicPlatform: ExampleMatterbridgeDynamicPlatform;
 
   const mockLog = {
-    fatal: jest.fn((message: string, ...parameters: any[]) => {
-      // console.log('mockLog.fatal', message, parameters);
-    }),
-    error: jest.fn((message: string, ...parameters: any[]) => {
-      // console.log('mockLog.error', message, parameters);
-    }),
-    warn: jest.fn((message: string, ...parameters: any[]) => {
-      // console.log('mockLog.warn', message, parameters);
-    }),
-    notice: jest.fn((message: string, ...parameters: any[]) => {
-      // console.log('mockLog.notice', message, parameters);
-    }),
-    info: jest.fn((message: string, ...parameters: any[]) => {
-      // console.log('mockLog.info', message, parameters);
-    }),
-    debug: jest.fn((message: string, ...parameters: any[]) => {
-      // console.log('mockLog.debug', message, parameters);
-    }),
+    fatal: jest.fn((message: string, ...parameters: any[]) => {}),
+    error: jest.fn((message: string, ...parameters: any[]) => {}),
+    warn: jest.fn((message: string, ...parameters: any[]) => {}),
+    notice: jest.fn((message: string, ...parameters: any[]) => {}),
+    info: jest.fn((message: string, ...parameters: any[]) => {}),
+    debug: jest.fn((message: string, ...parameters: any[]) => {}),
   } as unknown as AnsiLogger;
 
   const mockMatterbridge = {
-    homeDirectory: 'jest',
-    matterbridgeDirectory: path.join('jest', '.matterbridge'),
-    matterbridgePluginDirectory: path.join('jest', 'Matterbridge'),
+    homeDirectory: path.join('jest', 'platform'),
+    matterbridgeDirectory: path.join('jest', 'platform', '.matterbridge'),
+    matterbridgePluginDirectory: path.join('jest', 'platform', 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
     matterbridgeVersion: '3.0.5',
     enableRVC: true,
     log: mockLog,
     getDevices: jest.fn(() => {
-      // console.log('getDevices called');
       return [];
     }),
     getPlugins: jest.fn(() => {
-      // console.log('getDevices called');
       return [];
     }),
     addBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {
-      // console.log('addBridgedEndpoint called for server', server.construction.status, 'aggregator', aggregator.construction.status);
-      // console.log('addBridgedEndpoint called with plugin', pluginName, 'device', device.deviceName, 'status', device.construction.status);
       await aggregator.add(device);
     }),
-    removeBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {
-      // console.log('removeBridgedEndpoint called');
-    }),
-    removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {
-      // console.log('removeAllBridgedEndpoints called');
-    }),
+    removeBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {}),
+    removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {}),
   } as unknown as Matterbridge;
 
   const mockConfig = {
@@ -126,15 +106,15 @@ describe('TestPlatform', () => {
   beforeAll(async () => {
     // Create a MatterbridgeEdge instance
     matterbridge = await Matterbridge.loadInstance(false);
-    matterbridge.matterbridgeDirectory = path.join('jest', '.matterbridge');
-    matterbridge.matterbridgePluginDirectory = path.join('jest', 'Matterbridge');
+    matterbridge.matterbridgeDirectory = path.join('jest', 'platform', '.matterbridge');
+    matterbridge.matterbridgePluginDirectory = path.join('jest', 'platform', 'Matterbridge');
 
     matterbridge.log = new AnsiLogger({ logName: 'Matterbridge', logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
 
     // Setup matter environment
     matterbridge.environment.vars.set('log.level', Level.NOTICE);
     matterbridge.environment.vars.set('log.format', Format.ANSI);
-    matterbridge.environment.vars.set('path.root', path.join('jest', '.matterbridge', 'matterstorage'));
+    matterbridge.environment.vars.set('path.root', path.join('jest', 'platform', '.matterbridge', 'matterstorage'));
     matterbridge.environment.vars.set('runtime.signals', false);
     matterbridge.environment.vars.set('runtime.exitcode', false);
   });
