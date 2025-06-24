@@ -44,7 +44,7 @@ import {
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
-import { LocationTag } from 'matterbridge/matter';
+import { LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
 import {
   PowerSource,
   BooleanState,
@@ -892,14 +892,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.thermoHeat
       .addChildDeviceType('TemperatureIN', [temperatureSensor], {
-        tagList: [{ mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: LocationTag.Indoor.label }],
+        tagList: [{ mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null }],
       })
       .createDefaultIdentifyClusterServer()
       .createDefaultTemperatureMeasurementClusterServer(21 * 100);
 
     this.thermoHeat
       .addChildDeviceType('TemperatureOUT', [temperatureSensor], {
-        tagList: [{ mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: LocationTag.Outdoor.label }],
+        tagList: [{ mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: null }],
       })
       .createDefaultIdentifyClusterServer()
       .createDefaultTemperatureMeasurementClusterServer(15 * 100);
@@ -1437,10 +1437,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.airQuality = undefined;
     }
 
-    /** ********************* Create a momentary switch */
-    this.momentarySwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Momentary switch' }, this.config.debug as boolean)
+    // ********************* Create a momentary switch *********************** //
+    this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { uniqueStorageKey: 'Momentary switch composed' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Momentary switch',
+        'Momentary switch  (Top-1 Middle-2 Bottom-3)',
         'serial_947942331225',
         0xfff1,
         'Matterbridge',
@@ -1451,8 +1451,38 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.matterbridge.matterbridgeVersion,
       )
       .createDefaultIdentifyClusterServer()
-      .createDefaultSwitchClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
+
+    this.momentarySwitch
+      .addChildDeviceType('Momentary switch 1', [genericSwitch], {
+        tagList: [
+          { mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: null },
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultSwitchClusterServer();
+
+    this.momentarySwitch
+      .addChildDeviceType('Momentary switch 2', [genericSwitch], {
+        tagList: [
+          { mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Middle.namespaceId, tag: PositionTag.Middle.tag, label: null },
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultSwitchClusterServer();
+
+    this.momentarySwitch
+      .addChildDeviceType('Momentary switch 3', [genericSwitch], {
+        tagList: [
+          { mfgCode: null, namespaceId: NumberTag.Three.namespaceId, tag: NumberTag.Three.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: null },
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultSwitchClusterServer();
+
     this.setSelectDevice(this.momentarySwitch.serialNumber ?? '', this.momentarySwitch.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.momentarySwitch.deviceName ?? '')) {
       await this.registerDevice(this.momentarySwitch);
