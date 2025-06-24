@@ -44,7 +44,7 @@ import {
 } from 'matterbridge';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
-import { LocationTag } from 'matterbridge/matter';
+import { LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
 import {
   PowerSource,
   BooleanState,
@@ -1436,7 +1436,15 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     /** ********************* Create a momentary switch ***********************/
-    this.momentarySwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Momentary switch' }, this.config.debug as boolean)
+    this.momentarySwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource],
+      {
+        tagList: [
+          { mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: NumberTag.One.label },
+          { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label }
+        ],
+        uniqueStorageKey: 'Momentary switch' 
+
+      }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Momentary switch',
         'serial_947942331225',
@@ -1451,6 +1459,27 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultSwitchClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
+
+    this.momentarySwitch
+      .addChildDeviceType('momentarySwitch2', [genericSwitch], {
+        tagList: [
+          { mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: NumberTag.Two.label },
+          { mfgCode: null, namespaceId: PositionTag.Middle.namespaceId, tag: PositionTag.Middle.tag, label: PositionTag.Middle.label }
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultSwitchClusterServer();
+
+    this.momentarySwitch
+      .addChildDeviceType('momentarySwitch3', [genericSwitch], {
+        tagList: [
+          { mfgCode: null, namespaceId: NumberTag.Three.namespaceId, tag: NumberTag.Three.tag, label: NumberTag.Three.label },
+          { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label }
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultSwitchClusterServer();
+
     this.setSelectDevice(this.momentarySwitch.serialNumber ?? '', this.momentarySwitch.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.momentarySwitch.deviceName ?? '')) {
       await this.registerDevice(this.momentarySwitch);
