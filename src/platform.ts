@@ -1861,8 +1861,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.fan?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Auto, this.fan.log);
     await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fan.log);
     await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fan.log);
-    // await this.fan?.setAttribute(FanControl.Cluster.id, 'speedCurrent', 50, this.fan.log);
-    // await this.fan?.setAttribute(FanControl.Cluster.id, 'speedSetting', 50, this.fan.log);
     if (this.config.useInterval) {
       // Increment fan percentCurrent every minute
       this.fanInterval = setInterval(
@@ -2019,13 +2017,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           // console.error('Entering generic switch interval triggered', this.genericSwitchLastEvent);
           if (this.genericSwitchLastEvent === 'Release') {
             this.genericSwitchLastEvent = 'Single';
-            await this.momentarySwitch?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch1')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch2')?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch3')?.triggerSwitchEvent('Long', this.momentarySwitch?.log);
           } else if (this.genericSwitchLastEvent === 'Single') {
             this.genericSwitchLastEvent = 'Double';
-            await this.momentarySwitch?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch1')?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch2')?.triggerSwitchEvent('Long', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch3')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
           } else if (this.genericSwitchLastEvent === 'Double') {
             this.genericSwitchLastEvent = 'Long';
-            await this.momentarySwitch?.triggerSwitchEvent('Long', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch1')?.triggerSwitchEvent('Long', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch2')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch3')?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
           } else if (this.genericSwitchLastEvent === 'Long') {
             this.genericSwitchLastEvent = 'Press';
             await this.latchingSwitch?.triggerSwitchEvent('Press', this.latchingSwitch?.log);
