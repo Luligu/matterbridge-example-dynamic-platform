@@ -192,17 +192,32 @@ describe('TestPlatform', () => {
     mockMatterbridge.matterbridgeVersion = '3.0.6';
   });
 
+  it('should initialize platform with config name and set the default config', () => {
+    mockConfig.whiteList = undefined;
+    mockConfig.blackList = undefined;
+    mockConfig.enableRVC = undefined;
+    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig);
+    dynamicPlatform.version = '1.6.6';
+    expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
+    expect(mockConfig.whiteList).toEqual([]);
+    expect(mockConfig.blackList).toEqual([]);
+    expect(mockConfig.enableRVC).toBe(false);
+    mockConfig.whiteList = [];
+    mockConfig.blackList = [];
+    mockConfig.enableRVC = true;
+  });
+
   it('should initialize platform with config name', () => {
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig);
     dynamicPlatform.version = '1.6.6';
     expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
   });
 
-  it('should call onStart with reason and add no devices', async () => {
+  it('should call onStart without reason and add no devices', async () => {
     mockConfig.whiteList = ['No devices'];
     mockConfig.blackList = [];
-    await dynamicPlatform.onStart('Test reason');
-    expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
+    await dynamicPlatform.onStart();
+    expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'none');
     expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(0);
   }, 60000);
 
@@ -216,6 +231,8 @@ describe('TestPlatform', () => {
   it('should call onStart with reason and add all the devices', async () => {
     mockConfig.whiteList = [];
     mockConfig.blackList = [];
+    dynamicPlatform.version = '';
+
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
     expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(41);

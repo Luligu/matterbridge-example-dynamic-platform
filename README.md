@@ -5,7 +5,6 @@
 [![Docker Version](https://img.shields.io/docker/v/luligu/matterbridge?label=docker%20version&sort=semver)](https://hub.docker.com/r/luligu/matterbridge)
 [![Docker Pulls](https://img.shields.io/docker/pulls/luligu/matterbridge.svg)](https://hub.docker.com/r/luligu/matterbridge)
 ![Node.js CI](https://github.com/Luligu/matterbridge-example-dynamic-platform/actions/workflows/build-matterbridge-plugin.yml/badge.svg)
-![Coverage](https://img.shields.io/badge/Jest%20coverage-100%25-brightgreen)
 ![CodeQL](https://github.com/Luligu/matterbridge-example-dynamic-platform/actions/workflows/codeql.yml/badge.svg)
 [![codecov](https://codecov.io/gh/Luligu/matterbridge-example-dynamic-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/Luligu/matterbridge-example-dynamic-platformr)
 
@@ -47,7 +46,7 @@ It exposes 41 virtual devices:
 - a pumpDevice device
 - a waterValve device
 - an airQuality device with all concentration measurements clusters (supported by Apple Home with the concentration measurements from version 18.5)
-- a momentary switch
+- a momentary switch composed by three switches (tagged with One Two Three and Top Middle Bottom)
 - a latching switch
 - a Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read also https://github.com/Luligu/matterbridge/discussions/264.
 - a onOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
