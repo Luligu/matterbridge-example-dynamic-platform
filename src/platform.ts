@@ -73,6 +73,7 @@ import {
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
   EnergyEvseMode,
+  EnergyEvse,
 } from 'matterbridge/matter/clusters';
 
 import { Appliances } from './appliances.js';
@@ -1514,13 +1515,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(this.waterHeater.deviceName ?? '', this.waterHeater);
     }
 
-    /** ********************* Create an Evse */
-    this.evse = new Evse('Evse', '3456127820', 1, [
-      { label: 'On demand', mode: 1, modeTags: [{ value: EnergyEvseMode.ModeTag.Manual }] },
-      { label: 'Scheduled', mode: 2, modeTags: [{ value: EnergyEvseMode.ModeTag.TimeOfUse }] },
-      { label: 'Solar Charging', mode: 3, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }] },
-      { label: 'Solar Charging Scheduled', mode: 4, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }, { value: EnergyEvseMode.ModeTag.TimeOfUse }] },
-    ]);
+    /** ********************* Create an Evse ***********************/
+    this.evse = new Evse(
+      'Evse',
+      '3456127820',
+      1,
+      [
+        { label: 'On demand', mode: 1, modeTags: [{ value: EnergyEvseMode.ModeTag.Manual }] },
+        { label: 'Scheduled', mode: 2, modeTags: [{ value: EnergyEvseMode.ModeTag.TimeOfUse }] },
+        { label: 'Solar Charging', mode: 3, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }] },
+        { label: 'Solar Charging Scheduled', mode: 4, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }, { value: EnergyEvseMode.ModeTag.TimeOfUse }] },
+      ],
+      EnergyEvse.State.PluggedInDemand,
+      EnergyEvse.SupplyState.ChargingEnabled,
+      EnergyEvse.FaultState.NoError,
+      8_000 /* min 8 A */,
+      32_000 /* max 32 A */,
+    );
     this.setSelectDevice(this.evse.serialNumber ?? '', this.evse.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.evse.deviceName ?? '')) {
       await this.registerDevice(this.evse);
