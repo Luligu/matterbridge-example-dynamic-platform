@@ -892,14 +892,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.thermoHeat
       .addChildDeviceType('TemperatureIN', [temperatureSensor], {
-        tagList: [{ mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null }],
+        tagList: [{ mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: LocationTag.Indoor.label }],
       })
       .createDefaultIdentifyClusterServer()
       .createDefaultTemperatureMeasurementClusterServer(21 * 100);
 
     this.thermoHeat
       .addChildDeviceType('TemperatureOUT', [temperatureSensor], {
-        tagList: [{ mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: null }],
+        tagList: [{ mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: LocationTag.Outdoor.label }],
       })
       .createDefaultIdentifyClusterServer()
       .createDefaultTemperatureMeasurementClusterServer(15 * 100);
