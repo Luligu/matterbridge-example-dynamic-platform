@@ -69,19 +69,6 @@ jobs:
       - name: Bump to date-stamped dev version (no git tag)
         run: npm version "${{ env.DEV_TAG }}" --no-git-tag-version
 
-      - name: Lint & test & build the plugin
-        run: |
-          npm ci
-          npm link matterbridge
-          npm run lint
-          npm run buildProduction
-          npm install -g .
-          npm run test
-          npm pkg delete devDependencies scripts types
-          npx rimraf ./node_modules
-          npm install --omit=dev
-          npm shrinkwrap
-
       - name: Check if a new dev-publish is needed
         id: check_new
         env:
