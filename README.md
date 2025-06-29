@@ -17,7 +17,7 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 41 virtual devices:
+It exposes 43 virtual devices:
 
 - a switch with onOff cluster
 - a light with onOff
@@ -61,6 +61,8 @@ It exposes 41 virtual devices:
 - a cooktop device (supported by SmartThings, Alexa and Home Assistant)
 - a water heater device (supported by SmartThings and Home Assistant)
 - a car charger device (supported by Home Assistant)
+- a solar power device
+- a batter storage device
 
 All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices), how to subscribe to attributes and how to trigger events.
 

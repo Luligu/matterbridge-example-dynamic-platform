@@ -50,7 +50,6 @@ import {
   waterValve,
   genericSwitch,
   airConditioner,
-  laundryWasher,
   cooktop,
   extractorHood,
   microwaveOven,
@@ -61,10 +60,8 @@ import {
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
-  RoboticVacuumCleaner,
-  WaterHeater,
-  Evse,
 } from 'matterbridge';
+import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
 import { LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
@@ -135,6 +132,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   vacuum: MatterbridgeEndpoint | undefined;
   waterHeater: MatterbridgeEndpoint | undefined;
   evse: MatterbridgeEndpoint | undefined;
+  laundryWasher: MatterbridgeEndpoint | undefined;
+  solarPower: MatterbridgeEndpoint | undefined;
+  batteryStorage: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1570,8 +1570,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       EnergyEvse.State.PluggedInDemand,
       EnergyEvse.SupplyState.ChargingEnabled,
       EnergyEvse.FaultState.NoError,
-      8_000 /* min 8 A */,
-      32_000 /* max 32 A */,
+      8_000 /* min 8 W */,
+      32_000 /* max 32 W */,
     );
     this.setSelectDevice(this.evse.serialNumber ?? '', this.evse.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.evse.deviceName ?? '')) {
@@ -1579,30 +1579,79 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(this.evse.deviceName ?? '', this.evse);
     }
 
-    /** ********************* Create the appliances */
+    // *********************** Create a SolarPower **************************
 
-    const laundryWasherDevice = new Appliances(laundryWasher, 'Laundry Washer', '1234567890');
+    this.solarPower = new SolarPower(
+      'Solar Power',
+      'SP3456127821',
+      220_000, // 220 volt
+      10_000, // 10 ampere
+      2200_000, // 2200 watt
+      2_200_000, // 2.2 kWh
+      1_000_000, // 1 kWh
+      20_000_000, // 20 kWh
+    );
+    this.setSelectDevice(this.solarPower.serialNumber ?? '', this.solarPower.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.solarPower.deviceName ?? '')) {
+      await this.registerDevice(this.solarPower);
+      this.bridgedDevices.set(this.solarPower.deviceName ?? '', this.solarPower);
+    }
+
+    // *********************** Create a BatteryStorage **************************
+
+    this.batteryStorage = new BatteryStorage(
+      'Battery Storage',
+      'BS3456127822',
+      75,
+      PowerSource.BatChargeLevel.Ok,
+      220_000, // 220 volt
+      10_000, // 10 ampere
+      2_200_000, // 2200 watt
+      1_000_000, // 1 kWh
+      2_000_000, // 2 kWh
+      1_000_000, // 1 kWh
+      10_000_000, // 10 kWh
+    );
+    this.setSelectDevice(this.batteryStorage.serialNumber ?? '', this.batteryStorage.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.batteryStorage.deviceName ?? '')) {
+      await this.registerDevice(this.batteryStorage);
+      this.bridgedDevices.set(this.batteryStorage.deviceName ?? '', this.batteryStorage);
+    }
+
+    // *********************** Create a LaundryWasher **************************
+    this.laundryWasher = new LaundryWasher('Laundry Washer', 'LW1234567890');
+    this.setSelectDevice(this.laundryWasher.serialNumber ?? '', this.laundryWasher.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.laundryWasher.deviceName ?? '')) {
+      await this.registerDevice(this.laundryWasher);
+      this.bridgedDevices.set(this.laundryWasher.deviceName ?? '', this.laundryWasher);
+    }
+
+    // *********************** Create the appliances **************************
+
+    /*
+    const laundryWasherDevice = new Appliances(laundryWasher, 'Laundry Washer', 'LW1234567890');
     this.setSelectDevice(laundryWasherDevice.serialNumber ?? '', laundryWasherDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(laundryWasherDevice.deviceName ?? '')) {
       await this.registerDevice(laundryWasherDevice);
       this.bridgedDevices.set(laundryWasherDevice.deviceName ?? '', laundryWasherDevice);
     }
+    */
 
-    const laundryDryerDevice = new Appliances(laundryDryer, 'Laundry Dryer', '1235227890');
+    const laundryDryerDevice = new Appliances(laundryDryer, 'Laundry Dryer', 'LDW1235227890');
     this.setSelectDevice(laundryDryerDevice.serialNumber ?? '', laundryDryerDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(laundryDryerDevice.deviceName ?? '')) {
       await this.registerDevice(laundryDryerDevice);
       this.bridgedDevices.set(laundryDryerDevice.deviceName ?? '', laundryDryerDevice);
     }
 
-    const dishwasherDevice = new Appliances(dishwasher, 'Dishwasher', '0987654321');
+    const dishwasherDevice = new Appliances(dishwasher, 'Dishwasher', 'DW0987654321');
     this.setSelectDevice(dishwasherDevice.serialNumber ?? '', dishwasherDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(dishwasherDevice.deviceName ?? '')) {
       await this.registerDevice(dishwasherDevice);
       this.bridgedDevices.set(dishwasherDevice.deviceName ?? '', dishwasherDevice);
     }
 
-    const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', '9987654322');
+    const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', 'RE9987654322');
     refrigeratorDevice.addFixedLabel('composed', 'Refrigerator');
     this.setSelectDevice(refrigeratorDevice.serialNumber ?? '', refrigeratorDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(refrigeratorDevice.deviceName ?? '')) {
@@ -1610,7 +1659,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(refrigeratorDevice.deviceName ?? '', refrigeratorDevice);
     }
 
-    const ovenDevice = new Appliances(oven, 'Oven', '1298867891');
+    const ovenDevice = new Appliances(oven, 'Oven', 'OV1298867891');
     ovenDevice.addFixedLabel('composed', 'Oven');
     this.setSelectDevice(ovenDevice.serialNumber ?? '', ovenDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(ovenDevice.deviceName ?? '')) {
@@ -1618,21 +1667,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(ovenDevice.deviceName ?? '', ovenDevice);
     }
 
-    const microwaveOvenDevice = new Appliances(microwaveOven, 'Microwave Oven', '1234567892');
+    const microwaveOvenDevice = new Appliances(microwaveOven, 'Microwave Oven', 'MO1234567892');
     this.setSelectDevice(microwaveOvenDevice.serialNumber ?? '', microwaveOvenDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(microwaveOvenDevice.deviceName ?? '')) {
       await this.registerDevice(microwaveOvenDevice);
       this.bridgedDevices.set(microwaveOvenDevice.deviceName ?? '', microwaveOvenDevice);
     }
 
-    const extractorHoodDevice = new Appliances(extractorHood, 'Extractor Hood', '1234567893');
+    const extractorHoodDevice = new Appliances(extractorHood, 'Extractor Hood', 'EH1234567893');
     this.setSelectDevice(extractorHoodDevice.serialNumber ?? '', extractorHoodDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(extractorHoodDevice.deviceName ?? '')) {
       await this.registerDevice(extractorHoodDevice);
       this.bridgedDevices.set(extractorHoodDevice.deviceName ?? '', extractorHoodDevice);
     }
 
-    const cooktopDevice = new Appliances(cooktop, 'Cooktop', '1255887894');
+    const cooktopDevice = new Appliances(cooktop, 'Cooktop', 'CT1255887894');
     this.setSelectDevice(cooktopDevice.serialNumber ?? '', cooktopDevice.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(cooktopDevice.deviceName ?? '')) {
       await this.registerDevice(cooktopDevice);

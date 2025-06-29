@@ -215,7 +215,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(41);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(43);
   }, 60000);
 
   it('should start the server', async () => {
