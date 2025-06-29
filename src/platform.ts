@@ -56,12 +56,11 @@ import {
   oven,
   refrigerator,
   dishwasher,
-  laundryDryer,
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
 } from 'matterbridge';
-import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage } from 'matterbridge/devices';
+import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
 import { LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
@@ -133,6 +132,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   waterHeater: MatterbridgeEndpoint | undefined;
   evse: MatterbridgeEndpoint | undefined;
   laundryWasher: MatterbridgeEndpoint | undefined;
+  laundryDryer: MatterbridgeEndpoint | undefined;
   solarPower: MatterbridgeEndpoint | undefined;
   batteryStorage: MatterbridgeEndpoint | undefined;
 
@@ -1626,6 +1626,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(this.laundryWasher.deviceName ?? '', this.laundryWasher);
     }
 
+    // *********************** Create a LaundryDryer **************************
+    this.laundryDryer = new LaundryDryer('Laundry Dryer', 'LDW1235227890');
+    this.setSelectDevice(this.laundryDryer.serialNumber ?? '', this.laundryDryer.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.laundryDryer.deviceName ?? '')) {
+      await this.registerDevice(this.laundryDryer);
+      this.bridgedDevices.set(this.laundryDryer.deviceName ?? '', this.laundryDryer);
+    }
+
     // *********************** Create the appliances **************************
 
     /*
@@ -1635,7 +1643,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.registerDevice(laundryWasherDevice);
       this.bridgedDevices.set(laundryWasherDevice.deviceName ?? '', laundryWasherDevice);
     }
-    */
 
     const laundryDryerDevice = new Appliances(laundryDryer, 'Laundry Dryer', 'LDW1235227890');
     this.setSelectDevice(laundryDryerDevice.serialNumber ?? '', laundryDryerDevice.deviceName ?? '', undefined, 'hub');
@@ -1643,6 +1650,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.registerDevice(laundryDryerDevice);
       this.bridgedDevices.set(laundryDryerDevice.deviceName ?? '', laundryDryerDevice);
     }
+    */
 
     const dishwasherDevice = new Appliances(dishwasher, 'Dishwasher', 'DW0987654321');
     this.setSelectDevice(dishwasherDevice.serialNumber ?? '', dishwasherDevice.deviceName ?? '', undefined, 'hub');
