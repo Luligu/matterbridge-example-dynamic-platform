@@ -60,7 +60,7 @@ import {
   dimmableMountedSwitch,
   extendedColorLight,
 } from 'matterbridge';
-import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer } from 'matterbridge/devices';
+import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
 import { LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
@@ -135,6 +135,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   laundryDryer: MatterbridgeEndpoint | undefined;
   solarPower: MatterbridgeEndpoint | undefined;
   batteryStorage: MatterbridgeEndpoint | undefined;
+  heatPump: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1616,6 +1617,24 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.validateDevice(this.batteryStorage.deviceName ?? '')) {
       await this.registerDevice(this.batteryStorage);
       this.bridgedDevices.set(this.batteryStorage.deviceName ?? '', this.batteryStorage);
+    }
+
+    // *********************** Create an HeatPump **************************
+
+    this.heatPump = new HeatPump(
+      'HeatPump',
+      'HP3456127821',
+      220_000, // 220 volt
+      10_000, // 10 ampere
+      2200_000, // 2200 watt
+      2_200_000, // 2.2 kWh
+      1_000_000, // 1 kWh
+      12_000_000, // 12 kWh
+    );
+    this.setSelectDevice(this.heatPump.serialNumber ?? '', this.heatPump.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.heatPump.deviceName ?? '')) {
+      await this.registerDevice(this.heatPump);
+      this.bridgedDevices.set(this.heatPump.deviceName ?? '', this.heatPump);
     }
 
     // *********************** Create a LaundryWasher **************************
