@@ -30,7 +30,7 @@ describe('initializePlugin', () => {
     matterbridgeDirectory: path.join('jest', 'index', '.matterbridge'),
     matterbridgePluginDirectory: path.join('jest', 'index', 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.0.6',
+    matterbridgeVersion: '3.1.1',
     enableConcentrationMeasurements: true,
     enableRVC: true,
     log: mockLog,

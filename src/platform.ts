@@ -59,6 +59,7 @@ import {
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
+  HeatPump,
 } from 'matterbridge';
 import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
@@ -135,6 +136,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   laundryDryer: MatterbridgeEndpoint | undefined;
   solarPower: MatterbridgeEndpoint | undefined;
   batteryStorage: MatterbridgeEndpoint | undefined;
+  heatPump: MatterbridgeEndpoint | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -164,9 +166,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.6')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.1.1')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.0.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.1.1". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1540,7 +1542,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     - put the RVC in the white list alone (in this way it will be a single device in the dynamic plugin child bridge).
     */
     if (this.config.enableRVC === true) {
-      const robot = new RoboticVacuumCleaner('Robot Vacuum', '1238777820');
+      const robot = new RoboticVacuumCleaner('Robot Vacuum', 'RVC1238777820');
       this.setSelectDevice(robot.serialNumber ?? '', robot.deviceName ?? '', undefined, 'hub');
       if (this.validateDevice(robot.deviceName ?? '')) {
         await this.registerDevice(robot);
@@ -1548,18 +1550,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       }
     }
 
-    /** ********************* Create a water heater */
-    this.waterHeater = new WaterHeater('Water Heater', '3456177820');
+    // *********************** Create a water heater ***************************
+    this.waterHeater = new WaterHeater('Water Heater', 'WH3456177820', 50, 60, 20, 80, undefined, 85, 220_000, 1_000, 220_000, 12_000_000, 500_000, 3_000_000);
     this.setSelectDevice(this.waterHeater.serialNumber ?? '', this.waterHeater.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.waterHeater.deviceName ?? '')) {
       await this.registerDevice(this.waterHeater);
       this.bridgedDevices.set(this.waterHeater.deviceName ?? '', this.waterHeater);
     }
 
-    // *********************** Create an Evse ***************************/
+    // *********************** Create an Evse ***************************
     this.evse = new Evse(
       'Evse',
-      '3456127820',
+      'EV3456127820',
       1,
       [
         { label: 'On demand', mode: 1, modeTags: [{ value: EnergyEvseMode.ModeTag.Manual }] },
@@ -1567,11 +1569,15 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         { label: 'Solar Charging', mode: 3, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }] },
         { label: 'Solar Charging Scheduled', mode: 4, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }, { value: EnergyEvseMode.ModeTag.TimeOfUse }] },
       ],
-      EnergyEvse.State.PluggedInDemand,
+      EnergyEvse.State.PluggedInCharging,
       EnergyEvse.SupplyState.ChargingEnabled,
       EnergyEvse.FaultState.NoError,
-      8_000 /* min 8 W */,
-      32_000 /* max 32 W */,
+      220_000, // 220 volt
+      10_000, // 10 ampere
+      2_200_000, // 2200 watt
+      1_000_000, // 1 kWh
+      500_000, // 500 Wh
+      32_000_000, // 32 kWh
     );
     this.setSelectDevice(this.evse.serialNumber ?? '', this.evse.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.evse.deviceName ?? '')) {
@@ -1588,8 +1594,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       10_000, // 10 ampere
       2200_000, // 2200 watt
       2_200_000, // 2.2 kWh
-      1_000_000, // 1 kWh
-      20_000_000, // 20 kWh
+      -10_000_000, // -10 kWh
+      500_000, // 500 Wh
     );
     this.setSelectDevice(this.solarPower.serialNumber ?? '', this.solarPower.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.solarPower.deviceName ?? '')) {
@@ -1609,13 +1615,30 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       2_200_000, // 2200 watt
       1_000_000, // 1 kWh
       2_000_000, // 2 kWh
-      1_000_000, // 1 kWh
-      10_000_000, // 10 kWh
+      -2_000_000, // -2 kWh
+      3_000_000, // 3 kWh
     );
     this.setSelectDevice(this.batteryStorage.serialNumber ?? '', this.batteryStorage.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.batteryStorage.deviceName ?? '')) {
       await this.registerDevice(this.batteryStorage);
       this.bridgedDevices.set(this.batteryStorage.deviceName ?? '', this.batteryStorage);
+    }
+
+    // *********************** Create an HeatPump **************************
+    this.heatPump = new HeatPump(
+      'Heat Pump',
+      'HP1234567890',
+      220_000, // 220 volt
+      10_000, // 10 ampere
+      2_200_000, // 2200 watt
+      1_000_000, // 1 kWh
+      500_000, // 500 watt
+      3_000_000, // 3 kWh
+    );
+    this.setSelectDevice(this.heatPump.serialNumber ?? '', this.heatPump.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.heatPump.deviceName ?? '')) {
+      await this.registerDevice(this.heatPump);
+      this.bridgedDevices.set(this.heatPump.deviceName ?? '', this.heatPump);
     }
 
     // *********************** Create a LaundryWasher **************************
