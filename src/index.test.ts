@@ -51,7 +51,6 @@ describe('initializePlugin', () => {
     whiteList: [],
     blackList: [],
     useInterval: true,
-    enableConcentrationMeasurements: true,
     debug: true,
     unregisterOnShutdown: false,
   } as PlatformConfig;

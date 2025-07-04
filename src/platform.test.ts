@@ -76,7 +76,7 @@ describe('TestPlatform', () => {
     matterbridgePluginDirectory: path.join('jest', 'platform', 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
     matterbridgeVersion: '3.1.1',
-    enableRVC: true,
+    enableServerRvc: true,
     log: mockLog,
     getDevices: jest.fn(() => {
       return [];
@@ -181,7 +181,8 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
     expect(mockConfig.whiteList).toEqual([]);
     expect(mockConfig.blackList).toEqual([]);
-    expect(mockConfig.enableRVC).toBe(false);
+    expect(mockConfig.enableRVC).toBe(undefined);
+    expect(mockConfig.enableServerRvc).toBe(true);
     mockConfig.whiteList = [];
     mockConfig.blackList = [];
     mockConfig.enableRVC = true;
