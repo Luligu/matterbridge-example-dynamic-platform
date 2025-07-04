@@ -59,9 +59,8 @@ import {
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
-  HeatPump,
 } from 'matterbridge';
-import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer } from 'matterbridge/devices';
+import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
 import { LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';

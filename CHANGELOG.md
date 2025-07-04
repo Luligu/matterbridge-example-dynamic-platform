@@ -23,12 +23,13 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
-## [1.3.1] - 2025-06-??
+## [1.3.1] - 2025-07-04
 
 ### Added
 
 - [platform]: Added solarPower device type (not supported by the Home app).
 - [platform]: Added batteryStoraga device type (not supported by the Home app).
+- [platform]: Added heatPump device type (not supported by the Home app).
 
 ### Changed
 
