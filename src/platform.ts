@@ -174,7 +174,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.log.info('Initializing platform:', this.config.name);
     if (config.whiteList === undefined) config.whiteList = [];
     if (config.blackList === undefined) config.blackList = [];
-    if (config.enableRVC === undefined) config.enableRVC = false;
+    if (config.enableRVC !== undefined) delete config.enableRVC;
+    if (config.enableServerRvc === undefined) config.enableServerRvc = true;
   }
 
   override async onStart(reason?: string) {
@@ -279,7 +280,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
     this.setSelectDevice(this.mountedDimmerSwitch.serialNumber ?? '', this.mountedDimmerSwitch.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.mountedDimmerSwitch.deviceName ?? '')) {
       await this.registerDevice(this.mountedDimmerSwitch);
@@ -1527,26 +1529,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.latchingSwitch = undefined;
     }
 
-    /** ********************* Create a vacuum */
+    // *********************** Create a vacuum *****************************/
     /*
     The RVC is supported correctly by the Home app (all commands work).
 
-    The bad news is that right now the Apple Home app only shows the RVC as a single device (not bridged). 
-    If the RVC is in a bridge, the whole Home app crashes... so don't try it. If your controller is Apple, put the RVC in the black list.
-    
-    If you want to try the RVC with the Home app:
-    - update matterbridge to the latest (i.e. version >= 3.0.0);
-    - update matterbridge dynamic plugin to the latest version (i.e. version >= 1.2.0);
-    - use child bridge mode;
-    - put the RVC in the white list alone (in this way it will be a single device in the dynamic plugin child bridge).
+    The bad news is that right now the Apple Home app only shows the RVC as a single device (not bridged) or a single device in the bridge. 
+
+    If the RVC is in a bridge with other devices, the whole Home app crashes... so don't try it. If your controller is Apple Home use server mode for the RVC.
     */
-    if (this.config.enableRVC === true) {
-      const robot = new RoboticVacuumCleaner('Robot Vacuum', 'RVC1238777820');
-      this.setSelectDevice(robot.serialNumber ?? '', robot.deviceName ?? '', undefined, 'hub');
-      if (this.validateDevice(robot.deviceName ?? '')) {
-        await this.registerDevice(robot);
-        this.bridgedDevices.set(robot.deviceName ?? '', robot);
-      }
+    const robot = new RoboticVacuumCleaner('Robot Vacuum', 'RVC1238777820', this.config.enableServerRvc === true ? 'server' : undefined);
+    if (this.config.enableServerRvc === true) {
+      this.log.notice('RVC is in server mode');
+    }
+    this.setSelectDevice(robot.serialNumber ?? '', robot.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(robot.deviceName ?? '')) {
+      await this.registerDevice(robot);
+      this.bridgedDevices.set(robot.deviceName ?? '', robot);
     }
 
     // *********************** Create a water heater ***************************

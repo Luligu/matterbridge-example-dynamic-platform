@@ -39,10 +39,10 @@
       "type": "boolean",
       "default": true
     },
-    "enableRVC": {
-      "description": "Enable the Robot Vacuum Cleaner (Apple Home will crash unless you use child bridge and put the rvc in the white list as a single device)",
+    "enableServerRvc": {
+      "description": "Enable the Robot Vacuum Cleaner in server mode (Apple Home will crash unless you use this mode!)",
       "type": "boolean",
-      "default": false
+      "default": true
     },
     "debug": {
       "description": "Enable the debug for the plugin (development only)",
