@@ -1586,7 +1586,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       [], // selectedAreas
       1, // currentArea
       [
-       {
+        {
           mapId: 1,
           name: 'Ground floor',
         },
