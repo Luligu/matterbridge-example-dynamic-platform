@@ -1564,28 +1564,47 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       [
         {
           areaId: 1,
-          mapId: null,
+          mapId: 1,
           areaInfo: { locationInfo: { locationName: 'Living', floorNumber: 0, areaType: AreaNamespaceTag.LivingRoom.tag }, landmarkInfo: null },
         },
         {
           areaId: 2,
-          mapId: null,
+          mapId: 2,
           areaInfo: { locationInfo: { locationName: 'Kitchen', floorNumber: 0, areaType: AreaNamespaceTag.Kitchen.tag }, landmarkInfo: null },
         },
         {
           areaId: 3,
-          mapId: null,
+          mapId: 3,
           areaInfo: { locationInfo: { locationName: 'Bedroom', floorNumber: 1, areaType: AreaNamespaceTag.Bedroom.tag }, landmarkInfo: null },
         },
         {
           areaId: 4,
-          mapId: null,
+          mapId: 4,
           areaInfo: { locationInfo: { locationName: 'Bathroom', floorNumber: 1, areaType: AreaNamespaceTag.Bathroom.tag }, landmarkInfo: null },
         },
       ], // supportedAreas
       [], // selectedAreas
       1, // currentArea
-      [], // supportedMaps
+      [
+       {
+          mapId: 1,
+          name: 'Ground floor',
+        },
+        {
+          mapId: 2,
+          name: 'First floor',
+        },
+        /* Workaround because waiting for a matter.js fix https://github.com/project-chip/matter.js/issues/2238 */
+        {
+          mapId: 3,
+          name: 'Bedroom',
+        },
+        /* Workaround because waiting for a matter.js fix */
+        {
+          mapId: 4,
+          name: 'Bathroom',
+        },
+      ], // supportedMaps
     );
     if (this.config.enableServerRvc === true) {
       this.log.notice('RVC is in server mode');
