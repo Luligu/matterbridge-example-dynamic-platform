@@ -21,11 +21,6 @@
  * limitations under the License.
  */
 
-// Matter.js
-import { RvcRunMode } from '@matter/main/clusters/rvc-run-mode';
-import { RvcCleanMode } from '@matter/main/clusters/rvc-clean-mode';
-
-// Matterbridge
 import {
   Matterbridge,
   MatterbridgeEndpoint,
@@ -68,7 +63,7 @@ import {
 import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
-import { LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
+import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
 import {
   PowerSource,
   BooleanState,
@@ -98,6 +93,8 @@ import {
   WindowCovering,
   EnergyEvseMode,
   EnergyEvse,
+  RvcRunMode,
+  RvcCleanMode,
 } from 'matterbridge/matter/clusters';
 
 import { Appliances } from './appliances.js';
@@ -1568,22 +1565,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         {
           areaId: 1,
           mapId: null,
-          areaInfo: { locationInfo: { locationName: 'Living', floorNumber: 0, areaType: null }, landmarkInfo: null },
+          areaInfo: { locationInfo: { locationName: 'Living', floorNumber: 0, areaType: AreaNamespaceTag.LivingRoom.tag }, landmarkInfo: null },
         },
         {
           areaId: 2,
           mapId: null,
-          areaInfo: { locationInfo: { locationName: 'Kitchen', floorNumber: 0, areaType: null }, landmarkInfo: null },
+          areaInfo: { locationInfo: { locationName: 'Kitchen', floorNumber: 0, areaType: AreaNamespaceTag.Kitchen.tag }, landmarkInfo: null },
         },
         {
           areaId: 3,
           mapId: null,
-          areaInfo: { locationInfo: { locationName: 'Bedroom', floorNumber: 1, areaType: null }, landmarkInfo: null },
+          areaInfo: { locationInfo: { locationName: 'Bedroom', floorNumber: 1, areaType: AreaNamespaceTag.Bedroom.tag }, landmarkInfo: null },
         },
         {
           areaId: 4,
           mapId: null,
-          areaInfo: { locationInfo: { locationName: 'Bathroom', floorNumber: 1, areaType: null }, landmarkInfo: null },
+          areaInfo: { locationInfo: { locationName: 'Bathroom', floorNumber: 1, areaType: AreaNamespaceTag.Bathroom.tag }, landmarkInfo: null },
         },
       ], // supportedAreas
       [], // selectedAreas
