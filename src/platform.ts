@@ -1588,7 +1588,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       ], // supportedAreas
       [], // selectedAreas
       1, // currentArea
-      [] // supportedMaps
+      [], // supportedMaps
     );
     if (this.config.enableServerRvc === true) {
       this.log.notice('RVC is in server mode');
