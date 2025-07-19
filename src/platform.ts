@@ -21,6 +21,11 @@
  * limitations under the License.
  */
 
+// Matter.js
+import { RvcRunMode } from '@matter/main/clusters/rvc-run-mode';
+import { RvcCleanMode } from '@matter/main/clusters/rvc-clean-mode';
+
+// Matterbridge
 import {
   Matterbridge,
   MatterbridgeEndpoint,
@@ -1537,7 +1542,54 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     If the RVC is in a bridge with other devices, the whole Home app crashes... so don't try it. If your controller is Apple Home use server mode for the RVC.
     */
-    const robot = new RoboticVacuumCleaner('Robot Vacuum', 'RVC1238777820', this.config.enableServerRvc === true ? 'server' : undefined);
+
+    const robot = new RoboticVacuumCleaner(
+      'Robot Vacuum',
+      'RVC1238777820',
+      this.config.enableServerRvc === true ? 'server' : undefined,
+      1, // currentRunMode
+      [
+        { label: 'Idle', mode: 1, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
+        { label: 'Cleaning', mode: 2, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }] },
+        { label: 'Mapping', mode: 3, modeTags: [{ value: RvcRunMode.ModeTag.Mapping }] },
+        { label: 'SpotCleaning', mode: 4, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }, { value: RvcRunMode.ModeTag.Max }] },
+      ], // supportedRunModes
+      1, // currentCleanMode
+      [
+        { label: 'Vacuum', mode: 1, modeTags: [{ value: RvcCleanMode.ModeTag.Vacuum }] },
+        { label: 'Mop', mode: 2, modeTags: [{ value: RvcCleanMode.ModeTag.Mop }] },
+        { label: 'Clean', mode: 3, modeTags: [{ value: RvcCleanMode.ModeTag.DeepClean }] },
+      ], // supportedCleanModes
+      null, // currentPhase
+      null, // phaseList
+      undefined, // operationalState
+      undefined, // operationalStateList
+      [
+        {
+          areaId: 1,
+          mapId: null,
+          areaInfo: { locationInfo: { locationName: 'Living', floorNumber: 0, areaType: null }, landmarkInfo: null },
+        },
+        {
+          areaId: 2,
+          mapId: null,
+          areaInfo: { locationInfo: { locationName: 'Kitchen', floorNumber: 0, areaType: null }, landmarkInfo: null },
+        },
+        {
+          areaId: 3,
+          mapId: null,
+          areaInfo: { locationInfo: { locationName: 'Bedroom', floorNumber: 1, areaType: null }, landmarkInfo: null },
+        },
+        {
+          areaId: 4,
+          mapId: null,
+          areaInfo: { locationInfo: { locationName: 'Bathroom', floorNumber: 1, areaType: null }, landmarkInfo: null },
+        },
+      ], // supportedAreas
+      [], // selectedAreas
+      1, // currentArea
+      [] // supportedMaps
+    );
     if (this.config.enableServerRvc === true) {
       this.log.notice('RVC is in server mode');
     }
