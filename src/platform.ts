@@ -1219,6 +1219,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.matterbridge.matterbridgeVersion,
       )
       .createDefaultPowerSourceWiredClusterServer()
+      .createCompleteFanControlClusterServer()
       .addRequiredClusterServers();
     this.setSelectDevice(this.fan.serialNumber ?? '', this.fan.deviceName ?? '', undefined, 'hub');
     if (this.validateDevice(this.fan.deviceName ?? '')) {
