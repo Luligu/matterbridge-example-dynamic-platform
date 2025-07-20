@@ -63,7 +63,7 @@ import {
 import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
-import { LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
+import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
 import {
   PowerSource,
   BooleanState,
@@ -93,6 +93,8 @@ import {
   WindowCovering,
   EnergyEvseMode,
   EnergyEvse,
+  RvcRunMode,
+  RvcCleanMode,
 } from 'matterbridge/matter/clusters';
 
 import { Appliances } from './appliances.js';
@@ -165,9 +167,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.1.2')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.1.5')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.1.2". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.1.5". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1537,7 +1539,73 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     If the RVC is in a bridge with other devices, the whole Home app crashes... so don't try it. If your controller is Apple Home use server mode for the RVC.
     */
-    const robot = new RoboticVacuumCleaner('Robot Vacuum', 'RVC1238777820', this.config.enableServerRvc === true ? 'server' : undefined);
+
+    const robot = new RoboticVacuumCleaner(
+      'Robot Vacuum',
+      'RVC1238777820',
+      this.config.enableServerRvc === true ? 'server' : undefined,
+      1, // currentRunMode
+      [
+        { label: 'Idle', mode: 1, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
+        { label: 'Cleaning', mode: 2, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }] },
+        { label: 'Mapping', mode: 3, modeTags: [{ value: RvcRunMode.ModeTag.Mapping }] },
+        { label: 'SpotCleaning', mode: 4, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }, { value: RvcRunMode.ModeTag.Max }] },
+      ], // supportedRunModes
+      1, // currentCleanMode
+      [
+        { label: 'Vacuum', mode: 1, modeTags: [{ value: RvcCleanMode.ModeTag.Vacuum }] },
+        { label: 'Mop', mode: 2, modeTags: [{ value: RvcCleanMode.ModeTag.Mop }] },
+        { label: 'Clean', mode: 3, modeTags: [{ value: RvcCleanMode.ModeTag.DeepClean }] },
+      ], // supportedCleanModes
+      null, // currentPhase
+      null, // phaseList
+      undefined, // operationalState
+      undefined, // operationalStateList
+      [
+        {
+          areaId: 1,
+          mapId: 1,
+          areaInfo: { locationInfo: { locationName: 'Living', floorNumber: 0, areaType: AreaNamespaceTag.LivingRoom.tag }, landmarkInfo: null },
+        },
+        {
+          areaId: 2,
+          mapId: 2,
+          areaInfo: { locationInfo: { locationName: 'Kitchen', floorNumber: 0, areaType: AreaNamespaceTag.Kitchen.tag }, landmarkInfo: null },
+        },
+        {
+          areaId: 3,
+          mapId: 3,
+          areaInfo: { locationInfo: { locationName: 'Bedroom', floorNumber: 1, areaType: AreaNamespaceTag.Bedroom.tag }, landmarkInfo: null },
+        },
+        {
+          areaId: 4,
+          mapId: 4,
+          areaInfo: { locationInfo: { locationName: 'Bathroom', floorNumber: 1, areaType: AreaNamespaceTag.Bathroom.tag }, landmarkInfo: null },
+        },
+      ], // supportedAreas
+      [], // selectedAreas
+      1, // currentArea
+      [
+        {
+          mapId: 1,
+          name: 'Ground floor',
+        },
+        {
+          mapId: 2,
+          name: 'First floor',
+        },
+        /* Workaround because waiting for a matter.js fix https://github.com/project-chip/matter.js/issues/2238 */
+        {
+          mapId: 3,
+          name: 'Bedroom',
+        },
+        /* Workaround because waiting for a matter.js fix */
+        {
+          mapId: 4,
+          name: 'Bathroom',
+        },
+      ], // supportedMaps
+    );
     if (this.config.enableServerRvc === true) {
       this.log.notice('RVC is in server mode');
     }
