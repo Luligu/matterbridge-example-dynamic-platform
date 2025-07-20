@@ -5,6 +5,6 @@
   "blackList": [],
   "useInterval": true,
   "enableServerRvc": true,
-  "debug": true,
+  "debug": false,
   "unregisterOnShutdown": false
 }
