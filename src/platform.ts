@@ -51,16 +51,14 @@ import {
   genericSwitch,
   airConditioner,
   cooktop,
-  extractorHood,
   microwaveOven,
   oven,
   refrigerator,
-  dishwasher,
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
 } from 'matterbridge';
-import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump } from 'matterbridge/devices';
+import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump, Dishwasher, ExtractorHood } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger } from 'matterbridge/logger';
 import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
@@ -135,6 +133,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   evse: MatterbridgeEndpoint | undefined;
   laundryWasher: MatterbridgeEndpoint | undefined;
   laundryDryer: MatterbridgeEndpoint | undefined;
+  dishwasher: MatterbridgeEndpoint | undefined;
+  extractorHood: MatterbridgeEndpoint | undefined;
   solarPower: MatterbridgeEndpoint | undefined;
   batteryStorage: MatterbridgeEndpoint | undefined;
   heatPump: MatterbridgeEndpoint | undefined;
@@ -167,9 +167,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.1.5')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.1.6')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.1.5". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.1.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1722,30 +1722,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.bridgedDevices.set(this.laundryDryer.deviceName ?? '', this.laundryDryer);
     }
 
+    // *********************** Create a Dishwasher **************************
+    this.dishwasher = new Dishwasher('Dishwasher', 'DW1234567890');
+    this.setSelectDevice(this.dishwasher.serialNumber ?? '', this.dishwasher.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.dishwasher.deviceName ?? '')) {
+      await this.registerDevice(this.dishwasher);
+      this.bridgedDevices.set(this.dishwasher.deviceName ?? '', this.dishwasher);
+    }
+
+    // *********************** Create an Extractor Hood **************************
+    this.extractorHood = new ExtractorHood('Extractor Hood', 'EH1234567893');
+    this.setSelectDevice(this.extractorHood.serialNumber ?? '', this.extractorHood.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.extractorHood.deviceName ?? '')) {
+      await this.registerDevice(this.extractorHood);
+      this.bridgedDevices.set(this.extractorHood.deviceName ?? '', this.extractorHood);
+    }
+
     // *********************** Create the appliances **************************
-
-    /*
-    const laundryWasherDevice = new Appliances(laundryWasher, 'Laundry Washer', 'LW1234567890');
-    this.setSelectDevice(laundryWasherDevice.serialNumber ?? '', laundryWasherDevice.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(laundryWasherDevice.deviceName ?? '')) {
-      await this.registerDevice(laundryWasherDevice);
-      this.bridgedDevices.set(laundryWasherDevice.deviceName ?? '', laundryWasherDevice);
-    }
-
-    const laundryDryerDevice = new Appliances(laundryDryer, 'Laundry Dryer', 'LDW1235227890');
-    this.setSelectDevice(laundryDryerDevice.serialNumber ?? '', laundryDryerDevice.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(laundryDryerDevice.deviceName ?? '')) {
-      await this.registerDevice(laundryDryerDevice);
-      this.bridgedDevices.set(laundryDryerDevice.deviceName ?? '', laundryDryerDevice);
-    }
-    */
-
-    const dishwasherDevice = new Appliances(dishwasher, 'Dishwasher', 'DW0987654321');
-    this.setSelectDevice(dishwasherDevice.serialNumber ?? '', dishwasherDevice.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(dishwasherDevice.deviceName ?? '')) {
-      await this.registerDevice(dishwasherDevice);
-      this.bridgedDevices.set(dishwasherDevice.deviceName ?? '', dishwasherDevice);
-    }
 
     const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', 'RE9987654322');
     refrigeratorDevice.addFixedLabel('composed', 'Refrigerator');
@@ -1768,13 +1761,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.validateDevice(microwaveOvenDevice.deviceName ?? '')) {
       await this.registerDevice(microwaveOvenDevice);
       this.bridgedDevices.set(microwaveOvenDevice.deviceName ?? '', microwaveOvenDevice);
-    }
-
-    const extractorHoodDevice = new Appliances(extractorHood, 'Extractor Hood', 'EH1234567893');
-    this.setSelectDevice(extractorHoodDevice.serialNumber ?? '', extractorHoodDevice.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(extractorHoodDevice.deviceName ?? '')) {
-      await this.registerDevice(extractorHoodDevice);
-      this.bridgedDevices.set(extractorHoodDevice.deviceName ?? '', extractorHoodDevice);
     }
 
     const cooktopDevice = new Appliances(cooktop, 'Cooktop', 'CT1255887894');

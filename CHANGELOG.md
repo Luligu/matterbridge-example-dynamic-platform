@@ -23,6 +23,21 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.3.4] - 2025-07-22
+
+### Added
+
+- [platform]: Changed to the new ExtratorHood() and Dishwasher() from Matterbridge.
+
+### Changed
+
+- [package]: Updated dependencies.
+- [package]: Required matterbridge 3.1.6.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.3.3] - 2025-07-20
 
 ### Added

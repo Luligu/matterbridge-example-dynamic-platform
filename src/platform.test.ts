@@ -3,7 +3,7 @@ import { rmSync } from 'node:fs';
 
 import { jest } from '@jest/globals';
 import { Matterbridge, PlatformConfig, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource, invokeSubscribeHandler } from 'matterbridge';
-import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
+import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { ServerNode, Endpoint, LogLevel as Level, LogFormat as Format, MdnsService } from 'matterbridge/matter';
 import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
 import {
@@ -75,7 +75,7 @@ describe('TestPlatform', () => {
     matterbridgeDirectory: path.join('jest', 'platform', '.matterbridge'),
     matterbridgePluginDirectory: path.join('jest', 'platform', 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.1.5',
+    matterbridgeVersion: '3.1.6',
     enableServerRvc: true,
     log: mockLog,
     getDevices: jest.fn(() => {
@@ -97,8 +97,7 @@ describe('TestPlatform', () => {
     whiteList: [],
     blackList: [],
     useInterval: true,
-    enableConcentrationMeasurements: true,
-    enableRVC: true,
+    enableServerRvc: true,
     debug: true,
     unregisterOnShutdown: false,
   } as PlatformConfig;
@@ -108,8 +107,6 @@ describe('TestPlatform', () => {
     matterbridge = await Matterbridge.loadInstance(false);
     matterbridge.matterbridgeDirectory = path.join('jest', 'platform', '.matterbridge');
     matterbridge.matterbridgePluginDirectory = path.join('jest', 'platform', 'Matterbridge');
-
-    matterbridge.log = new AnsiLogger({ logName: 'Matterbridge', logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
 
     // Setup matter environment
     matterbridge.environment.vars.set('log.level', Level.NOTICE);
@@ -167,9 +164,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "3.1.5". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.1.6". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '3.1.5';
+    mockMatterbridge.matterbridgeVersion = '3.1.6';
   });
 
   it('should initialize platform with config name and set the default config', () => {
@@ -339,7 +336,7 @@ describe('TestPlatform', () => {
 
     expect(mockLog.info).toHaveBeenCalledTimes(2);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(1368);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(1358);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.SinglePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.DoublePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.LongPress'));
