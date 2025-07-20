@@ -1208,7 +1208,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Create a fan device
     this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high auto' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Fan auto',
+        'Fan auto multifeatures',
         'serial_980545631228',
         0xfff1,
         'Matterbridge',
@@ -1264,6 +1264,26 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
         if (context.offline === true) return; // Do not set attributes when offline
         if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fan?.log);
+      },
+      this.fan.log,
+    );
+    await this.fan?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'rockSetting',
+      (newValue: number | null, oldValue: number | null, context) => {
+        this.fan?.log.info(`Rock setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
+        // if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'rockSetting', newValue, this.fan?.log);
+      },
+      this.fan.log,
+    );
+    await this.fan?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'airflowDirection',
+      (newValue: number | null, oldValue: number | null, context) => {
+        this.fan?.log.info(`AirflowDirection changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
+        if (isValidNumber(newValue, 0, 1)) this.fan?.setAttribute(FanControl.Cluster.id, 'AirflowDirection', newValue, this.fan?.log);
       },
       this.fan.log,
     );
