@@ -60,7 +60,7 @@ import {
 } from 'matterbridge';
 import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump, Dishwasher, ExtractorHood } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
-import { AnsiLogger } from 'matterbridge/logger';
+import { AnsiLogger, debugStringify } from 'matterbridge/logger';
 import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
 import {
   PowerSource,
@@ -115,6 +115,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   thermoHeat: MatterbridgeEndpoint | undefined;
   thermoCool: MatterbridgeEndpoint | undefined;
   fan: MatterbridgeEndpoint | undefined;
+  fanComplete: MatterbridgeEndpoint | undefined;
   waterLeak: MatterbridgeEndpoint | undefined;
   waterFreeze: MatterbridgeEndpoint | undefined;
   rain: MatterbridgeEndpoint | undefined;
@@ -162,6 +163,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   bridgedDevices = new Map<string, MatterbridgeEndpoint>();
 
   fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
+  fanDirectionLookup = ['Forward', 'Reverse'];
 
   constructor(matterbridge: Matterbridge, log: AnsiLogger, config: PlatformConfig) {
     super(matterbridge, log, config);
@@ -1207,7 +1209,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.valve?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
 
-    // Create a fan device
+    // ******************** Create a default fan device ********************
     this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high auto' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Fan auto',
@@ -1267,6 +1269,104 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fan?.log);
       },
       this.fan.log,
+    );
+
+    //* ******************** Create a complete fan device ********************
+    this.fanComplete = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan complete' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Fan complete',
+        'serial_980995631228',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Fan',
+        parseInt(this.version.replace(/\D/g, '')),
+        this.version === '' ? 'Unknown' : this.version,
+        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
+        this.matterbridge.matterbridgeVersion,
+      )
+      .createDefaultPowerSourceWiredClusterServer()
+      .createCompleteFanControlClusterServer()
+      .addRequiredClusterServers();
+    this.setSelectDevice(this.fanComplete.serialNumber ?? '', this.fanComplete.deviceName ?? '', undefined, 'hub');
+    if (this.validateDevice(this.fanComplete.deviceName ?? '')) {
+      await this.registerDevice(this.fanComplete);
+      this.bridgedDevices.set(this.fanComplete.deviceName ?? '', this.fanComplete);
+    } else {
+      this.fanComplete = undefined;
+    }
+
+    await this.fanComplete?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'fanMode',
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.fanComplete?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+        );
+        if (context.offline === true) return; // Do not set attributes when offline
+        if (newValue === FanControl.FanMode.Off) {
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanComplete?.log);
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanComplete?.log);
+        } else if (newValue === FanControl.FanMode.Low) {
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanComplete?.log);
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanComplete?.log);
+        } else if (newValue === FanControl.FanMode.Medium) {
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanComplete?.log);
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanComplete?.log);
+        } else if (newValue === FanControl.FanMode.High) {
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
+        } else if (newValue === FanControl.FanMode.On) {
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
+        } else if (newValue === FanControl.FanMode.Auto) {
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fanComplete?.log);
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanComplete?.log);
+        }
+      },
+      this.fanComplete?.log,
+    );
+    await this.fanComplete?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'percentSetting',
+      (newValue: number | null, oldValue: number | null, context) => {
+        this.fanComplete?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
+        if (isValidNumber(newValue, 0, 100)) this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanComplete?.log);
+      },
+      this.fanComplete?.log,
+    );
+
+    await this.fanComplete?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'rockSetting',
+      (newValue: object, oldValue: object, context) => {
+        this.fanComplete?.log.info(
+          `Rock setting changed from ${debugStringify(oldValue)} to ${debugStringify(newValue)} context: ${context.offline === true ? 'offline' : 'online'}`,
+        );
+      },
+      this.fanComplete?.log,
+    );
+
+    await this.fanComplete?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'windSetting',
+      (newValue: object, oldValue: object, context) => {
+        this.fanComplete?.log.info(
+          `Wind setting changed from ${debugStringify(oldValue)} to ${debugStringify(newValue)} context: ${context.offline === true ? 'offline' : 'online'}`,
+        );
+      },
+      this.fanComplete?.log,
+    );
+
+    await this.fanComplete?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'airflowDirection',
+      (newValue: number, oldValue: number, context) => {
+        this.fanComplete?.log.info(
+          `Airflow direction changed from ${this.fanDirectionLookup[oldValue]} to ${this.fanDirectionLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+        );
+      },
+      this.fanComplete?.log,
     );
 
     /** ********************* Create a waterLeakDetector device */
