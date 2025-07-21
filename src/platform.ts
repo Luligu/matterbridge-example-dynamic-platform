@@ -191,7 +191,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.ready;
     await this.clearSelect();
 
-    // Create a switch device
+    // *********************** Create a switch device ***********************
     this.switch = new MatterbridgeEndpoint([onOffSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Switch' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -223,7 +223,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.switch?.log.info('Command off called');
     });
 
-    // Create a mounted onOff switch device
+    // *********************** Create a mounted onOff switch device ***********************
     this.mountedOnOffSwitch = new MatterbridgeEndpoint([onOffMountedSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'OnOffMountedSwitch' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -255,7 +255,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.mountedOnOffSwitch?.log.info('Command off called');
     });
 
-    // Create a mounted dimmer switch device
+    // *********************** Create a mounted dimmer switch device ***********************
     this.mountedDimmerSwitch = new MatterbridgeEndpoint(
       [dimmableMountedSwitch, bridgedNode, powerSource],
       { uniqueStorageKey: 'DimmerMountedSwitch' },
@@ -301,7 +301,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.mountedDimmerSwitch?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
-    // Create a on off light device
+    // *********************** Create a on off light device ***********************
     this.lightOnOff = new MatterbridgeEndpoint([onOffLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (on/off)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -333,7 +333,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lightOnOff?.log.info('Command off called');
     });
 
-    // Create a dimmer device
+    // *********************** Create a dimmer device ***********************
     this.dimmer = new MatterbridgeEndpoint([dimmableLight, bridgedNode, powerSource], { uniqueStorageKey: 'Dimmer' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -374,7 +374,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.dimmer?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
-    // Create a light device
+    // *********************** Create a light device with XY, HS and CT color control ***********************
     this.light = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, HS and CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -438,7 +438,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.light?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
-    // Create a light device with HS color control
+    // *********************** Create a light device with HS and CT color control ***********************
     this.lightHS = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (HS, CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -497,7 +497,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lightHS?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
-    // Create a light device with XY color control
+    // *********************** Create a light device with XY and CT color control ***********************
     this.lightXY = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -548,7 +548,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lightXY?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
-    // Create a light device with CT color control
+    // *********************** Create a light device with CT color control ***********************
     this.lightCT = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -594,7 +594,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lightCT?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
-    // Create an outlet device
+    // *********************** Create an outlet device ***********************
     this.outlet = new MatterbridgeEndpoint([onOffOutlet, bridgedNode, powerSource], { uniqueStorageKey: 'Outlet' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -626,7 +626,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.outlet?.log.info('Command off called');
     });
 
-    // Create a window covering device
+    // *********************** Create a window covering device ***********************
     // Matter uses 10000 = fully closed   0 = fully opened
     this.coverLift = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { uniqueStorageKey: 'CoverLift' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
@@ -671,7 +671,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLift?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} called`);
     });
 
-    // Create a tilt window covering device
+    // *********************** Create a tilt window covering device ***********************
     // Matter uses 10000 = fully closed   0 = fully opened
     this.coverLiftTilt = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { uniqueStorageKey: 'CoverLiftTilt' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
@@ -722,7 +722,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLiftTilt?.log.info(`Command goToTiltPercentage ${tiltPercent100thsValue} called`);
     });
 
-    // Create a lock device
+    // *********************** Create a lock device ***********************
     this.lock = new MatterbridgeEndpoint([doorLockDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Lock' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer(
@@ -753,7 +753,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lock?.log.info('Command unlockDoor called');
     });
 
-    // Create a thermostat with AutoMode device
+    // *********************** Create a thermostat with AutoMode device ***********************
     this.thermoAuto = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (AutoMode)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -834,7 +834,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAuto.log,
     );
 
-    // Create a thermostat with Heat device
+    // *********************** Create a thermostat with Heat device ***********************
     this.thermoHeat = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Heat)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -892,7 +892,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoHeat.log,
     );
 
-    // Create a thermostat with Cool device
+    // *********************** Create a thermostat with Cool device ***********************
     this.thermoCool = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Cool)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -936,7 +936,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoCool.log,
     );
 
-    // Create a airPurifier device
+    // *********************** Create a airPurifier device ***********************
     this.airPurifier = new MatterbridgeEndpoint(
       [airPurifier, temperatureSensor, humiditySensor, bridgedNode, powerSource],
       { uniqueStorageKey: 'Air purifier' },
@@ -1005,7 +1005,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.airPurifier.log,
     );
 
-    // Create a airConditioner device
+    // *********************** Create a airConditioner device ***********************
     this.airConditioner = new MatterbridgeEndpoint([airConditioner, bridgedNode, powerSource], { uniqueStorageKey: 'Air Conditioner' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Air Conditioner',
@@ -1050,7 +1050,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.airConditioner?.log);
     });
 
-    // Create a pumpDevice device
+    // *********************** Create a pumpDevice device ***********************
     this.pump = new MatterbridgeEndpoint([pumpDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Pump' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Pump',
@@ -1087,7 +1087,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.pump?.log.info(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
-    // Create a waterValve device
+    // *********************** Create a waterValve device ***********************
     this.valve = new MatterbridgeEndpoint([waterValve, bridgedNode, powerSource], { uniqueStorageKey: 'Water valve' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Water valve',
@@ -1110,7 +1110,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.valve?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
 
-    // ******************** Create a base fan device ********************
+    // *********************** Create a base fan device ***********************
     this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Fan',
@@ -1168,7 +1168,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.fan.log,
     );
 
-    // ******************** Create a default fan device ********************
+    // *********************** Create a default fan device ***********************
     this.fanauto = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high auto' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Fan auto',
@@ -1227,7 +1227,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.fanauto.log,
     );
 
-    //* ******************** Create a complete fan device ********************
+    // ******************** Create a complete fan device ********************
     this.fanComplete = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan complete' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Fan complete',
@@ -1320,7 +1320,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.fanComplete?.log,
     );
 
-    /** ********************* Create a waterLeakDetector device */
+    // *********************** Create a waterLeakDetector device ***********************
     this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Water leak detector',
@@ -1340,7 +1340,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.waterLeak = await this.addDevice(this.waterLeak);
 
-    /** ********************* Create a waterFreezeDetector device */
+    // *********************** Create a waterFreezeDetector device ***********************
     this.waterFreeze = new MatterbridgeEndpoint([waterFreezeDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Water freeze detector',
@@ -1360,7 +1360,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.waterFreeze = await this.addDevice(this.waterFreeze);
 
-    /** ********************* Create a rainSensor device */
+    // *********************** Create a rainSensor device ***********************
     this.rain = new MatterbridgeEndpoint([rainSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Rain sensor',
@@ -1380,7 +1380,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.rain = await this.addDevice(this.rain);
 
-    /** ********************* Create a smokeCoAlarm device */
+    // *********************** Create a smokeCoAlarm device ***********************
     this.smokeCo = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'SmokeCo alarm sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'SmokeCo alarm sensor',
@@ -1400,7 +1400,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.smokeCo = await this.addDevice(this.smokeCo);
 
-    /** ********************* Create a smokeCoAlarm smoke only device */
+    // *********************** Create a smokeCoAlarm smoke only device ***********************
     this.smokeOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Smoke alarm sensor',
@@ -1419,7 +1419,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.smokeOnly = await this.addDevice(this.smokeOnly);
 
-    /** ********************* Create a smokeCoAlarm co only device */
+    // *********************** Create a smokeCoAlarm co only device ***********************
     this.coOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Co alarm sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Co alarm sensor',
@@ -1439,7 +1439,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.coOnly = await this.addDevice(this.coOnly);
 
-    /** ********************* Create an airQuality device */
+    // *********************** Create an airQuality device ***********************
     this.airQuality = new MatterbridgeEndpoint([airQualitySensor, bridgedNode, powerSource], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Air quality sensor',
@@ -1468,7 +1468,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.airQuality = await this.addDevice(this.airQuality);
 
-    // ********************* Create a momentary switch *********************** //
+    // *********************** Create a momentary switch ***********************
     this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { uniqueStorageKey: 'Momentary switch composed' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Momentary switch  (Top-1 Middle-2 Bottom-3)',
@@ -1516,7 +1516,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.momentarySwitch = await this.addDevice(this.momentarySwitch);
 
-    /** ********************* Create a latching switch */
+    // *********************** Create a latching switch *****************************/
     this.latchingSwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Latching switch' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer(
         'Latching switch',
@@ -1535,7 +1535,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.latchingSwitch = await this.addDevice(this.latchingSwitch);
 
-    // *********************** Create a vacuum *****************************/
+    // *********************** Create a vacuum *****************************
     /*
     The RVC is supported correctly by the Home app (all commands work).
 
