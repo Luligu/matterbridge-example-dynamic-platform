@@ -131,6 +131,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   momentarySwitch: MatterbridgeEndpoint | undefined;
   latchingSwitch: MatterbridgeEndpoint | undefined;
   vacuum: MatterbridgeEndpoint | undefined;
+  roboticVacuum: MatterbridgeEndpoint | undefined;
   waterHeater: MatterbridgeEndpoint | undefined;
   evse: MatterbridgeEndpoint | undefined;
   laundryWasher: MatterbridgeEndpoint | undefined;
@@ -207,14 +208,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
-    if (!this.switch.serialNumber || !this.switch.deviceName) return;
-    this.setSelectDevice(this.switch.serialNumber, this.switch.deviceName, undefined, 'hub');
-    if (this.validateDevice(this.switch.deviceName)) {
-      await this.registerDevice(this.switch);
-      this.bridgedDevices.set(this.switch.deviceName, this.switch);
-    } else {
-      this.switch = undefined;
-    }
+
+    this.switch = await this.addDevice(this.switch);
 
     this.switch?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -245,13 +240,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
-    this.setSelectDevice(this.mountedOnOffSwitch.serialNumber ?? '', this.mountedOnOffSwitch.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.mountedOnOffSwitch.deviceName ?? '')) {
-      await this.registerDevice(this.mountedOnOffSwitch);
-      this.bridgedDevices.set(this.mountedOnOffSwitch.deviceName ?? '', this.mountedOnOffSwitch);
-    } else {
-      this.mountedOnOffSwitch = undefined;
-    }
+
+    this.mountedOnOffSwitch = await this.addDevice(this.mountedOnOffSwitch);
 
     this.mountedOnOffSwitch?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.mountedOnOffSwitch?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -288,13 +278,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultLevelControlClusterServer()
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
-    this.setSelectDevice(this.mountedDimmerSwitch.serialNumber ?? '', this.mountedDimmerSwitch.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.mountedDimmerSwitch.deviceName ?? '')) {
-      await this.registerDevice(this.mountedDimmerSwitch);
-      this.bridgedDevices.set(this.mountedDimmerSwitch.deviceName ?? '', this.mountedDimmerSwitch);
-    } else {
-      this.mountedDimmerSwitch = undefined;
-    }
+
+    this.mountedDimmerSwitch = await this.addDevice(this.mountedDimmerSwitch);
 
     this.mountedDimmerSwitch?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.mountedDimmerSwitch?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -333,13 +318,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
-    this.setSelectDevice(this.lightOnOff.serialNumber ?? '', this.lightOnOff.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.lightOnOff.deviceName ?? '')) {
-      await this.registerDevice(this.lightOnOff);
-      this.bridgedDevices.set(this.lightOnOff.deviceName ?? '', this.lightOnOff);
-    } else {
-      this.lightOnOff = undefined;
-    }
+
+    this.lightOnOff = await this.addDevice(this.lightOnOff);
 
     this.lightOnOff?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightOnOff?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -371,13 +351,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 2990, '2 x AA', 2);
-    this.setSelectDevice(this.dimmer.serialNumber ?? '', this.dimmer.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.dimmer.deviceName ?? '')) {
-      await this.registerDevice(this.dimmer);
-      this.bridgedDevices.set(this.dimmer.deviceName ?? '', this.dimmer);
-    } else {
-      this.dimmer = undefined;
-    }
+
+    this.dimmer = await this.addDevice(this.dimmer);
 
     this.dimmer?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.dimmer?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -418,13 +393,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultLevelControlClusterServer()
       .createDefaultColorControlClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(70);
-    this.setSelectDevice(this.light.serialNumber ?? '', this.light.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.light.deviceName ?? '')) {
-      await this.registerDevice(this.light);
-      this.bridgedDevices.set(this.light.deviceName ?? '', this.light);
-    } else {
-      this.light = undefined;
-    }
+
+    this.light = await this.addDevice(this.light);
 
     this.light?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.light?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -487,13 +457,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultLevelControlClusterServer()
       .createHsColorControlClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
-    this.setSelectDevice(this.lightHS.serialNumber ?? '', this.lightHS.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.lightHS.deviceName ?? '')) {
-      await this.registerDevice(this.lightHS);
-      this.bridgedDevices.set(this.lightHS.deviceName ?? '', this.lightHS);
-    } else {
-      this.lightHS = undefined;
-    }
+
+    this.lightHS = await this.addDevice(this.lightHS);
 
     this.lightHS?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightHS?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -551,13 +516,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultLevelControlClusterServer()
       .createXyColorControlClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
-    this.setSelectDevice(this.lightXY.serialNumber ?? '', this.lightXY.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.lightXY.deviceName ?? '')) {
-      await this.registerDevice(this.lightXY);
-      this.bridgedDevices.set(this.lightXY.deviceName ?? '', this.lightXY);
-    } else {
-      this.lightXY = undefined;
-    }
+
+    this.lightXY = await this.addDevice(this.lightXY);
 
     this.lightXY?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightXY?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -607,13 +567,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultLevelControlClusterServer()
       .createCtColorControlClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(70);
-    this.setSelectDevice(this.lightCT.serialNumber ?? '', this.lightCT.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.lightCT.deviceName ?? '')) {
-      await this.registerDevice(this.lightCT);
-      this.bridgedDevices.set(this.lightCT.deviceName ?? '', this.lightCT);
-    } else {
-      this.lightCT = undefined;
-    }
+
+    this.lightCT = await this.addDevice(this.lightCT);
 
     this.lightCT?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightCT?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -656,13 +611,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
-    this.setSelectDevice(this.outlet.serialNumber ?? '', this.outlet.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.outlet.deviceName ?? '')) {
-      await this.registerDevice(this.outlet);
-      this.bridgedDevices.set(this.outlet.deviceName ?? '', this.outlet);
-    } else {
-      this.outlet = undefined;
-    }
+
+    this.outlet = await this.addDevice(this.outlet);
 
     this.outlet?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.outlet?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -694,13 +644,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultWindowCoveringClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(86);
-    this.setSelectDevice(this.coverLift.serialNumber ?? '', this.coverLift.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.coverLift.deviceName ?? '')) {
-      await this.registerDevice(this.coverLift);
-      this.bridgedDevices.set(this.coverLift.deviceName ?? '', this.coverLift);
-    } else {
-      this.coverLift = undefined;
-    }
+
+    this.coverLift = await this.addDevice(this.coverLift);
 
     this.coverLift?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.coverLift?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -744,13 +689,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultLiftTiltWindowCoveringClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(86);
-    this.setSelectDevice(this.coverLiftTilt.serialNumber ?? '', this.coverLiftTilt.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.coverLiftTilt.deviceName ?? '')) {
-      await this.registerDevice(this.coverLiftTilt);
-      this.bridgedDevices.set(this.coverLiftTilt.deviceName ?? '', this.coverLiftTilt);
-    } else {
-      this.coverLiftTilt = undefined;
-    }
+
+    this.coverLiftTilt = await this.addDevice(this.coverLiftTilt);
+
     this.coverLiftTilt?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.coverLiftTilt?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
@@ -797,13 +738,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultDoorLockClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(30);
-    this.setSelectDevice(this.lock.serialNumber ?? '', this.lock.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.lock.deviceName ?? '')) {
-      await this.registerDevice(this.lock);
-      this.bridgedDevices.set(this.lock.deviceName ?? '', this.lock);
-    } else {
-      this.lock = undefined;
-    }
+
+    this.lock = await this.addDevice(this.lock);
 
     this.lock?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lock?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -850,13 +786,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
       .addRequiredClusterServers();
 
-    this.setSelectDevice(this.thermoAuto.serialNumber ?? '', this.thermoAuto.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.thermoAuto.deviceName ?? '')) {
-      await this.registerDevice(this.thermoAuto);
-      this.bridgedDevices.set(this.thermoAuto.deviceName ?? '', this.thermoAuto);
-    } else {
-      this.thermoAuto = undefined;
-    }
+    this.thermoAuto = await this.addDevice(this.thermoAuto);
 
     this.thermoAuto?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.thermoAuto?.log.info(`Command identify called identifyTime ${identifyTime}`);
@@ -936,13 +866,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultTemperatureMeasurementClusterServer(15 * 100);
 
-    this.setSelectDevice(this.thermoHeat.serialNumber ?? '', this.thermoHeat.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.thermoHeat.deviceName ?? '')) {
-      await this.registerDevice(this.thermoHeat);
-      this.bridgedDevices.set(this.thermoHeat.deviceName ?? '', this.thermoHeat);
-    } else {
-      this.thermoHeat = undefined;
-    }
+    this.thermoHeat = await this.addDevice(this.thermoHeat);
 
     this.thermoHeat?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.thermoHeat?.log.info(`Command identify called identifyTime ${identifyTime}`);
@@ -985,13 +909,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultCoolingThermostatClusterServer(20, 18, 5, 35)
       .createDefaultPowerSourceReplaceableBatteryClusterServer(40, PowerSource.BatChargeLevel.Ok, 5080, 'AA 1.5V', 4);
-    this.setSelectDevice(this.thermoCool.serialNumber ?? '', this.thermoCool.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.thermoCool.deviceName ?? '')) {
-      await this.registerDevice(this.thermoCool);
-      this.bridgedDevices.set(this.thermoCool.deviceName ?? '', this.thermoCool);
-    } else {
-      this.thermoCool = undefined;
-    }
+
+    this.thermoCool = await this.addDevice(this.thermoCool);
 
     this.thermoCool?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.thermoCool?.log.info(`Command identify called identifyTime ${identifyTime}`);
@@ -1041,13 +960,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultPowerSourceWiredClusterServer()
       .createDefaultActivatedCarbonFilterMonitoringClusterServer()
       .createDefaultHepaFilterMonitoringClusterServer();
-    this.setSelectDevice(this.airPurifier.serialNumber ?? '', this.airPurifier.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.airPurifier.deviceName ?? '')) {
-      await this.registerDevice(this.airPurifier);
-      this.bridgedDevices.set(this.airPurifier.deviceName ?? '', this.airPurifier);
-    } else {
-      this.airPurifier = undefined;
-    }
+
+    this.airPurifier = await this.addDevice(this.airPurifier);
 
     this.airPurifier?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.airPurifier?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -1113,13 +1027,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
-    this.setSelectDevice(this.airConditioner.serialNumber ?? '', this.airConditioner.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.airConditioner.deviceName ?? '')) {
-      await this.registerDevice(this.airConditioner);
-      this.bridgedDevices.set(this.airConditioner.deviceName ?? '', this.airConditioner);
-    } else {
-      this.airConditioner = undefined;
-    }
+
+    this.airConditioner = await this.addDevice(this.airConditioner);
 
     this.airConditioner?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.airConditioner?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -1159,13 +1068,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createLevelControlClusterServer()
       .createDefaultPumpConfigurationAndControlClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
-    this.setSelectDevice(this.pump.serialNumber ?? '', this.pump.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.pump.deviceName ?? '')) {
-      await this.registerDevice(this.pump);
-      this.bridgedDevices.set(this.pump.deviceName ?? '', this.pump);
-    } else {
-      this.pump = undefined;
-    }
+
+    this.pump = await this.addDevice(this.pump);
 
     this.pump?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.pump?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -1199,13 +1103,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultValveConfigurationAndControlClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
-    this.setSelectDevice(this.valve.serialNumber ?? '', this.valve.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.valve.deviceName ?? '')) {
-      await this.registerDevice(this.valve);
-      this.bridgedDevices.set(this.valve.deviceName ?? '', this.valve);
-    } else {
-      this.valve = undefined;
-    }
+
+    this.valve = await this.addDevice(this.valve);
 
     this.valve?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.valve?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -1227,13 +1126,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultPowerSourceWiredClusterServer()
       .createBaseFanControlClusterServer()
       .addRequiredClusterServers();
-    this.setSelectDevice(this.fan.serialNumber ?? '', this.fan.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.fan.deviceName ?? '')) {
-      await this.registerDevice(this.fan);
-      this.bridgedDevices.set(this.fan.deviceName ?? '', this.fan);
-    } else {
-      this.fan = undefined;
-    }
+
+    this.fan = await this.addDevice(this.fan);
 
     await this.fan?.subscribeAttribute(
       FanControl.Cluster.id,
@@ -1289,13 +1183,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       )
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
-    this.setSelectDevice(this.fanauto.serialNumber ?? '', this.fanauto.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.fanauto.deviceName ?? '')) {
-      await this.registerDevice(this.fanauto);
-      this.bridgedDevices.set(this.fanauto.deviceName ?? '', this.fanauto);
-    } else {
-      this.fanauto = undefined;
-    }
+
+    this.fanauto = await this.addDevice(this.fanauto);
 
     await this.fanauto?.subscribeAttribute(
       FanControl.Cluster.id,
@@ -1354,13 +1243,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultPowerSourceWiredClusterServer()
       .createCompleteFanControlClusterServer()
       .addRequiredClusterServers();
-    this.setSelectDevice(this.fanComplete.serialNumber ?? '', this.fanComplete.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.fanComplete.deviceName ?? '')) {
-      await this.registerDevice(this.fanComplete);
-      this.bridgedDevices.set(this.fanComplete.deviceName ?? '', this.fanComplete);
-    } else {
-      this.fanComplete = undefined;
-    }
+
+    this.fanComplete = await this.addDevice(this.fanComplete);
 
     await this.fanComplete?.subscribeAttribute(
       FanControl.Cluster.id,
@@ -1453,13 +1337,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultBooleanStateClusterServer(false)
       .addRequiredClusterServers()
       .addOptionalClusterServers();
-    this.setSelectDevice(this.waterLeak.serialNumber ?? '', this.waterLeak.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.waterLeak.deviceName ?? '')) {
-      await this.registerDevice(this.waterLeak);
-      this.bridgedDevices.set(this.waterLeak.deviceName ?? '', this.waterLeak);
-    } else {
-      this.waterLeak = undefined;
-    }
+
+    this.waterLeak = await this.addDevice(this.waterLeak);
 
     /** ********************* Create a waterFreezeDetector device */
     this.waterFreeze = new MatterbridgeEndpoint([waterFreezeDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean)
@@ -1478,13 +1357,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultBooleanStateClusterServer(false)
       .addRequiredClusterServers()
       .addOptionalClusterServers();
-    this.setSelectDevice(this.waterFreeze.serialNumber ?? '', this.waterFreeze.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.waterFreeze.deviceName ?? '')) {
-      await this.registerDevice(this.waterFreeze);
-      this.bridgedDevices.set(this.waterFreeze.deviceName ?? '', this.waterFreeze);
-    } else {
-      this.waterFreeze = undefined;
-    }
+
+    this.waterFreeze = await this.addDevice(this.waterFreeze);
 
     /** ********************* Create a rainSensor device */
     this.rain = new MatterbridgeEndpoint([rainSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean)
@@ -1503,13 +1377,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultBooleanStateClusterServer(false)
       .createDefaultBooleanStateConfigurationClusterServer();
-    this.setSelectDevice(this.rain.serialNumber ?? '', this.rain.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.rain.deviceName ?? '')) {
-      await this.registerDevice(this.rain);
-      this.bridgedDevices.set(this.rain.deviceName ?? '', this.rain);
-    } else {
-      this.rain = undefined;
-    }
+
+    this.rain = await this.addDevice(this.rain);
 
     /** ********************* Create a smokeCoAlarm device */
     this.smokeCo = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'SmokeCo alarm sensor' }, this.config.debug as boolean)
@@ -1528,13 +1397,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultSmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Normal)
       .createDefaultPowerSourceReplaceableBatteryClusterServer()
       .createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
-    this.setSelectDevice(this.smokeCo.serialNumber ?? '', this.smokeCo.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.smokeCo.deviceName ?? '')) {
-      await this.registerDevice(this.smokeCo);
-      this.bridgedDevices.set(this.smokeCo.deviceName ?? '', this.smokeCo);
-    } else {
-      this.smokeCo = undefined;
-    }
+
+    this.smokeCo = await this.addDevice(this.smokeCo);
 
     /** ********************* Create a smokeCoAlarm smoke only device */
     this.smokeOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean)
@@ -1552,13 +1416,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createSmokeOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal)
       .createDefaultPowerSourceReplaceableBatteryClusterServer();
-    this.setSelectDevice(this.smokeOnly.serialNumber ?? '', this.smokeOnly.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.smokeOnly.deviceName ?? '')) {
-      await this.registerDevice(this.smokeOnly);
-      this.bridgedDevices.set(this.smokeOnly.deviceName ?? '', this.smokeOnly);
-    } else {
-      this.smokeOnly = undefined;
-    }
+
+    this.smokeOnly = await this.addDevice(this.smokeOnly);
 
     /** ********************* Create a smokeCoAlarm co only device */
     this.coOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Co alarm sensor' }, this.config.debug as boolean)
@@ -1577,13 +1436,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createCoOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal)
       .createDefaultPowerSourceReplaceableBatteryClusterServer()
       .createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(100);
-    this.setSelectDevice(this.coOnly.serialNumber ?? '', this.coOnly.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.coOnly.deviceName ?? '')) {
-      await this.registerDevice(this.coOnly);
-      this.bridgedDevices.set(this.coOnly.deviceName ?? '', this.coOnly);
-    } else {
-      this.coOnly = undefined;
-    }
+
+    this.coOnly = await this.addDevice(this.coOnly);
 
     /** ********************* Create an airQuality device */
     this.airQuality = new MatterbridgeEndpoint([airQualitySensor, bridgedNode, powerSource], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean)
@@ -1612,13 +1466,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultRadonConcentrationMeasurementClusterServer(100)
       .createDefaultTvocMeasurementClusterServer(100);
 
-    this.setSelectDevice(this.airQuality.serialNumber ?? '', this.airQuality.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.airQuality.deviceName ?? '')) {
-      await this.registerDevice(this.airQuality);
-      this.bridgedDevices.set(this.airQuality.deviceName ?? '', this.airQuality);
-    } else {
-      this.airQuality = undefined;
-    }
+    this.airQuality = await this.addDevice(this.airQuality);
 
     // ********************* Create a momentary switch *********************** //
     this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { uniqueStorageKey: 'Momentary switch composed' }, this.config.debug as boolean)
@@ -1666,13 +1514,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultSwitchClusterServer();
 
-    this.setSelectDevice(this.momentarySwitch.serialNumber ?? '', this.momentarySwitch.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.momentarySwitch.deviceName ?? '')) {
-      await this.registerDevice(this.momentarySwitch);
-      this.bridgedDevices.set(this.momentarySwitch.deviceName ?? '', this.momentarySwitch);
-    } else {
-      this.momentarySwitch = undefined;
-    }
+    this.momentarySwitch = await this.addDevice(this.momentarySwitch);
 
     /** ********************* Create a latching switch */
     this.latchingSwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Latching switch' }, this.config.debug as boolean)
@@ -1690,13 +1532,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultLatchingSwitchClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(10, PowerSource.BatChargeLevel.Critical, 2850, 'CR2032', 1);
-    this.setSelectDevice(this.latchingSwitch.serialNumber ?? '', this.latchingSwitch.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.latchingSwitch.deviceName ?? '')) {
-      await this.registerDevice(this.latchingSwitch);
-      this.bridgedDevices.set(this.latchingSwitch.deviceName ?? '', this.latchingSwitch);
-    } else {
-      this.latchingSwitch = undefined;
-    }
+
+    this.latchingSwitch = await this.addDevice(this.latchingSwitch);
 
     // *********************** Create a vacuum *****************************/
     /*
@@ -1706,8 +1543,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     If the RVC is in a bridge with other devices, the whole Home app crashes... so don't try it. If your controller is Apple Home use server mode for the RVC.
     */
-
-    const robot = new RoboticVacuumCleaner(
+    this.roboticVacuum = new RoboticVacuumCleaner(
       'Robot Vacuum',
       'RVC1238777820',
       this.config.enableServerRvc === true ? 'server' : undefined,
@@ -1776,19 +1612,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.config.enableServerRvc === true) {
       this.log.notice('RVC is in server mode');
     }
-    this.setSelectDevice(robot.serialNumber ?? '', robot.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(robot.deviceName ?? '')) {
-      await this.registerDevice(robot);
-      this.bridgedDevices.set(robot.deviceName ?? '', robot);
-    }
+    this.roboticVacuum = await this.addDevice(this.roboticVacuum);
 
     // *********************** Create a water heater ***************************
     this.waterHeater = new WaterHeater('Water Heater', 'WH3456177820', 50, 60, 20, 80, undefined, 85, 220_000, 1_000, 220_000, 12_000_000, 500_000, 3_000_000);
-    this.setSelectDevice(this.waterHeater.serialNumber ?? '', this.waterHeater.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.waterHeater.deviceName ?? '')) {
-      await this.registerDevice(this.waterHeater);
-      this.bridgedDevices.set(this.waterHeater.deviceName ?? '', this.waterHeater);
-    }
+    this.waterHeater = await this.addDevice(this.waterHeater);
 
     // *********************** Create an Evse ***************************
     this.evse = new Evse(
@@ -1811,14 +1639,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       500_000, // 500 Wh
       32_000_000, // 32 kWh
     );
-    this.setSelectDevice(this.evse.serialNumber ?? '', this.evse.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.evse.deviceName ?? '')) {
-      await this.registerDevice(this.evse);
-      this.bridgedDevices.set(this.evse.deviceName ?? '', this.evse);
-    }
+    this.evse = await this.addDevice(this.evse);
 
     // *********************** Create a SolarPower **************************
-
     this.solarPower = new SolarPower(
       'Solar Power',
       'SP3456127821',
@@ -1829,14 +1652,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       -10_000_000, // -10 kWh
       500_000, // 500 Wh
     );
-    this.setSelectDevice(this.solarPower.serialNumber ?? '', this.solarPower.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.solarPower.deviceName ?? '')) {
-      await this.registerDevice(this.solarPower);
-      this.bridgedDevices.set(this.solarPower.deviceName ?? '', this.solarPower);
-    }
+    this.solarPower = await this.addDevice(this.solarPower);
 
     // *********************** Create a BatteryStorage **************************
-
     this.batteryStorage = new BatteryStorage(
       'Battery Storage',
       'BS3456127822',
@@ -1850,11 +1668,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       -2_000_000, // -2 kWh
       3_000_000, // 3 kWh
     );
-    this.setSelectDevice(this.batteryStorage.serialNumber ?? '', this.batteryStorage.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.batteryStorage.deviceName ?? '')) {
-      await this.registerDevice(this.batteryStorage);
-      this.bridgedDevices.set(this.batteryStorage.deviceName ?? '', this.batteryStorage);
-    }
+    this.batteryStorage = await this.addDevice(this.batteryStorage);
 
     // *********************** Create an HeatPump **************************
     this.heatPump = new HeatPump(
@@ -1867,75 +1681,38 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       500_000, // 500 watt
       3_000_000, // 3 kWh
     );
-    this.setSelectDevice(this.heatPump.serialNumber ?? '', this.heatPump.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.heatPump.deviceName ?? '')) {
-      await this.registerDevice(this.heatPump);
-      this.bridgedDevices.set(this.heatPump.deviceName ?? '', this.heatPump);
-    }
+    this.heatPump = await this.addDevice(this.heatPump);
 
     // *********************** Create a LaundryWasher **************************
     this.laundryWasher = new LaundryWasher('Laundry Washer', 'LW1234567890');
-    this.setSelectDevice(this.laundryWasher.serialNumber ?? '', this.laundryWasher.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.laundryWasher.deviceName ?? '')) {
-      await this.registerDevice(this.laundryWasher);
-      this.bridgedDevices.set(this.laundryWasher.deviceName ?? '', this.laundryWasher);
-    }
+    this.laundryWasher = await this.addDevice(this.laundryWasher);
 
     // *********************** Create a LaundryDryer **************************
     this.laundryDryer = new LaundryDryer('Laundry Dryer', 'LDW1235227890');
-    this.setSelectDevice(this.laundryDryer.serialNumber ?? '', this.laundryDryer.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.laundryDryer.deviceName ?? '')) {
-      await this.registerDevice(this.laundryDryer);
-      this.bridgedDevices.set(this.laundryDryer.deviceName ?? '', this.laundryDryer);
-    }
+    this.laundryDryer = await this.addDevice(this.laundryDryer);
 
     // *********************** Create a Dishwasher **************************
     this.dishwasher = new Dishwasher('Dishwasher', 'DW1234567890');
-    this.setSelectDevice(this.dishwasher.serialNumber ?? '', this.dishwasher.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.dishwasher.deviceName ?? '')) {
-      await this.registerDevice(this.dishwasher);
-      this.bridgedDevices.set(this.dishwasher.deviceName ?? '', this.dishwasher);
-    }
+    this.dishwasher = await this.addDevice(this.dishwasher);
 
     // *********************** Create an Extractor Hood **************************
     this.extractorHood = new ExtractorHood('Extractor Hood', 'EH1234567893');
-    this.setSelectDevice(this.extractorHood.serialNumber ?? '', this.extractorHood.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(this.extractorHood.deviceName ?? '')) {
-      await this.registerDevice(this.extractorHood);
-      this.bridgedDevices.set(this.extractorHood.deviceName ?? '', this.extractorHood);
-    }
+    this.extractorHood = await this.addDevice(this.extractorHood);
 
     // *********************** Create the appliances **************************
-
     const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', 'RE9987654322');
     refrigeratorDevice.addFixedLabel('composed', 'Refrigerator');
-    this.setSelectDevice(refrigeratorDevice.serialNumber ?? '', refrigeratorDevice.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(refrigeratorDevice.deviceName ?? '')) {
-      await this.registerDevice(refrigeratorDevice);
-      this.bridgedDevices.set(refrigeratorDevice.deviceName ?? '', refrigeratorDevice);
-    }
+    await this.addDevice(refrigeratorDevice);
 
     const ovenDevice = new Appliances(oven, 'Oven', 'OV1298867891');
     ovenDevice.addFixedLabel('composed', 'Oven');
-    this.setSelectDevice(ovenDevice.serialNumber ?? '', ovenDevice.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(ovenDevice.deviceName ?? '')) {
-      await this.registerDevice(ovenDevice);
-      this.bridgedDevices.set(ovenDevice.deviceName ?? '', ovenDevice);
-    }
+    await this.addDevice(ovenDevice);
 
     const microwaveOvenDevice = new Appliances(microwaveOven, 'Microwave Oven', 'MO1234567892');
-    this.setSelectDevice(microwaveOvenDevice.serialNumber ?? '', microwaveOvenDevice.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(microwaveOvenDevice.deviceName ?? '')) {
-      await this.registerDevice(microwaveOvenDevice);
-      this.bridgedDevices.set(microwaveOvenDevice.deviceName ?? '', microwaveOvenDevice);
-    }
+    await this.addDevice(microwaveOvenDevice);
 
     const cooktopDevice = new Appliances(cooktop, 'Cooktop', 'CT1255887894');
-    this.setSelectDevice(cooktopDevice.serialNumber ?? '', cooktopDevice.deviceName ?? '', undefined, 'hub');
-    if (this.validateDevice(cooktopDevice.deviceName ?? '')) {
-      await this.registerDevice(cooktopDevice);
-      this.bridgedDevices.set(cooktopDevice.deviceName ?? '', cooktopDevice);
-    }
+    await this.addDevice(cooktopDevice);
   }
 
   override async onConfigure() {
@@ -2397,5 +2174,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await super.onShutdown(reason);
     this.log.info('onShutdown called with reason:', reason ?? 'none');
     if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices(500);
+  }
+
+  async addDevice(device: MatterbridgeEndpoint): Promise<MatterbridgeEndpoint | undefined> {
+    if (!device.serialNumber || !device.deviceName) return;
+    this.setSelectDevice(device.serialNumber, device.deviceName, undefined, 'hub');
+    if (this.validateDevice(device.deviceName)) {
+      await this.registerDevice(device);
+      this.bridgedDevices.set(device.deviceName, device);
+      return device;
+    } else {
+      return undefined;
+    }
   }
 }
