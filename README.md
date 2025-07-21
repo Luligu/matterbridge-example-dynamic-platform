@@ -17,7 +17,7 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 44 virtual devices:
+It exposes 45 virtual devices:
 
 - a switch with onOff cluster
 - a light with onOff
@@ -35,6 +35,7 @@ It exposes 44 virtual devices:
 - a thermo heat only with two external temperature sensors (tagged like Indoor and Outdoor)
 - a thermo cool only
 - a fan with FanControl cluster
+- a fan with all the features from FanControl cluster
 - a rainSensor device
 - a waterFreezeDetector device
 - a waterLeakDetector device
