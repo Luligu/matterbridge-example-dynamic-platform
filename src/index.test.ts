@@ -1,3 +1,9 @@
+const MATTER_PORT = 6001;
+const NAME = 'Index';
+const HOMEDIR = path.join('jest', NAME);
+
+process.argv = ['node', 'index.test.js', '-novirtual', '-frontend', '0', '-homedir', HOMEDIR, '-port', MATTER_PORT.toString()];
+
 import path from 'node:path';
 import { rmSync } from 'node:fs';
 
@@ -8,12 +14,8 @@ import { jest } from '@jest/globals';
 import initializePlugin from './index.ts';
 import { ExampleMatterbridgeDynamicPlatform } from './platform.ts';
 
-// Cleanup the matter environment
-try {
-  rmSync(path.join('jest', 'index'), { recursive: true, force: true });
-} catch (error) {
-  //
-}
+// Cleanup the test environment
+rmSync(HOMEDIR, { recursive: true, force: true });
 
 describe('initializePlugin', () => {
   const mockLog = {
@@ -26,9 +28,9 @@ describe('initializePlugin', () => {
   } as unknown as AnsiLogger;
 
   const mockMatterbridge = {
-    homeDirectory: path.join('jest', 'index'),
-    matterbridgeDirectory: path.join('jest', 'index', '.matterbridge'),
-    matterbridgePluginDirectory: path.join('jest', 'index', 'Matterbridge'),
+    homeDirectory: path.join(HOMEDIR),
+    matterbridgeDirectory: path.join(HOMEDIR, '.matterbridge'),
+    matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
     matterbridgeVersion: '3.1.6',
     enableConcentrationMeasurements: true,

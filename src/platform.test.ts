@@ -1,3 +1,9 @@
+const MATTER_PORT = 6002;
+const NAME = 'Platform';
+const HOMEDIR = path.join('jest', NAME);
+
+process.argv = ['node', 'platform.test.js', '-novirtual', '-frontend', '0', '-homedir', HOMEDIR, '-port', MATTER_PORT.toString()];
+
 import path from 'node:path';
 import { rmSync } from 'node:fs';
 
@@ -47,12 +53,8 @@ if (!debug) {
   consoleErrorSpy = jest.spyOn(console, 'error');
 }
 
-// Cleanup the matter environment
-try {
-  rmSync(path.join('jest', 'platform'), { recursive: true, force: true });
-} catch (error) {
-  //
-}
+// Cleanup the test environment
+rmSync(HOMEDIR, { recursive: true, force: true });
 
 describe('TestPlatform', () => {
   let matterbridge: Matterbridge;
@@ -71,9 +73,9 @@ describe('TestPlatform', () => {
   } as unknown as AnsiLogger;
 
   const mockMatterbridge = {
-    homeDirectory: path.join('jest', 'platform'),
-    matterbridgeDirectory: path.join('jest', 'platform', '.matterbridge'),
-    matterbridgePluginDirectory: path.join('jest', 'platform', 'Matterbridge'),
+    homeDirectory: path.join(HOMEDIR),
+    matterbridgeDirectory: path.join(HOMEDIR, '.matterbridge'),
+    matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
     matterbridgeVersion: '3.1.6',
     enableServerRvc: true,
@@ -105,13 +107,14 @@ describe('TestPlatform', () => {
   beforeAll(async () => {
     // Create a MatterbridgeEdge instance
     matterbridge = await Matterbridge.loadInstance(false);
-    matterbridge.matterbridgeDirectory = path.join('jest', 'platform', '.matterbridge');
-    matterbridge.matterbridgePluginDirectory = path.join('jest', 'platform', 'Matterbridge');
+    matterbridge.homeDirectory = path.join(HOMEDIR);
+    matterbridge.matterbridgeDirectory = path.join(HOMEDIR, '.matterbridge');
+    matterbridge.matterbridgePluginDirectory = path.join(HOMEDIR, 'Matterbridge');
 
     // Setup matter environment
     matterbridge.environment.vars.set('log.level', Level.NOTICE);
     matterbridge.environment.vars.set('log.format', Format.ANSI);
-    matterbridge.environment.vars.set('path.root', path.join('jest', 'platform', '.matterbridge', 'matterstorage'));
+    matterbridge.environment.vars.set('path.root', path.join(HOMEDIR, '.matterbridge', 'matterstorage'));
     matterbridge.environment.vars.set('runtime.signals', false);
     matterbridge.environment.vars.set('runtime.exitcode', false);
   });
@@ -213,7 +216,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(45);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(46);
   }, 60000);
 
   it('should start the server', async () => {
@@ -277,7 +280,7 @@ describe('TestPlatform', () => {
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.High);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.On);
-        if (device.deviceName === 'Fan') {
+        if (device.deviceName === 'Fan auto') {
           await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto);
         }
 
@@ -290,7 +293,10 @@ describe('TestPlatform', () => {
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.High, FanControl.FanMode.High);
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.On, FanControl.FanMode.On);
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Auto, FanControl.FanMode.Auto);
-        await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 100, 100);
+        await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 30, 30);
+        await invokeSubscribeHandler(device, 'fanControl', 'rockSetting', {}, {});
+        await invokeSubscribeHandler(device, 'fanControl', 'windSetting', {}, {});
+        await invokeSubscribeHandler(device, 'fanControl', 'airflowDirection', {}, {});
       }
 
       if (device.hasClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))) {
@@ -329,19 +335,23 @@ describe('TestPlatform', () => {
 
     // Simulate multiple interval executions
     for (let i = 0; i < 100; i++) {
+      await Promise.resolve();
       jest.advanceTimersByTime(60 * 1000);
+      await Promise.resolve();
     }
 
     jest.useRealTimers();
 
-    expect(mockLog.info).toHaveBeenCalledTimes(2);
+    expect(mockLog.info).toHaveBeenCalledTimes(5);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(1358);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(2536);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.SinglePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.DoublePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.LongPress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.Press'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.Release'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Set lock lockState to Unlocked'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Set lock lockState to Locked'));
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
