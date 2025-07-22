@@ -28,7 +28,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [platform]: Changed to the new ExtratorHood() and Dishwasher() from Matterbridge.
-- [platform]: Added a Fan with on Off Low Med High.
+- [platform]: Added a Fan with On Off Low Med High.
 - [platform]: Added a Fan with complete set of features.
 
 ### Changed
