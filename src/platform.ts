@@ -61,7 +61,7 @@ import {
 import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump, Dishwasher, ExtractorHood } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
-import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag } from 'matterbridge/matter';
+import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag, SwitchesTag } from 'matterbridge/matter';
 import {
   PowerSource,
   BooleanState,
@@ -114,8 +114,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   thermoAuto: MatterbridgeEndpoint | undefined;
   thermoHeat: MatterbridgeEndpoint | undefined;
   thermoCool: MatterbridgeEndpoint | undefined;
-  fan: MatterbridgeEndpoint | undefined;
-  fanauto: MatterbridgeEndpoint | undefined;
+  fanBase: MatterbridgeEndpoint | undefined;
+  fanOnHigh: MatterbridgeEndpoint | undefined;
+  fanDefault: MatterbridgeEndpoint | undefined;
   fanComplete: MatterbridgeEndpoint | undefined;
   waterLeak: MatterbridgeEndpoint | undefined;
   waterFreeze: MatterbridgeEndpoint | undefined;
@@ -171,9 +172,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.1.6')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.1.7')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.1.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.1.7". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -195,17 +196,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.switch = new MatterbridgeEndpoint([onOffSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Switch' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Switch',
-        '0x23452164',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Switch',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Switch', '0x23452164', 0xfff1, 'Matterbridge', 'Matterbridge Switch')
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
 
@@ -227,17 +218,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.mountedOnOffSwitch = new MatterbridgeEndpoint([onOffMountedSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'OnOffMountedSwitch' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'OnOff Mounted Switch',
-        '0x298242164',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge OnOff Mounted Switch',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('OnOff Mounted Switch', '0x298242164', 0xfff1, 'Matterbridge', 'Matterbridge OnOff Mounted Switch')
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
 
@@ -263,17 +244,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     )
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Dimmer Mounted Switch',
-        '0x22145578864',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Dimmer Mounted Switch',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Dimmer Mounted Switch', '0x22145578864', 0xfff1, 'Matterbridge', 'Matterbridge Dimmer Mounted Switch')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createDefaultPowerSourceWiredClusterServer()
@@ -305,17 +276,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightOnOff = new MatterbridgeEndpoint([onOffLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (on/off)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Light (on/off)',
-        '0x2342375564',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Light on/off',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Light (on/off)', '0x2342375564', 0xfff1, 'Matterbridge', 'Matterbridge Light on/off')
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
 
@@ -337,17 +298,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.dimmer = new MatterbridgeEndpoint([dimmableLight, bridgedNode, powerSource], { uniqueStorageKey: 'Dimmer' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Dimmer',
-        '0x234554564',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Dimmer',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Dimmer', '0x234554564', 0xfff1, 'Matterbridge', 'Matterbridge Dimmer')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 2990, '2 x AA', 2);
@@ -378,17 +329,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, HS and CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Light (XY, HS and CT)',
-        '0x23480564',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Light',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, HS and CT)', '0x23480564', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createDefaultColorControlClusterServer()
@@ -442,17 +383,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightHS = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (HS, CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Light (HS, CT)',
-        '0x25097564',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Light',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Light (HS, CT)', '0x25097564', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createHsColorControlClusterServer()
@@ -501,17 +432,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightXY = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Light (XY, CT)',
-        '0x23497564',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Light',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, CT)', '0x23497564', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createXyColorControlClusterServer()
@@ -552,17 +473,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightCT = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Light (CT)',
-        '0x23480749',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Light',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Light (CT)', '0x23480749', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createCtColorControlClusterServer()
@@ -598,17 +509,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.outlet = new MatterbridgeEndpoint([onOffOutlet, bridgedNode, powerSource], { uniqueStorageKey: 'Outlet' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Outlet',
-        '0x29252164',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Outlet',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Outlet', '0x29252164', 0xfff1, 'Matterbridge', 'Matterbridge Outlet')
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
 
@@ -631,17 +532,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.coverLift = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { uniqueStorageKey: 'CoverLift' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Cover lift',
-        'CL01020564',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Cover',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Cover lift', 'CL01020564', 0xfff1, 'Matterbridge', 'Matterbridge Cover')
       .createDefaultWindowCoveringClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(86);
 
@@ -676,17 +567,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.coverLiftTilt = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { uniqueStorageKey: 'CoverLiftTilt' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Cover lift and tilt',
-        'CLT01020554',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Cover',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Cover lift and tilt', 'CLT01020554', 0xfff1, 'Matterbridge', 'Matterbridge Cover')
       .createDefaultLiftTiltWindowCoveringClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(86);
 
@@ -725,17 +606,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a lock device ***********************
     this.lock = new MatterbridgeEndpoint([doorLockDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Lock' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Lock',
-        '0x96352164',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Lock',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Lock', '0x96352164', 0xfff1, 'Matterbridge', 'Matterbridge Lock')
       .createDefaultDoorLockClusterServer()
       .createDefaultPowerSourceRechargeableBatteryClusterServer(30);
 
@@ -757,17 +628,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoAuto = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (AutoMode)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Thermostat (AutoMode)',
-        '0x96382164A',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Thermostat',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoMode)', '0x96382164A', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
       .createDefaultThermostatClusterServer(20, 18, 22)
       .createDefaultPowerSourceRechargeableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 4700);
 
@@ -838,30 +699,26 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoHeat = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Heat)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Thermostat (Heat)',
-        '0x96382164H',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Thermostat',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (Heat)', '0x96382164H', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
       .createDefaultHeatingThermostatClusterServer(20, 18, 5, 35)
       .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 6010, 'AA 1.5V', 4);
 
     this.thermoHeat
       .addChildDeviceType('TemperatureIN', [temperatureSensor], {
-        tagList: [{ mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null }],
+        tagList: [
+          { mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null },
+          { mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: null },
+        ],
       })
       .createDefaultIdentifyClusterServer()
       .createDefaultTemperatureMeasurementClusterServer(21 * 100);
 
     this.thermoHeat
       .addChildDeviceType('TemperatureOUT', [temperatureSensor], {
-        tagList: [{ mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: null }],
+        tagList: [
+          { mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: null },
+          { mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: null },
+        ],
       })
       .createDefaultIdentifyClusterServer()
       .createDefaultTemperatureMeasurementClusterServer(15 * 100);
@@ -896,17 +753,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoCool = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Cool)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Thermostat (Cool)',
-        '0x96382164C',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Thermostat',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (Cool)', '0x96382164C', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
       .createDefaultCoolingThermostatClusterServer(20, 18, 5, 35)
       .createDefaultPowerSourceReplaceableBatteryClusterServer(40, PowerSource.BatChargeLevel.Ok, 5080, 'AA 1.5V', 4);
 
@@ -942,17 +789,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       { uniqueStorageKey: 'Air purifier' },
       this.config.debug as boolean,
     )
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Air purifier',
-        '0x96584864AP',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Air purifier',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Air purifier', '0x96584864AP', 0xfff1, 'Matterbridge', 'Matterbridge Air purifier')
       .createDefaultIdentifyClusterServer()
       .createDefaultFanControlClusterServer()
       .createDefaultTemperatureMeasurementClusterServer(20 * 100)
@@ -1007,17 +844,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a airConditioner device ***********************
     this.airConditioner = new MatterbridgeEndpoint([airConditioner, bridgedNode, powerSource], { uniqueStorageKey: 'Air Conditioner' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Air Conditioner',
-        '0x96382864AC',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Air Conditioner',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Air Conditioner', '0x96382864AC', 0xfff1, 'Matterbridge', 'Matterbridge Air Conditioner')
       .createDefaultIdentifyClusterServer()
       .createDeadFrontOnOffClusterServer(true)
       .createDefaultThermostatClusterServer(20, 18, 22)
@@ -1052,17 +879,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a pumpDevice device ***********************
     this.pump = new MatterbridgeEndpoint([pumpDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Pump' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Pump',
-        '0x96382864PUMP',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Pump',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Pump', '0x96382864PUMP', 0xfff1, 'Matterbridge', 'Matterbridge Pump')
       .createDefaultIdentifyClusterServer()
       .createOnOffClusterServer()
       .createLevelControlClusterServer()
@@ -1089,17 +906,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a waterValve device ***********************
     this.valve = new MatterbridgeEndpoint([waterValve, bridgedNode, powerSource], { uniqueStorageKey: 'Water valve' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Water valve',
-        '0x96382864WV',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Water valve',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Water valve', '0x96382864WV', 0xfff1, 'Matterbridge', 'Matterbridge Water valve')
       .createDefaultIdentifyClusterServer()
       .createDefaultValveConfigurationAndControlClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
@@ -1110,136 +917,150 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.valve?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
 
-    // *********************** Create a base fan device ***********************
-    this.fan = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Fan',
-        'FNB_980545631228',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Fan',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
-      .createDefaultPowerSourceWiredClusterServer()
-      .createBaseFanControlClusterServer()
-      .addRequiredClusterServers();
-
-    this.fan = await this.addDevice(this.fan);
-
-    await this.fan?.subscribeAttribute(
-      FanControl.Cluster.id,
-      'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
-        this.fan?.log.info(`Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`);
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (newValue === FanControl.FanMode.Off) {
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fan?.log);
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fan?.log);
-        } else if (newValue === FanControl.FanMode.Low) {
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fan?.log);
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fan?.log);
-        } else if (newValue === FanControl.FanMode.Medium) {
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fan?.log);
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fan?.log);
-        } else if (newValue === FanControl.FanMode.High) {
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fan?.log);
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
-        } else if (newValue === FanControl.FanMode.On) {
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fan?.log);
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fan?.log);
-        } else if (newValue === FanControl.FanMode.Auto) {
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fan?.log);
-          this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fan?.log);
-        }
-      },
-      this.fan.log,
-    );
-    await this.fan?.subscribeAttribute(
-      FanControl.Cluster.id,
-      'percentSetting',
-      (newValue: number | null, oldValue: number | null, context) => {
-        this.fan?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (isValidNumber(newValue, 0, 100)) this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fan?.log);
-      },
-      this.fan.log,
-    );
-
-    // *********************** Create a default fan device ***********************
-    this.fanauto = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high auto' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Fan auto',
-        'FNA_980545631228',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Fan',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+    // *********************** Create a default off low medium high auto fan device ***********************
+    this.fanDefault = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high auto' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Fan', 'FAN_980545631228', 0xfff1, 'Matterbridge', 'Matterbridge Fan')
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
 
-    this.fanauto = await this.addDevice(this.fanauto);
+    this.fanDefault = await this.addDevice(this.fanDefault);
 
-    await this.fanauto?.subscribeAttribute(
+    await this.fanDefault?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
       (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
-        this.fanauto?.log.info(
+        this.fanDefault?.log.info(
           `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
         );
         if (context.offline === true) return; // Do not set attributes when offline
         if (newValue === FanControl.FanMode.Off) {
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanauto?.log);
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanauto?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanDefault?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanDefault?.log);
         } else if (newValue === FanControl.FanMode.Low) {
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanauto?.log);
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanauto?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanDefault?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanDefault?.log);
         } else if (newValue === FanControl.FanMode.Medium) {
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanauto?.log);
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanauto?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanDefault?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanDefault?.log);
         } else if (newValue === FanControl.FanMode.High) {
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanauto?.log);
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanauto?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
         } else if (newValue === FanControl.FanMode.On) {
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanauto?.log);
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanauto?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
         } else if (newValue === FanControl.FanMode.Auto) {
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fanauto?.log);
-          this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanauto?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fanDefault?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanDefault?.log);
         }
       },
-      this.fanauto.log,
+      this.fanDefault.log,
     );
-    await this.fanauto?.subscribeAttribute(
+    await this.fanDefault?.subscribeAttribute(
       FanControl.Cluster.id,
       'percentSetting',
       (newValue: number | null, oldValue: number | null, context) => {
-        this.fanauto?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        this.fanDefault?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
         if (context.offline === true) return; // Do not set attributes when offline
-        if (isValidNumber(newValue, 0, 100)) this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanauto?.log);
+        if (isValidNumber(newValue, 0, 100)) this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanDefault?.log);
       },
-      this.fanauto.log,
+      this.fanDefault.log,
+    );
+
+    // *********************** Create a base fan device ***********************
+    this.fanBase = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Fan base', 'FANB_980545631228', 0xfff1, 'Matterbridge', 'Matterbridge Fan')
+      .createDefaultPowerSourceWiredClusterServer()
+      .createBaseFanControlClusterServer()
+      .addRequiredClusterServers();
+
+    this.fanBase = await this.addDevice(this.fanBase);
+
+    await this.fanBase?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'fanMode',
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.fanBase?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+        );
+        if (context.offline === true) return; // Do not set attributes when offline
+        if (newValue === FanControl.FanMode.Off) {
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanBase?.log);
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanBase?.log);
+        } else if (newValue === FanControl.FanMode.Low) {
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanBase?.log);
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanBase?.log);
+        } else if (newValue === FanControl.FanMode.Medium) {
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanBase?.log);
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanBase?.log);
+        } else if (newValue === FanControl.FanMode.High) {
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
+        } else if (newValue === FanControl.FanMode.On) {
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
+        } else if (newValue === FanControl.FanMode.Auto) {
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fanBase?.log);
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanBase?.log);
+        }
+      },
+      this.fanBase.log,
+    );
+    await this.fanBase?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'percentSetting',
+      (newValue: number | null, oldValue: number | null, context) => {
+        this.fanBase?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
+        if (isValidNumber(newValue, 0, 100)) this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanBase?.log);
+      },
+      this.fanBase.log,
+    );
+
+    // *********************** Create a On High fan device ***********************
+    this.fanOnHigh = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off high' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Fan off high', 'FANOH_980545631228', 0xfff1, 'Matterbridge', 'Matterbridge Fan')
+      .createDefaultPowerSourceWiredClusterServer()
+      .createOnOffFanControlClusterServer()
+      .addRequiredClusterServers();
+
+    this.fanOnHigh = await this.addDevice(this.fanOnHigh);
+
+    await this.fanOnHigh?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'fanMode',
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.fanOnHigh?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+        );
+        if (context.offline === true) return; // Do not set attributes when offline
+        if (newValue === FanControl.FanMode.Off) {
+          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanOnHigh?.log);
+          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanOnHigh?.log);
+        } else if (newValue === FanControl.FanMode.High) {
+          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanOnHigh?.log);
+          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanOnHigh?.log);
+        }
+      },
+      this.fanOnHigh.log,
+    );
+    await this.fanOnHigh?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'percentSetting',
+      (newValue: number | null, oldValue: number | null, context) => {
+        this.fanOnHigh?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
+        if (isValidNumber(newValue, 0, 100)) {
+          if (newValue > 0) newValue = 100; // OnOff fan control only supports 0 and 100
+          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanOnHigh?.log);
+          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', newValue, this.fanOnHigh?.log);
+        }
+      },
+      this.fanOnHigh.log,
     );
 
     // ******************** Create a complete fan device ********************
     this.fanComplete = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan complete' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Fan complete',
-        'FNC_980995631228',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Fan',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Fan complete', 'FANC_980995631228', 0xfff1, 'Matterbridge', 'Matterbridge Fan')
       .createDefaultPowerSourceWiredClusterServer()
       .createCompleteFanControlClusterServer()
       .addRequiredClusterServers();
@@ -1322,17 +1143,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a waterLeakDetector device ***********************
     this.waterLeak = new MatterbridgeEndpoint([waterLeakDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water leak detector' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Water leak detector',
-        'serial_98745631222',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge WaterLeakDetector',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Water leak detector', 'serial_98745631222', 0xfff1, 'Matterbridge', 'Matterbridge WaterLeakDetector')
       .createDefaultPowerSourceRechargeableBatteryClusterServer()
       .createDefaultBooleanStateClusterServer(false)
       .addRequiredClusterServers()
@@ -1342,17 +1153,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a waterFreezeDetector device ***********************
     this.waterFreeze = new MatterbridgeEndpoint([waterFreezeDetector, bridgedNode, powerSource], { uniqueStorageKey: 'Water freeze detector' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Water freeze detector',
-        'serial_98745631223',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge WaterFreezeDetector',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Water freeze detector', 'serial_98745631223', 0xfff1, 'Matterbridge', 'Matterbridge WaterFreezeDetector')
       .createDefaultPowerSourceRechargeableBatteryClusterServer()
       .createDefaultBooleanStateClusterServer(false)
       .addRequiredClusterServers()
@@ -1362,17 +1163,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a rainSensor device ***********************
     this.rain = new MatterbridgeEndpoint([rainSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Rain sensor' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Rain sensor',
-        'serial_98745631224',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge RainSensor',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Rain sensor', 'serial_98745631224', 0xfff1, 'Matterbridge', 'Matterbridge RainSensor')
       .createDefaultPowerSourceRechargeableBatteryClusterServer()
       .createDefaultIdentifyClusterServer()
       .createDefaultBooleanStateClusterServer(false)
@@ -1382,17 +1173,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a smokeCoAlarm device ***********************
     this.smokeCo = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'SmokeCo alarm sensor' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'SmokeCo alarm sensor',
-        'serial_94745631225',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge SmokeCoAlarm',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('SmokeCo alarm sensor', 'serial_94745631225', 0xfff1, 'Matterbridge', 'Matterbridge SmokeCoAlarm')
       .createDefaultIdentifyClusterServer()
       .createDefaultSmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Normal)
       .createDefaultPowerSourceReplaceableBatteryClusterServer()
@@ -1402,17 +1183,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a smokeCoAlarm smoke only device ***********************
     this.smokeOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Smoke alarm sensor' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Smoke alarm sensor',
-        'serial_94755661225',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge SmokeCoAlarm',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Smoke alarm sensor', 'serial_94755661225', 0xfff1, 'Matterbridge', 'Matterbridge SmokeCoAlarm')
       .createDefaultIdentifyClusterServer()
       .createSmokeOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal)
       .createDefaultPowerSourceReplaceableBatteryClusterServer();
@@ -1421,17 +1192,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a smokeCoAlarm co only device ***********************
     this.coOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { uniqueStorageKey: 'Co alarm sensor' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Co alarm sensor',
-        'serial_947456317488',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge SmokeCoAlarm',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Co alarm sensor', 'serial_947456317488', 0xfff1, 'Matterbridge', 'Matterbridge SmokeCoAlarm')
       .createDefaultIdentifyClusterServer()
       .createCoOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal)
       .createDefaultPowerSourceReplaceableBatteryClusterServer()
@@ -1441,17 +1202,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create an airQuality device ***********************
     this.airQuality = new MatterbridgeEndpoint([airQualitySensor, bridgedNode, powerSource], { uniqueStorageKey: 'Air quality sensor' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Air quality sensor',
-        'serial_987484318322',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge Air Quality Sensor',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Air quality sensor', 'serial_987484318322', 0xfff1, 'Matterbridge', 'Matterbridge Air Quality Sensor')
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Warning, 2900, 'CR2450', 1)
       .addRequiredClusterServers()
       .addClusterServers([TemperatureMeasurement.Cluster.id, RelativeHumidityMeasurement.Cluster.id])
@@ -1476,10 +1227,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         0xfff1,
         'Matterbridge',
         'Matterbridge MomentarySwitch',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
       )
       .createDefaultIdentifyClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
@@ -1514,21 +1261,64 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultSwitchClusterServer();
 
+    const switch4 = this.momentarySwitch
+      .addChildDeviceType('Momentary switch 4', [genericSwitch], {
+        tagList: [
+          { mfgCode: null, namespaceId: NumberTag.Four.namespaceId, tag: NumberTag.Four.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: null },
+          { mfgCode: null, namespaceId: SwitchesTag.Custom.namespaceId, tag: SwitchesTag.Custom.tag, label: 'Turn on' },
+          { mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null },
+          { mfgCode: null, namespaceId: AreaNamespaceTag.Bedroom.namespaceId, tag: AreaNamespaceTag.Bedroom.tag, label: null },
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultMomentarySwitchClusterServer();
+
+    const switch5 = this.momentarySwitch
+      .addChildDeviceType('Momentary switch 5', [genericSwitch], {
+        tagList: [
+          { mfgCode: null, namespaceId: NumberTag.Five.namespaceId, tag: NumberTag.Five.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Middle.namespaceId, tag: PositionTag.Middle.tag, label: null },
+          { mfgCode: null, namespaceId: SwitchesTag.Custom.namespaceId, tag: SwitchesTag.Custom.tag, label: 'Turn off' },
+          { mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null },
+          { mfgCode: null, namespaceId: AreaNamespaceTag.Bedroom.namespaceId, tag: AreaNamespaceTag.Bedroom.tag, label: null },
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultMomentarySwitchClusterServer();
+
+    const switch6 = this.momentarySwitch
+      .addChildDeviceType('Momentary switch 6', [genericSwitch], {
+        tagList: [
+          { mfgCode: null, namespaceId: NumberTag.Seven.namespaceId, tag: NumberTag.Seven.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: null },
+          { mfgCode: null, namespaceId: SwitchesTag.Custom.namespaceId, tag: SwitchesTag.Custom.tag, label: 'Toggle' },
+          { mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null },
+          { mfgCode: null, namespaceId: AreaNamespaceTag.Bedroom.namespaceId, tag: AreaNamespaceTag.Bedroom.tag, label: null },
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultMomentarySwitchClusterServer();
+
     this.momentarySwitch = await this.addDevice(this.momentarySwitch);
+    if (this.momentarySwitch) {
+      await switch4.addFixedLabel('name', 'Switch 4');
+      await switch4.addFixedLabel('room', 'Living Room');
+      await switch4.addFixedLabel('switch', 'Switch 4');
+      await switch4.addFixedLabel('button', 'Button 4');
+      await switch5.addFixedLabel('name', 'Switch 5');
+      await switch5.addFixedLabel('room', 'Living Room');
+      await switch5.addFixedLabel('switch', 'Switch 5');
+      await switch5.addFixedLabel('button', 'Button 5');
+      await switch6.addFixedLabel('name', 'Switch 6');
+      await switch6.addFixedLabel('room', 'Living Room');
+      await switch6.addFixedLabel('switch', 'Switch 6');
+      await switch6.addFixedLabel('button', 'Button 6');
+    }
 
     // *********************** Create a latching switch *****************************/
     this.latchingSwitch = new MatterbridgeEndpoint([genericSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Latching switch' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Latching switch',
-        'serial_947442331225',
-        0xfff1,
-        'Matterbridge',
-        'Matterbridge LatchingSwitch',
-        parseInt(this.version.replace(/\D/g, '')),
-        this.version === '' ? 'Unknown' : this.version,
-        parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, '')),
-        this.matterbridge.matterbridgeVersion,
-      )
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Latching switch', 'serial_947442331225', 0xfff1, 'Matterbridge', 'Matterbridge LatchingSwitch')
       .createDefaultIdentifyClusterServer()
       .createDefaultLatchingSwitchClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(10, PowerSource.BatChargeLevel.Critical, 2850, 'CR2032', 1);
@@ -1955,13 +1745,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     // Set fan to auto
-    this.fan?.log.info('Set fan initial fanMode to Off, percentCurrent and percentSetting to 0');
-    await this.fan?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Off, this.fan.log);
-    await this.fan?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fan.log);
-    await this.fan?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fan.log);
-    await this.fanauto?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Auto, this.fanauto.log);
-    await this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanauto.log);
-    await this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanauto.log);
+    this.fanBase?.log.info('Set fan initial fanMode to Off, percentCurrent and percentSetting to 0');
+    await this.fanBase?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Off, this.fanBase.log);
+    await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanBase.log);
+    await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanBase.log);
+    await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Auto, this.fanDefault.log);
+    await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanDefault.log);
+    await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanDefault.log);
     await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Auto, this.fanComplete.log);
     await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanComplete.log);
     await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanComplete.log);
@@ -1969,15 +1759,15 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       // Increment fan percentCurrent every minute
       this.fanInterval = setInterval(
         async () => {
-          let mode = this.fan?.getAttribute(FanControl.Cluster.id, 'fanMode', this.fan.log);
-          let value = this.fan?.getAttribute(FanControl.Cluster.id, 'percentCurrent', this.fan.log);
-          mode = this.fanauto?.getAttribute(FanControl.Cluster.id, 'fanMode', this.fanauto.log);
-          value = this.fanauto?.getAttribute(FanControl.Cluster.id, 'percentCurrent', this.fanauto.log);
+          let mode = this.fanBase?.getAttribute(FanControl.Cluster.id, 'fanMode', this.fanBase.log);
+          let value = this.fanBase?.getAttribute(FanControl.Cluster.id, 'percentCurrent', this.fanBase.log);
+          mode = this.fanDefault?.getAttribute(FanControl.Cluster.id, 'fanMode', this.fanDefault.log);
+          value = this.fanDefault?.getAttribute(FanControl.Cluster.id, 'percentCurrent', this.fanDefault.log);
           if (isValidNumber(mode, FanControl.FanMode.Off, FanControl.FanMode.Auto) && mode === FanControl.FanMode.Auto && isValidNumber(value, 0, 100)) {
             value = value + 10 >= 100 ? 0 : value + 10;
-            await this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentCurrent', value, this.fanauto.log);
-            await this.fanauto?.setAttribute(FanControl.Cluster.id, 'percentSetting', value, this.fanauto.log);
-            this.fanauto?.log.info(`Set fan percentCurrent and percentSetting to ${value}`);
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', value, this.fanDefault.log);
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', value, this.fanDefault.log);
+            this.fanDefault?.log.info(`Set fan percentCurrent and percentSetting to ${value}`);
           }
           mode = this.fanComplete?.getAttribute(FanControl.Cluster.id, 'fanMode', this.fanComplete.log);
           value = this.fanComplete?.getAttribute(FanControl.Cluster.id, 'percentCurrent', this.fanComplete.log);
@@ -2132,6 +1922,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch1')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
             await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch2')?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
             await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch3')?.triggerSwitchEvent('Long', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch4')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch5')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
+            await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch6')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
           } else if (this.genericSwitchLastEvent === 'Single') {
             this.genericSwitchLastEvent = 'Double';
             await this.momentarySwitch?.getChildEndpointByName('Momentaryswitch1')?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
@@ -2180,6 +1973,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (!device.serialNumber || !device.deviceName) return;
     this.setSelectDevice(device.serialNumber, device.deviceName, undefined, 'hub');
     if (this.validateDevice(device.deviceName)) {
+      device.softwareVersion = parseInt(this.version.replace(/\D/g, ''));
+      device.softwareVersionString = this.version === '' ? 'Unknown' : this.version;
+      device.hardwareVersion = parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, ''));
+      device.hardwareVersionString = this.matterbridge.matterbridgeVersion;
       await this.registerDevice(device);
       this.bridgedDevices.set(device.deviceName, device);
       return device;

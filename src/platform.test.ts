@@ -77,7 +77,7 @@ describe('TestPlatform', () => {
     matterbridgeDirectory: path.join(HOMEDIR, '.matterbridge'),
     matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.1.6',
+    matterbridgeVersion: '3.1.7',
     enableServerRvc: true,
     log: mockLog,
     getDevices: jest.fn(() => {
@@ -167,9 +167,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "3.1.6". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.1.7". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '3.1.6';
+    mockMatterbridge.matterbridgeVersion = '3.1.7';
   });
 
   it('should initialize platform with config name and set the default config', () => {
@@ -216,7 +216,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(46);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(47);
   }, 60000);
 
   it('should start the server', async () => {
@@ -344,7 +344,7 @@ describe('TestPlatform', () => {
 
     expect(mockLog.info).toHaveBeenCalledTimes(5);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(2536);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(2537);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.SinglePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.DoublePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.LongPress'));

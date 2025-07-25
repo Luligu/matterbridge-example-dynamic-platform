@@ -23,6 +23,23 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.3.6] - 2025-07-25
+
+### Added
+
+- [platform]: Added a Fan with Off High.
+- [momentary]: Added 3 other child endpoint to the Momentary Switch to show createDefaultMomentarySwitchClusterServer(). It creates a single click only switch. It is supported by the Home app.
+- [platform]: Refactor platform code to improve readability.
+
+### Changed
+
+- [package]: Updated dependencies.
+- [package]: Required matterbridge 3.1.7.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.3.5] - 2025-07-22
 
 ### Added

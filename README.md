@@ -17,7 +17,7 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 46 virtual devices:
+It exposes 47 virtual devices:
 
 - a switch with onOff cluster
 - a light with onOff
@@ -34,9 +34,10 @@ It exposes 46 virtual devices:
   and relativeHumidityMeasurement cluster (to show how to create a composed device with sub endpoints)
 - a thermo heat only with two external temperature sensors (tagged like Indoor and Outdoor)
 - a thermo cool only
+- a fan with Off High presets
 - a fan with Off Low Med High presets
 - a fan with Off Low Med High Auto presets and step
-- a fan with all the features
+- a fan with all the features MultiSpeed, Auto, Step, Rock, Wind and AirflowDirection and mode Off Low Med High Auto.
 - a rainSensor device
 - a waterFreezeDetector device
 - a waterLeakDetector device
@@ -48,7 +49,7 @@ It exposes 46 virtual devices:
 - a pumpDevice device
 - a waterValve device
 - an airQuality device with all concentration measurements clusters (supported by Apple Home with the concentration measurements from version 18.5)
-- a momentary switch composed by three switches (tagged with One Two Three and Top Middle Bottom)
+- a momentary switch composed by three switches with Single Double Long (tagged with One Two Three and Top Middle Bottom) and three switches with Single only.
 - a latching switch
 - a Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read also https://github.com/Luligu/matterbridge/discussions/264.
 - a onOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
