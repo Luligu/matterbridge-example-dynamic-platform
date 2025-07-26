@@ -93,7 +93,7 @@ export class Appliances extends MatterbridgeEndpoint {
       this.createDefaultLaundryDryerControlsClusterServer(1);
       this.createDefaultOperationalStateClusterServer(OperationalState.OperationalStateEnum.Stopped);
     } else if (deviceType.code === dishwasher.code) {
-      // Dishwasher (subborted by SmartThings, not supported by Home App)
+      // Dishwasher (supported by SmartThings, not supported by Home App)
       this.createDefaultIdentifyClusterServer();
       this.createDefaultBasicInformationClusterServer(name, serial, 0xfff1, 'Matterbridge', 0x8000, 'Dishwasher');
       this.createDefaultPowerSourceWiredClusterServer();
