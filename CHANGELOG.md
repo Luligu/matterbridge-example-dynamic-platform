@@ -28,7 +28,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Changed
 
 - [package]: Updated dependencies.
-- [package]: Required matterbridge 3.1.9.
+- [package]: Required matterbridge 3.2.0.
 - [platform]: Remove the supportedMaps workaround for the RVC maps since the fix is included in matter.js 0.15.2.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
