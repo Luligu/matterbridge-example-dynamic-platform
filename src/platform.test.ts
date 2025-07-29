@@ -344,7 +344,7 @@ describe('TestPlatform', () => {
 
     expect(mockLog.info).toHaveBeenCalledTimes(5);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(2546);
+    expect(loggerLogSpy).toHaveBeenCalledTimes(2669);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.SinglePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.DoublePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.LongPress'));
