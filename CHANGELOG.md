@@ -23,6 +23,18 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.3.7] - 2025-07-29
+
+### Changed
+
+- [package]: Updated dependencies.
+- [package]: Required matterbridge 3.1.9.
+- [platform]: Remove the supportedMaps workaround for the RVC maps since the fix is included in matter.js 0.15.2.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.3.6] - 2025-07-25
 
 ### Added
