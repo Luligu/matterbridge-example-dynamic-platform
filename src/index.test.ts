@@ -32,7 +32,7 @@ describe('initializePlugin', () => {
     matterbridgeDirectory: path.join(HOMEDIR, '.matterbridge'),
     matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.1.7',
+    matterbridgeVersion: '3.1.9',
     enableConcentrationMeasurements: true,
     enableRVC: true,
     log: mockLog,
