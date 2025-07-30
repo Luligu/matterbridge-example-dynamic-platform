@@ -1107,7 +1107,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       this.fanComplete?.log,
     );
-
     await this.fanComplete?.subscribeAttribute(
       FanControl.Cluster.id,
       'rockSetting',
@@ -1118,7 +1117,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       this.fanComplete?.log,
     );
-
     await this.fanComplete?.subscribeAttribute(
       FanControl.Cluster.id,
       'windSetting',
@@ -1129,7 +1127,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       this.fanComplete?.log,
     );
-
     await this.fanComplete?.subscribeAttribute(
       FanControl.Cluster.id,
       'airflowDirection',
@@ -1301,7 +1298,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultMomentarySwitchClusterServer();
 
     this.momentarySwitch = await this.addDevice(this.momentarySwitch);
+
     if (this.momentarySwitch) {
+      // No effect so far on any controller
       await switch4.addFixedLabel('name', 'Switch 4');
       await switch4.addFixedLabel('room', 'Living Room');
       await switch4.addFixedLabel('switch', 'Switch 4');
