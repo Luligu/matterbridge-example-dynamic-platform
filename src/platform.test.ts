@@ -74,8 +74,10 @@ describe('TestPlatform', () => {
 
   const mockMatterbridge = {
     homeDirectory: path.join(HOMEDIR),
+    rootDirectory: path.join(HOMEDIR),
     matterbridgeDirectory: path.join(HOMEDIR, '.matterbridge'),
     matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
+    matterbridgeCertDirectory: path.join(HOMEDIR, '.mattercert'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
     matterbridgeVersion: '3.1.7',
     log: mockLog,
@@ -106,9 +108,11 @@ describe('TestPlatform', () => {
   beforeAll(async () => {
     // Create a MatterbridgeEdge instance
     matterbridge = await Matterbridge.loadInstance(false);
+    matterbridge.rootDirectory = path.join(HOMEDIR);
     matterbridge.homeDirectory = path.join(HOMEDIR);
     matterbridge.matterbridgeDirectory = path.join(HOMEDIR, '.matterbridge');
     matterbridge.matterbridgePluginDirectory = path.join(HOMEDIR, 'Matterbridge');
+    matterbridge.matterbridgeCertDirectory = path.join(HOMEDIR, '.mattercert');
 
     // Setup matter environment
     matterbridge.environment.vars.set('log.level', Level.NOTICE);
