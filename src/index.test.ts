@@ -18,6 +18,8 @@ import { ExampleMatterbridgeDynamicPlatform } from './platform.ts';
 rmSync(HOMEDIR, { recursive: true, force: true });
 
 describe('initializePlugin', () => {
+  let dynamicPlatform: ExampleMatterbridgeDynamicPlatform;
+
   const mockLog = {
     fatal: jest.fn((message: string, ...parameters: any[]) => {}),
     error: jest.fn((message: string, ...parameters: any[]) => {}),
@@ -58,9 +60,14 @@ describe('initializePlugin', () => {
     unregisterOnShutdown: false,
   } as PlatformConfig;
 
-  it('should return an instance of TestPlatform', async () => {
-    const result = initializePlugin(mockMatterbridge, mockLog, mockConfig);
-    expect(result).toBeInstanceOf(ExampleMatterbridgeDynamicPlatform);
-    await result.onShutdown();
+  it('should return an instance of the platform', async () => {
+    dynamicPlatform = initializePlugin(mockMatterbridge, mockLog, mockConfig);
+    expect(dynamicPlatform).toBeInstanceOf(ExampleMatterbridgeDynamicPlatform);
+    await dynamicPlatform.onShutdown();
+  });
+
+  it('should shutdown the platform', async () => {
+    expect(dynamicPlatform).toBeInstanceOf(ExampleMatterbridgeDynamicPlatform);
+    await expect(dynamicPlatform.onShutdown('Jest test')).resolves.not.toThrow();
   });
 });
