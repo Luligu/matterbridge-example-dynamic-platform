@@ -78,7 +78,6 @@ describe('TestPlatform', () => {
     matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
     matterbridgeVersion: '3.1.7',
-    enableServerRvc: true,
     log: mockLog,
     getDevices: jest.fn(() => {
       return [];
