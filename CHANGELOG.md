@@ -27,6 +27,8 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
+- [airquality]: Added support of Concentration Measurements for Home app.
+
 ### Changed
 
 - [package]: Updated dependencies.

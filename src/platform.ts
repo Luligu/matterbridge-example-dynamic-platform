@@ -93,6 +93,7 @@ import {
   EnergyEvse,
   RvcRunMode,
   RvcCleanMode,
+  ConcentrationMeasurement,
 } from 'matterbridge/matter/clusters';
 
 import { Appliances } from './appliances.js';
@@ -1207,12 +1208,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultCarbonDioxideConcentrationMeasurementClusterServer(400)
       .createDefaultNitrogenDioxideConcentrationMeasurementClusterServer(1)
       .createDefaultOzoneConcentrationMeasurementClusterServer(1)
-      .createDefaultFormaldehydeConcentrationMeasurementClusterServer(1)
-      .createDefaultPm1ConcentrationMeasurementClusterServer(100)
-      .createDefaultPm25ConcentrationMeasurementClusterServer(100)
-      .createDefaultPm10ConcentrationMeasurementClusterServer(100)
-      .createDefaultRadonConcentrationMeasurementClusterServer(100)
-      .createDefaultTvocMeasurementClusterServer(100);
+      .createDefaultFormaldehydeConcentrationMeasurementClusterServer(1, ConcentrationMeasurement.MeasurementUnit.Ugm3)
+      .createDefaultPm1ConcentrationMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3)
+      .createDefaultPm25ConcentrationMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3)
+      .createDefaultPm10ConcentrationMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3)
+      .createDefaultRadonConcentrationMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3)
+      .createDefaultTvocMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3);
 
     this.airQuality = await this.addDevice(this.airQuality);
 
