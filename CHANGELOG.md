@@ -23,7 +23,7 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
-## [1.3.7] - 2025-07-??
+## [1.3.7] - 2025-08-01
 
 ### Added
 
@@ -32,6 +32,11 @@ If you like this project and find it useful, please consider giving it a star on
 ### Changed
 
 - [package]: Updated dependencies.
+
+### Fixed
+
+- [platform]: Fixed missed softwareVersion and hardwareVersion. Thanks Tamer.
+- [platform]: Fixed missed BridgedDeviceBasicInformation cluster for single class devices. Thanks Tamer.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">

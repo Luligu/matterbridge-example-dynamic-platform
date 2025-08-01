@@ -59,9 +59,9 @@ import {
   extendedColorLight,
 } from 'matterbridge';
 import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump, Dishwasher, ExtractorHood } from 'matterbridge/devices';
-import { isValidBoolean, isValidNumber } from 'matterbridge/utils';
+import { isValidBoolean, isValidNumber, isValidString } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
-import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag, SwitchesTag } from 'matterbridge/matter';
+import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag, SwitchesTag, UINT16_MAX, UINT32_MAX } from 'matterbridge/matter';
 import {
   PowerSource,
   BooleanState,
@@ -94,6 +94,8 @@ import {
   RvcRunMode,
   RvcCleanMode,
   ConcentrationMeasurement,
+  Descriptor,
+  BridgedDeviceBasicInformation,
 } from 'matterbridge/matter/clusters';
 
 import { Appliances } from './appliances.js';
@@ -1977,6 +1979,40 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       device.softwareVersionString = this.version === '' ? 'Unknown' : this.version;
       device.hardwareVersion = parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, ''));
       device.hardwareVersionString = this.matterbridge.matterbridgeVersion;
+      device.softwareVersion = isValidNumber(device.softwareVersion, 0, UINT32_MAX) ? device.softwareVersion : undefined;
+      device.softwareVersionString = isValidString(device.softwareVersionString) ? device.softwareVersionString.slice(0, 64) : undefined;
+      device.hardwareVersion = isValidNumber(device.hardwareVersion, 0, UINT16_MAX) ? device.hardwareVersion : undefined;
+      device.hardwareVersionString = isValidString(device.hardwareVersionString) ? device.hardwareVersionString.slice(0, 64) : undefined;
+      const options = device.getClusterServerOptions(BridgedDeviceBasicInformation.Cluster.id);
+      if (options) {
+        options.softwareVersion = device.softwareVersion || 1;
+        options.softwareVersionString = device.softwareVersionString || '1.0.0';
+        options.hardwareVersion = device.hardwareVersion || 1;
+        options.hardwareVersionString = device.hardwareVersionString || '1.0.0';
+      }
+      // We need to add bridgedNode device type and BridgedDeviceBasicInformation cluster for single class devices that doesn't add it in childbridge mode.
+      if (device.mode === undefined && !device.deviceTypes.has(bridgedNode.code)) {
+        device.deviceTypes.set(bridgedNode.code, bridgedNode);
+        const options = device.getClusterServerOptions(Descriptor.Cluster.id);
+        if (options) {
+          const deviceTypeList = options.deviceTypeList as { deviceType: number; revision: number }[];
+          if (!deviceTypeList.find((dt) => dt.deviceType === bridgedNode.code)) {
+            deviceTypeList.push({ deviceType: bridgedNode.code, revision: bridgedNode.revision });
+          }
+        }
+        device.createDefaultBridgedDeviceBasicInformationClusterServer(
+          device.deviceName,
+          device.serialNumber,
+          device.vendorId,
+          device.vendorName,
+          device.productName,
+          device.softwareVersion,
+          device.softwareVersionString,
+          device.hardwareVersion,
+          device.hardwareVersionString,
+        );
+      }
+
       await this.registerDevice(device);
       this.bridgedDevices.set(device.deviceName, device);
       return device;
