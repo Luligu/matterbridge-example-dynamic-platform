@@ -51,7 +51,6 @@ import {
   genericSwitch,
   airConditioner,
   cooktop,
-  oven,
   refrigerator,
   onOffMountedSwitch,
   dimmableMountedSwitch,
@@ -1525,13 +1524,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', 'RE9987654322');
     refrigeratorDevice.addFixedLabel('composed', 'Refrigerator');
     await this.addDevice(refrigeratorDevice);
-
-    const ovenDevice = new Appliances(oven, 'Oven', 'OV1298867891');
-    ovenDevice.addFixedLabel('composed', 'Oven');
-    await this.addDevice(ovenDevice);
-
-    // const microwaveOvenDevice = new Appliances(microwaveOven, 'Microwave Oven', 'MO1234567892');
-    // await this.addDevice(microwaveOvenDevice);
 
     const cooktopDevice = new Appliances(cooktop, 'Cooktop', 'CT1255887894');
     await this.addDevice(cooktopDevice);
