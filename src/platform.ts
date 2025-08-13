@@ -51,14 +51,26 @@ import {
   genericSwitch,
   airConditioner,
   cooktop,
-  microwaveOven,
   oven,
   refrigerator,
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
 } from 'matterbridge';
-import { RoboticVacuumCleaner, LaundryWasher, WaterHeater, Evse, SolarPower, BatteryStorage, LaundryDryer, HeatPump, Dishwasher, ExtractorHood } from 'matterbridge/devices';
+import {
+  RoboticVacuumCleaner,
+  LaundryWasher,
+  WaterHeater,
+  Evse,
+  SolarPower,
+  BatteryStorage,
+  LaundryDryer,
+  HeatPump,
+  Dishwasher,
+  ExtractorHood,
+  MicrowaveOven,
+  Oven,
+} from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber, isValidString } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
 import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag, SwitchesTag, UINT16_MAX, UINT32_MAX } from 'matterbridge/matter';
@@ -96,6 +108,8 @@ import {
   ConcentrationMeasurement,
   Descriptor,
   BridgedDeviceBasicInformation,
+  OvenMode,
+  OperationalState,
 } from 'matterbridge/matter/clusters';
 
 import { Appliances } from './appliances.js';
@@ -145,6 +159,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   solarPower: MatterbridgeEndpoint | undefined;
   batteryStorage: MatterbridgeEndpoint | undefined;
   heatPump: MatterbridgeEndpoint | undefined;
+  microwaveOven: MatterbridgeEndpoint | undefined;
+  oven: Oven | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -175,9 +191,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.0')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.3')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.2.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.2.3". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1481,6 +1497,30 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.extractorHood = new ExtractorHood('Extractor Hood', 'EH1234567893');
     this.extractorHood = await this.addDevice(this.extractorHood);
 
+    // *********************** Create an Microwave Oven **************************
+    this.microwaveOven = new MicrowaveOven('Microwave Oven', 'MO1234567893');
+    this.microwaveOven = await this.addDevice(this.microwaveOven);
+
+    // *********************** Create an Oven **************************
+    this.oven = new Oven('Oven', 'OV1234567890');
+    this.oven.addCabinet('Upper Cabinet', [{ mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label }]);
+    this.oven.addCabinet(
+      'Lower Cabinet',
+      [{ mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label }],
+      3,
+      [
+        { label: 'Convection', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
+        { label: 'Clean', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Clean }] },
+        { label: 'Steam', mode: 3, modeTags: [{ value: OvenMode.ModeTag.Steam }] },
+      ],
+      2,
+      ['180°', '190°', '200°'],
+      OperationalState.OperationalStateEnum.Running,
+      1,
+      ['pre-heating', 'pre-heated', 'cooling down'],
+    );
+    this.oven = (await this.addDevice(this.oven)) as Oven | undefined;
+
     // *********************** Create the appliances **************************
     const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', 'RE9987654322');
     refrigeratorDevice.addFixedLabel('composed', 'Refrigerator');
@@ -1490,8 +1530,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     ovenDevice.addFixedLabel('composed', 'Oven');
     await this.addDevice(ovenDevice);
 
-    const microwaveOvenDevice = new Appliances(microwaveOven, 'Microwave Oven', 'MO1234567892');
-    await this.addDevice(microwaveOvenDevice);
+    // const microwaveOvenDevice = new Appliances(microwaveOven, 'Microwave Oven', 'MO1234567892');
+    // await this.addDevice(microwaveOvenDevice);
 
     const cooktopDevice = new Appliances(cooktop, 'Cooktop', 'CT1255887894');
     await this.addDevice(cooktopDevice);

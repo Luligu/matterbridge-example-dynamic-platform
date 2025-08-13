@@ -28,10 +28,12 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [rvc]: Removed the supportedMaps workaround for the RVC maps. Thanks Ludovic BOUÉ (#25).
+- [platform]: Added the new MicrowaveOven() and Oven() device classes from Matterbridge.
 
 ### Changed
 
 - [package]: Updated dependencies.
+- [package]: Required matterbridge 3.2.3.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
