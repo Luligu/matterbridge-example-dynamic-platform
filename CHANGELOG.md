@@ -28,7 +28,9 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [rvc]: Removed the supportedMaps workaround for the RVC maps. Thanks Ludovic BOUÉ (#25).
-- [platform]: Added the new MicrowaveOven() and Oven() device classes from Matterbridge.
+- [platform]: Added the new MicrowaveOven() device class from Matterbridge.
+- [platform]: Added the new Oven() device class from Matterbridge.
+- [platform]: Added the new Cooktop() device class from Matterbridge.
 
 ### Changed
 

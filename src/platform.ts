@@ -50,7 +50,6 @@ import {
   waterValve,
   genericSwitch,
   airConditioner,
-  cooktop,
   refrigerator,
   onOffMountedSwitch,
   dimmableMountedSwitch,
@@ -69,6 +68,7 @@ import {
   ExtractorHood,
   MicrowaveOven,
   Oven,
+  Cooktop,
 } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber, isValidString } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
@@ -160,6 +160,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   heatPump: MatterbridgeEndpoint | undefined;
   microwaveOven: MatterbridgeEndpoint | undefined;
   oven: Oven | undefined;
+  cooktop: Cooktop | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1520,13 +1521,30 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.oven = (await this.addDevice(this.oven)) as Oven | undefined;
 
+    // *********************** Create an Cooktop **************************
+    this.cooktop = new Cooktop('Cooktop', 'CT1234567890');
+    this.cooktop.addSurface('Surface Top Left', [
+      { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label },
+      { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: PositionTag.Left.label },
+    ]);
+    this.cooktop.addSurface('Surface Top Right', [
+      { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label },
+      { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: PositionTag.Right.label },
+    ]);
+    this.cooktop.addSurface('Surface Bottom Left', [
+      { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label },
+      { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: PositionTag.Left.label },
+    ]);
+    this.cooktop.addSurface('Surface Bottom Right', [
+      { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label },
+      { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: PositionTag.Right.label },
+    ]);
+    this.cooktop = (await this.addDevice(this.cooktop)) as Cooktop | undefined;
+
     // *********************** Create the appliances **************************
     const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', 'RE9987654322');
     refrigeratorDevice.addFixedLabel('composed', 'Refrigerator');
     await this.addDevice(refrigeratorDevice);
-
-    const cooktopDevice = new Appliances(cooktop, 'Cooktop', 'CT1255887894');
-    await this.addDevice(cooktopDevice);
   }
 
   override async onConfigure() {
