@@ -23,7 +23,7 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
-## [1.3.8] - 2025-08-01
+## [1.3.8] - 2025-08-??
 
 ### Added
 
@@ -31,6 +31,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [platform]: Added the new MicrowaveOven() device class from Matterbridge.
 - [platform]: Added the new Oven() device class from Matterbridge.
 - [platform]: Added the new Cooktop() device class from Matterbridge.
+- [platform]: Added the new Refrigerator() device class from Matterbridge.
 
 ### Changed
 

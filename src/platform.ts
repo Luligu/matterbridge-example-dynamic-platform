@@ -50,7 +50,6 @@ import {
   waterValve,
   genericSwitch,
   airConditioner,
-  refrigerator,
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
@@ -69,6 +68,7 @@ import {
   MicrowaveOven,
   Oven,
   Cooktop,
+  Refrigerator,
 } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber, isValidString } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
@@ -110,8 +110,6 @@ import {
   OvenMode,
   OperationalState,
 } from 'matterbridge/matter/clusters';
-
-import { Appliances } from './appliances.js';
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   switch: MatterbridgeEndpoint | undefined;
@@ -161,6 +159,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   microwaveOven: MatterbridgeEndpoint | undefined;
   oven: Oven | undefined;
   cooktop: Cooktop | undefined;
+  refrigerator: Refrigerator | undefined;
 
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -1541,10 +1540,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     ]);
     this.cooktop = (await this.addDevice(this.cooktop)) as Cooktop | undefined;
 
-    // *********************** Create the appliances **************************
-    const refrigeratorDevice = new Appliances(refrigerator, 'Refrigerator', 'RE9987654322');
-    refrigeratorDevice.addFixedLabel('composed', 'Refrigerator');
-    await this.addDevice(refrigeratorDevice);
+    // *********************** Create an Refrigerator **************************
+    const refrigerator = new Refrigerator('Refrigerator', 'RE1234567890');
+    refrigerator.addCabinet('Refrigerator Top', [{ mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: 'Refrigerator Top' }]);
+    refrigerator.addCabinet('Freezer Bottom', [{ mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: 'Freezer Bottom' }]);
+    this.refrigerator = (await this.addDevice(refrigerator)) as Refrigerator | undefined;
   }
 
   override async onConfigure() {
@@ -1929,29 +1929,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     // Set dead front onOff on for Appliances: brings the appliances out of the "dead front" state
-    const airConditionerDevice = this.bridgedDevices.get('Air Conditioner');
-    await airConditionerDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, airConditionerDevice.log);
+    await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner.log);
 
-    const laundryWasherDevice = this.bridgedDevices.get('Laundry Washer');
-    await laundryWasherDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, laundryWasherDevice.log);
+    await this.laundryWasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryWasher.log);
 
-    const laundryDryerDevice = this.bridgedDevices.get('Laundry Dryer');
-    await laundryDryerDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, laundryDryerDevice.log);
+    await this.laundryDryer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryDryer.log);
 
-    const dishwasherDevice = this.bridgedDevices.get('Dishwasher');
-    await dishwasherDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, dishwasherDevice.log);
+    await this.dishwasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dishwasher.log);
     this.log.info(`Set appliances dead front OnOff to on`);
 
-    // Set onOff only on for Appliances: brings the appliances on
-    const cooktopDevice = this.bridgedDevices.get('Cooktop');
-    await cooktopDevice?.setAttribute(OnOff.Cluster.id, 'onOff', true, cooktopDevice.log);
-    cooktopDevice?.log.info(`Set Cooktop onOff only OnOff to on`);
-    const surface1 = cooktopDevice?.getChildEndpointByName('Surface1');
-    await surface1?.setAttribute(OnOff.Cluster.id, 'onOff', true, surface1.log);
-    surface1?.log.info(`Set Surface 1 onOff only OnOff to on`);
-    const surface2 = cooktopDevice?.getChildEndpointByName('Surface2');
-    await surface2?.setAttribute(OnOff.Cluster.id, 'onOff', true, surface2.log);
-    surface2?.log.info(`Set Surface 2 onOff only OnOff to on`);
+    // Set offOnly onOff cluster to on for Cooktop: brings the appliances on
+    this.cooktop?.log.info(`Set Cooktop offOnly onOff clusters to on`);
+    await this.cooktop?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop.log);
+    await this.cooktop?.getChildEndpointByName('SurfaceTopLeft')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
+    await this.cooktop?.getChildEndpointByName('SurfaceTopRight')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
+
+    await this.refrigerator?.getChildEndpointByName('RefrigeratorTop')?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 1200, this.refrigerator?.log);
+    await this.refrigerator?.getChildEndpointByName('FreezerBottom')?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', -1000, this.refrigerator?.log);
 
     if (this.config.useInterval) {
       // Trigger the switches every minute
