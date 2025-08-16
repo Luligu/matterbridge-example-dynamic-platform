@@ -72,7 +72,7 @@ import {
 } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber, isValidString } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
-import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag, SwitchesTag, UINT16_MAX, UINT32_MAX } from 'matterbridge/matter';
+import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag, RefrigeratorTag, SwitchesTag, UINT16_MAX, UINT32_MAX } from 'matterbridge/matter';
 import {
   PowerSource,
   BooleanState,
@@ -1544,12 +1544,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const refrigerator = new Refrigerator('Refrigerator', 'RE1234567890');
     refrigerator.addCabinet('Refrigerator Top', [
       { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: 'Refrigerator Top' },
-      { mfgCode: null, namespaceId: RefrigeratorTag.namespaceId, tag: RefrigeratorTag.Refrigerator.tag, label: RefrigeratorTag.Refrigerator.label },
+      { mfgCode: null, namespaceId: RefrigeratorTag.Refrigerator.namespaceId, tag: RefrigeratorTag.Refrigerator.tag, label: RefrigeratorTag.Refrigerator.label },
     ]);
     refrigerator.addCabinet('Freezer Bottom', [
       { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: 'Freezer Bottom' },
-      { mfgCode: null, namespaceId: RefrigeratorTag.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label },
-
+      { mfgCode: null, namespaceId: RefrigeratorTag.Freezer.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label },
     ]);
     this.refrigerator = (await this.addDevice(refrigerator)) as Refrigerator | undefined;
   }
