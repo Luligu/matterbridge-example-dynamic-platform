@@ -32,6 +32,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [platform]: Added the new Oven() device class from Matterbridge.
 - [platform]: Added the new Cooktop() device class from Matterbridge.
 - [platform]: Added the new Refrigerator() device class from Matterbridge.
+- [platform]: Added the RefrigeratorTag to the Refrigerator(). Thanks Ludovic BOUÉ (#27).
 
 ### Changed
 
