@@ -53,6 +53,11 @@ import {
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
+  pressureSensor,
+  contactSensor,
+  occupancySensor,
+  lightSensor,
+  modeSelect,
 } from 'matterbridge';
 import {
   RoboticVacuumCleaner,
@@ -70,7 +75,7 @@ import {
   Cooktop,
   Refrigerator,
 } from 'matterbridge/devices';
-import { isValidBoolean, isValidNumber, isValidString } from 'matterbridge/utils';
+import { isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
 import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag, RefrigeratorTag, SwitchesTag, UINT16_MAX, UINT32_MAX } from 'matterbridge/matter';
 import {
@@ -109,9 +114,61 @@ import {
   BridgedDeviceBasicInformation,
   OvenMode,
   OperationalState,
+  OccupancySensing,
+  IlluminanceMeasurement,
+  PressureMeasurement,
 } from 'matterbridge/matter/clusters';
 
+/**
+ * Convert an illuminance value in lux to the Matter encoded representation used by the
+ * IlluminanceMeasurement cluster. The Matter spec encodes illuminance logarithmically
+ * as: value = round( 10000 * log10(lux) ), constrained to the range 0x0000 - 0xFFFE.
+ * (0xFFFF is reserved / invalid.) Values at or below 0 lux are encoded as 0.
+ *
+ * Edge cases handled:
+ *  - NaN / non‑finite / negative inputs -> treated as 0
+ *  - Very large inputs -> capped at 0xFFFE
+ *  - lux == 0 -> returns 0 (avoids -Infinity from log10(0))
+ *
+ * @param {number} lux Illuminance in lux (>= 0). Fractional values allowed.
+ * @returns {number} Encoded Matter illuminance value (0 .. 0xFFFE)
+ */
+function luxToMatter(lux: number): number {
+  if (!Number.isFinite(lux) || lux <= 0) return 0;
+  const encoded = 10000 * Math.log10(lux);
+  if (!Number.isFinite(encoded) || encoded < 0) return 0; // extra safety
+  return Math.round(Math.min(encoded, 0xfffe));
+}
+
+/**
+ * Convert a Matter encoded illuminance value back to lux. This is the inverse of
+ * luxToMatter: lux = 10 ^ (value / 10000). Results are rounded to the nearest integer
+ * lux for simplicity.
+ *
+ * Edge cases handled:
+ *  - NaN / non‑finite / negative inputs -> treated as 0
+ *  - Inputs > 0xFFFE are capped at 0xFFFE (0xFFFF is invalid per spec)
+ *
+ * @param {number} value Encoded Matter illuminance value (0 .. 0xFFFE)
+ * @returns {number} Illuminance in lux (integer, >= 0)
+ */
+function matterToLux(value: number): number {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  const v = Math.min(value, 0xfffe);
+  const lux = Math.pow(10, v / 10000);
+  return Math.round(lux < 0 ? 0 : lux);
+}
+
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
+  door: MatterbridgeEndpoint | undefined;
+  occupancy: MatterbridgeEndpoint | undefined;
+  illuminance: MatterbridgeEndpoint | undefined;
+  temperature: MatterbridgeEndpoint | undefined;
+  humidity: MatterbridgeEndpoint | undefined;
+  pressure: MatterbridgeEndpoint | undefined;
+  flow: MatterbridgeEndpoint | undefined;
+  select: MatterbridgeEndpoint | undefined;
+  climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
   mountedOnOffSwitch: MatterbridgeEndpoint | undefined;
   mountedDimmerSwitch: MatterbridgeEndpoint | undefined;
@@ -161,6 +218,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   cooktop: Cooktop | undefined;
   refrigerator: Refrigerator | undefined;
 
+  sensorInterval: NodeJS.Timeout | undefined;
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
   outletInterval: NodeJS.Timeout | undefined;
@@ -210,13 +268,120 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.ready;
     await this.clearSelect();
 
+    // *********************** Create a door device ***********************
+    this.door = new MatterbridgeEndpoint([contactSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Door' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Door', 'DOOR23452164', 0xfff1, 'Matterbridge', 'Matterbridge Door')
+      .createDefaultBooleanStateClusterServer(true)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(90, PowerSource.BatChargeLevel.Ok, 2990, 'AA', 1, PowerSource.BatReplaceability.UserReplaceable)
+      .addRequiredClusterServers();
+
+    this.door = await this.addDevice(this.door);
+
+    // *********************** Create an occupancy device ***********************
+    this.occupancy = new MatterbridgeEndpoint([occupancySensor, bridgedNode, powerSource], { uniqueStorageKey: 'Occupancy' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Occupancy', 'OCCUPANCY23452164', 0xfff1, 'Matterbridge', 'Matterbridge Occupancy')
+      .createDefaultOccupancySensingClusterServer(false)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 2950, 'AA', 1, PowerSource.BatReplaceability.UserReplaceable)
+      .addRequiredClusterServers();
+
+    this.occupancy = await this.addDevice(this.occupancy);
+
+    // *********************** Create an illuminance device ***********************
+    this.illuminance = new MatterbridgeEndpoint([lightSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Illuminance' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Illuminance', 'ILLUMINANCE23452164', 0xfff1, 'Matterbridge', 'Matterbridge Illuminance')
+      .createDefaultIlluminanceMeasurementClusterServer(luxToMatter(5))
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 3100, 'AA', 1, PowerSource.BatReplaceability.UserReplaceable)
+      .addRequiredClusterServers();
+
+    this.illuminance = await this.addDevice(this.illuminance);
+
+    // *********************** Create an temperature device ***********************
+    this.temperature = new MatterbridgeEndpoint([temperatureSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Temperature' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Temperature', 'TEMPERATURE23452164', 0xfff1, 'Matterbridge', 'Matterbridge Temperature')
+      .createDefaultTemperatureMeasurementClusterServer(1000)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 3100, 'AA', 1, PowerSource.BatReplaceability.UserReplaceable)
+      .addRequiredClusterServers();
+
+    this.temperature = await this.addDevice(this.temperature);
+
+    // *********************** Create an humidity device ***********************
+    this.humidity = new MatterbridgeEndpoint([humiditySensor, bridgedNode, powerSource], { uniqueStorageKey: 'Humidity' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Humidity', 'HUMIDITY23452164', 0xfff1, 'Matterbridge', 'Matterbridge Humidity')
+      .createDefaultRelativeHumidityMeasurementClusterServer(1000)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 3100, 'AA', 1, PowerSource.BatReplaceability.UserReplaceable)
+      .addRequiredClusterServers();
+
+    this.humidity = await this.addDevice(this.humidity);
+
+    // *********************** Create a pressure device ***********************
+    this.pressure = new MatterbridgeEndpoint([pressureSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Pressure' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Pressure', 'PRESSURE23452164', 0xfff1, 'Matterbridge', 'Matterbridge Pressure')
+      .createDefaultPressureMeasurementClusterServer(9000)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 3050, 'AA', 1, PowerSource.BatReplaceability.UserReplaceable)
+      .addRequiredClusterServers();
+
+    this.pressure = await this.addDevice(this.pressure);
+
+    // *********************** Create a flow device ***********************
+    this.flow = new MatterbridgeEndpoint([flowSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Flow' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Flow', 'FLOW23452164', 0xfff1, 'Matterbridge', 'Matterbridge Flow')
+      .createDefaultFlowMeasurementClusterServer(10)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 3050, 'AA', 1, PowerSource.BatReplaceability.UserReplaceable)
+      .addRequiredClusterServers();
+
+    this.flow = await this.addDevice(this.flow);
+
+    // *********************** Create a climate device ***********************
+    this.climate = new MatterbridgeEndpoint(
+      [temperatureSensor, humiditySensor, pressureSensor, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Climate' },
+      this.config.debug as boolean,
+    )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Climate', 'CLIMATE23452164', 0xfff1, 'Matterbridge', 'Matterbridge Climate')
+      .createDefaultTemperatureMeasurementClusterServer(1000)
+      .createDefaultRelativeHumidityMeasurementClusterServer(1000)
+      .createDefaultPressureMeasurementClusterServer(9000)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(90, PowerSource.BatChargeLevel.Ok, 2990, '2 x AA', 2, PowerSource.BatReplaceability.UserReplaceable)
+      .addRequiredClusterServers();
+
+    this.climate = await this.addDevice(this.climate);
+
+    // *********************** Create a select device ***********************
+    this.select = new MatterbridgeEndpoint([modeSelect, bridgedNode, powerSource], { uniqueStorageKey: 'Select' }, this.config.debug as boolean)
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Select', 'SELECT23452164', 0xfff1, 'Matterbridge', 'Matterbridge Select')
+      .createDefaultModeSelectClusterServer(
+        'Night mode',
+        [
+          { label: 'Led ON', mode: 1, semanticTags: [] },
+          { label: 'Led OFF', mode: 2, semanticTags: [] },
+        ],
+        1,
+        1,
+      )
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
+
+    this.select = await this.addDevice(this.select);
+
+    this.select?.addCommandHandler('changeToMode', async ({ request: { newMode } }) => {
+      this.log.info(`Command changeToMode called newMode:${newMode}`);
+    });
+
     // *********************** Create a switch device ***********************
     this.switch = new MatterbridgeEndpoint([onOffSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Switch' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Switch', '0x23452164', 0xfff1, 'Matterbridge', 'Matterbridge Switch')
       .createDefaultOnOffClusterServer()
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+      .createDefaultPowerSourceWiredClusterServer();
 
     this.switch = await this.addDevice(this.switch);
 
@@ -238,7 +403,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('OnOff Mounted Switch', '0x298242164', 0xfff1, 'Matterbridge', 'Matterbridge OnOff Mounted Switch')
       .createDefaultOnOffClusterServer()
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(70);
+      .createDefaultPowerSourceWiredClusterServer();
 
     this.mountedOnOffSwitch = await this.addDevice(this.mountedOnOffSwitch);
 
@@ -319,7 +484,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultBridgedDeviceBasicInformationClusterServer('Dimmer', '0x234554564', 0xfff1, 'Matterbridge', 'Matterbridge Dimmer')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
-      .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 2990, '2 x AA', 2);
+      .createDefaultPowerSourceWiredClusterServer();
 
     this.dimmer = await this.addDevice(this.dimmer);
 
@@ -351,7 +516,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createDefaultColorControlClusterServer()
-      .createDefaultPowerSourceReplaceableBatteryClusterServer(70);
+      .createDefaultPowerSourceWiredClusterServer();
 
     this.light = await this.addDevice(this.light);
 
@@ -495,7 +660,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createCtColorControlClusterServer()
-      .createDefaultPowerSourceReplaceableBatteryClusterServer(70);
+      .createDefaultPowerSourceWiredClusterServer();
 
     this.lightCT = await this.addDevice(this.lightCT);
 
@@ -552,7 +717,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Cover lift', 'CL01020564', 0xfff1, 'Matterbridge', 'Matterbridge Cover')
       .createDefaultWindowCoveringClusterServer()
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(86);
+      .createDefaultPowerSourceWiredClusterServer();
 
     this.coverLift = await this.addDevice(this.coverLift);
 
@@ -587,7 +752,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Cover lift and tilt', 'CLT01020554', 0xfff1, 'Matterbridge', 'Matterbridge Cover')
       .createDefaultLiftTiltWindowCoveringClusterServer()
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(86);
+      .createDefaultPowerSourceWiredClusterServer();
 
     this.coverLiftTilt = await this.addDevice(this.coverLiftTilt);
 
@@ -1555,6 +1720,67 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await super.onConfigure();
     this.log.info('onConfigure called');
 
+    // Set sensors
+    if (this.config.useInterval) {
+      this.sensorInterval = setInterval(
+        async () => {
+          let value = this.door?.getAttribute(BooleanState.Cluster.id, 'stateValue', this.door.log);
+          if (isValidBoolean(value)) {
+            value = !value;
+            await this.door?.setAttribute(BooleanState.Cluster.id, 'stateValue', value, this.door.log);
+            this.door?.log.info(`Set door stateValue to ${value}`);
+          }
+
+          const occupancyValue = this.occupancy?.getAttribute(OccupancySensing.Cluster.id, 'occupancy', this.occupancy.log) as { occupied: boolean };
+          if (isValidObject(occupancyValue, 1)) {
+            occupancyValue.occupied = !occupancyValue.occupied;
+            await this.occupancy?.setAttribute(OccupancySensing.Cluster.id, 'occupancy', occupancyValue, this.occupancy.log);
+            this.occupancy?.log.info(`Set occupancy to ${occupancyValue.occupied}`);
+          }
+
+          value = this.illuminance?.getAttribute(IlluminanceMeasurement.Cluster.id, 'measuredValue', this.illuminance.log);
+          if (isValidNumber(value, 0, 0xfffe)) {
+            value = matterToLux(value);
+            value = value + 1 < 500 ? value + 1 : 5;
+            await this.illuminance?.setAttribute(IlluminanceMeasurement.Cluster.id, 'measuredValue', luxToMatter(value), this.illuminance.log);
+            this.illuminance?.log.info(`Set illuminance measuredValue to ${value}`);
+          }
+
+          value = this.temperature?.getAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', this.temperature.log);
+          if (isValidNumber(value, 0, 0xfffe)) {
+            value = value + 100 < 3000 ? value + 100 : 1000;
+            await this.temperature?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', value, this.temperature.log);
+            await this.climate?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', value, this.climate.log);
+            this.temperature?.log.info(`Set temperature measuredValue to ${value}`);
+          }
+
+          value = this.humidity?.getAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', this.humidity.log);
+          if (isValidNumber(value, 0, 0xfffe)) {
+            value = value + 100 < 10000 ? value + 100 : 100;
+            await this.humidity?.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', value, this.humidity.log);
+            await this.climate?.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', value, this.climate.log);
+            this.humidity?.log.info(`Set humidity measuredValue to ${value}`);
+          }
+
+          value = this.pressure?.getAttribute(PressureMeasurement.Cluster.id, 'measuredValue', this.pressure.log);
+          if (isValidNumber(value, 0, 0xfffe)) {
+            value = value + 10 < 9900 ? value + 10 : 8600;
+            await this.pressure?.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', value, this.pressure.log);
+            await this.climate?.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', value, this.climate.log);
+            this.pressure?.log.info(`Set pressure measuredValue to ${value}`);
+          }
+
+          value = this.flow?.getAttribute(FlowMeasurement.Cluster.id, 'measuredValue', this.flow.log);
+          if (isValidNumber(value, 0, 0xfffe)) {
+            value = value + 1 < 50 ? value + 1 : 1;
+            await this.flow?.setAttribute(FlowMeasurement.Cluster.id, 'measuredValue', value, this.flow.log);
+            this.flow?.log.info(`Set flow measuredValue to ${value}`);
+          }
+        },
+        60 * 1000 + 900,
+      );
+    }
+
     // Set switch to off
     await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.switch.log);
     await this.mountedOnOffSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.mountedOnOffSwitch.log);
@@ -1990,6 +2216,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   }
 
   override async onShutdown(reason?: string) {
+    clearInterval(this.sensorInterval);
     clearInterval(this.switchInterval);
     clearInterval(this.lightInterval);
     clearInterval(this.outletInterval);

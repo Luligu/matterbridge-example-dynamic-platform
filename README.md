@@ -17,8 +17,17 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 47 virtual devices:
+It exposes 56 virtual devices:
 
+- a door contact sensor
+- a motion sensor
+- an illuminance sensor
+- a temperature sensor
+- an humidity sensor
+- a pressure sensor
+- a flow sensor
+- a climate sensor with temperature, humidity and pressure
+- a mode select device
 - a switch with onOff cluster
 - a light with onOff
 - a light with onOff and levelControl (dimmer)
@@ -83,3 +92,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Matterbridge
 
 See the guidelines on [Matterbridge](https://github.com/Luligu/matterbridge/blob/main/README.md) for more information.
+
+## Style guide
+
+See also the [Style Guide](./STYLE_GUIDE.md) for JSDoc, naming and logging conventions used in this repository.

@@ -23,6 +23,28 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.3.9] - 2025-08-30
+
+### Added
+
+- [platform]: Added a door contact sensor
+- [platform]: Added a motion sensor
+- [platform]: Added an illuminance sensor
+- [platform]: Added a temperature sensor
+- [platform]: Added an humidity sensor
+- [platform]: Added a pressure sensor
+- [platform]: Added a flow sensor
+- [platform]: Added a climate sensor with temperature, humidity and pressure
+- [platform]: Added a mode select device
+
+### Changed
+
+- [package]: Updated dependencies.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.3.8] - 2025-08-20
 
 ### Added
