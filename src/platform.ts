@@ -292,7 +292,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.illuminance = new MatterbridgeEndpoint([lightSensor, bridgedNode, powerSource], { uniqueStorageKey: 'Illuminance' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Illuminance', 'ILLUMINANCE23452164', 0xfff1, 'Matterbridge', 'Matterbridge Illuminance')
-      .createDefaultIlluminanceMeasurementClusterServer(luxToMatter(5))
+      .createDefaultIlluminanceMeasurementClusterServer(luxToMatter(1))
       .createDefaultPowerSourceReplaceableBatteryClusterServer(80, PowerSource.BatChargeLevel.Ok, 3100, 'AA', 1, PowerSource.BatReplaceability.UserReplaceable)
       .addRequiredClusterServers();
 
@@ -1741,7 +1741,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           value = this.illuminance?.getAttribute(IlluminanceMeasurement.Cluster.id, 'measuredValue', this.illuminance.log);
           if (isValidNumber(value, 0, 0xfffe)) {
             value = matterToLux(value);
-            value = value + 1 < 500 ? value + 1 : 5;
+            value = value + 10 < 500 ? value + 10 : 1;
             await this.illuminance?.setAttribute(IlluminanceMeasurement.Cluster.id, 'measuredValue', luxToMatter(value), this.illuminance.log);
             this.illuminance?.log.info(`Set illuminance measuredValue to ${value}`);
           }
