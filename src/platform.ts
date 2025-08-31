@@ -117,6 +117,7 @@ import {
   OccupancySensing,
   IlluminanceMeasurement,
   PressureMeasurement,
+  RefrigeratorAndTemperatureControlledCabinetMode,
 } from 'matterbridge/matter/clusters';
 
 /**
@@ -218,6 +219,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   cooktop: Cooktop | undefined;
   refrigerator: Refrigerator | undefined;
 
+  phaseInterval: NodeJS.Timeout | undefined;
+  phase: number = 0;
   sensorInterval: NodeJS.Timeout | undefined;
   switchInterval: NodeJS.Timeout | undefined;
   lightInterval: NodeJS.Timeout | undefined;
@@ -248,9 +251,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.3')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.5')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.2.3". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.2.5". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1705,14 +1708,30 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create an Refrigerator **************************
     const refrigerator = new Refrigerator('Refrigerator', 'RE1234567890');
-    refrigerator.addCabinet('Refrigerator Top', [
-      { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: 'Refrigerator Top' },
-      { mfgCode: null, namespaceId: RefrigeratorTag.Refrigerator.namespaceId, tag: RefrigeratorTag.Refrigerator.tag, label: RefrigeratorTag.Refrigerator.label },
-    ]);
-    refrigerator.addCabinet('Freezer Bottom', [
-      { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: 'Freezer Bottom' },
-      { mfgCode: null, namespaceId: RefrigeratorTag.Freezer.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label },
-    ]);
+    refrigerator.addCabinet(
+      'Refrigerator Top',
+      [
+        { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: 'Refrigerator Top' },
+        { mfgCode: null, namespaceId: RefrigeratorTag.Refrigerator.namespaceId, tag: RefrigeratorTag.Refrigerator.tag, label: RefrigeratorTag.Refrigerator.label },
+      ],
+      1,
+      [
+        { label: 'Auto', mode: 1, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.Auto }] },
+        { label: 'RapidCool', mode: 2, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.RapidCool }] },
+      ],
+    );
+    refrigerator.addCabinet(
+      'Freezer Bottom',
+      [
+        { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: 'Freezer Bottom' },
+        { mfgCode: null, namespaceId: RefrigeratorTag.Freezer.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label },
+      ],
+      1,
+      [
+        { label: 'Auto', mode: 1, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.Auto }] },
+        { label: 'RapidFreeze', mode: 2, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.RapidFreeze }] },
+      ],
+    );
     this.refrigerator = (await this.addDevice(refrigerator)) as Refrigerator | undefined;
   }
 
@@ -1720,7 +1739,63 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await super.onConfigure();
     this.log.info('onConfigure called');
 
-    // Set sensors
+    // Use interval for appliances animation
+    if (this.config.useInterval) {
+      this.phaseInterval = setInterval(async () => {
+        this.log.info(`Appliances animation phase ${this.phase}`);
+
+        if (this.phase === 0) {
+          // Set dead front onOff on for Appliances: brings the appliances out of the "dead front" state
+          if (this.airConditioner || this.laundryWasher || this.laundryDryer || this.dishwasher) this.log.info(`Set appliances dead front OnOff to true`);
+          await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner.log);
+          await this.laundryWasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryWasher.log);
+          await this.laundryDryer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryDryer.log);
+          await this.dishwasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dishwasher.log);
+
+          // Set offOnly onOff cluster to on for Cooktop: brings the appliances on
+          this.cooktop?.log.info(`Set Cooktop offOnly onOff clusters to on`);
+          await this.cooktop?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop.log);
+          await this.cooktop?.getChildEndpointByName('SurfaceTopLeft')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
+          await this.cooktop?.getChildEndpointByName('SurfaceTopRight')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
+        }
+
+        if (this.refrigerator) {
+          if (this.phase === 0) {
+            let mode;
+            const refrigerator = this.refrigerator.getChildEndpointByName('RefrigeratorTop');
+            mode = refrigerator?.getAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', refrigerator.log);
+            mode = mode === 1 ? 2 : 1; // 1 Auto 2 RapidCool
+            await refrigerator?.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', mode, refrigerator.log);
+            if (mode === 1) await refrigerator?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, refrigerator.log);
+            if (mode === 1) await refrigerator?.setAttribute('TemperatureMeasurement', 'measuredValue', 1200, refrigerator.log);
+            if (mode === 2) await refrigerator?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 0, refrigerator.log);
+            if (mode === 2) await refrigerator?.setAttribute('TemperatureMeasurement', 'measuredValue', 1000, refrigerator.log);
+
+            const freezer = this.refrigerator.getChildEndpointByName('FreezerBottom');
+            mode = freezer?.getAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', freezer.log);
+            mode = mode === 1 ? 2 : 1; // 1 Auto 2 RapidFreeze
+            await freezer?.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', mode, freezer.log);
+            if (mode === 1) await freezer?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, freezer.log);
+            if (mode === 1) await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1000, freezer.log);
+            if (mode === 2) await freezer?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 0, freezer.log);
+            if (mode === 2) await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1500, freezer.log);
+          }
+          if (this.phase === 1) await this.refrigerator.setDoorOpenState('RefrigeratorTop', true);
+          if (this.phase === 2) await this.refrigerator.triggerDoorOpenState('RefrigeratorTop', true);
+          if (this.phase === 4) await this.refrigerator.setDoorOpenState('RefrigeratorTop', false);
+          if (this.phase === 4) await this.refrigerator.triggerDoorOpenState('RefrigeratorTop', false);
+
+          if (this.phase === 6) await this.refrigerator.setDoorOpenState('FreezerBottom', true);
+          if (this.phase === 7) await this.refrigerator.triggerDoorOpenState('FreezerBottom', true);
+          if (this.phase === 9) await this.refrigerator.setDoorOpenState('FreezerBottom', false);
+          if (this.phase === 9) await this.refrigerator.triggerDoorOpenState('FreezerBottom', false);
+        }
+
+        this.phase = this.phase + 1 > 10 ? 0 : this.phase + 1;
+      }, 10 * 1000);
+    }
+
+    // Use interval for sensor updates
     if (this.config.useInterval) {
       this.sensorInterval = setInterval(
         async () => {
@@ -2157,25 +2232,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         60 * 1000 + 1100,
       );
     }
-
-    // Set dead front onOff on for Appliances: brings the appliances out of the "dead front" state
-    await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner.log);
-
-    await this.laundryWasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryWasher.log);
-
-    await this.laundryDryer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryDryer.log);
-
-    await this.dishwasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dishwasher.log);
-    this.log.info(`Set appliances dead front OnOff to on`);
-
-    // Set offOnly onOff cluster to on for Cooktop: brings the appliances on
-    this.cooktop?.log.info(`Set Cooktop offOnly onOff clusters to on`);
-    await this.cooktop?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop.log);
-    await this.cooktop?.getChildEndpointByName('SurfaceTopLeft')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
-    await this.cooktop?.getChildEndpointByName('SurfaceTopRight')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
-
-    await this.refrigerator?.getChildEndpointByName('RefrigeratorTop')?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 1200, this.refrigerator?.log);
-    await this.refrigerator?.getChildEndpointByName('FreezerBottom')?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', -1000, this.refrigerator?.log);
 
     if (this.config.useInterval) {
       // Trigger the switches every minute

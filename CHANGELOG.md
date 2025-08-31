@@ -36,12 +36,14 @@ If you like this project and find it useful, please consider giving it a star on
 - [platform]: Added a flow sensor
 - [platform]: Added a climate sensor with temperature, humidity and pressure
 - [platform]: Added a mode select device
+- [platform]: Added animation for refrigerator
 
 ### Changed
 
 - [package]: Updated dependencies.
 - [package]: Updated to Automator v. 2.0.5.
 - [devContainer]: Updated devContainer with repository name for the container and shallow clone matterbridge for speed and memory optimization.
+- [package]: Required matterbridge 3.2.5.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">

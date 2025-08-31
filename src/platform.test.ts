@@ -79,7 +79,7 @@ describe('TestPlatform', () => {
     matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
     matterbridgeCertDirectory: path.join(HOMEDIR, '.mattercert'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.2.3',
+    matterbridgeVersion: '3.2.5',
     log: mockLog,
     getDevices: jest.fn(() => {
       return [];
@@ -170,9 +170,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "3.2.3". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.2.5". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '3.2.3';
+    mockMatterbridge.matterbridgeVersion = '3.2.5';
   });
 
   it('should initialize platform with config name and set the default config', () => {
@@ -345,7 +345,8 @@ describe('TestPlatform', () => {
 
     jest.useRealTimers();
 
-    expect(mockLog.info).toHaveBeenCalledTimes(5);
+    expect(mockLog.info).toHaveBeenCalledTimes(1204);
+    expect(mockLog.warn).toHaveBeenCalledTimes(0);
     expect(mockLog.error).toHaveBeenCalledTimes(0);
     expect(loggerLogSpy).toHaveBeenCalled();
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.SinglePress'));
