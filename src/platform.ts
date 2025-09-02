@@ -1756,6 +1756,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.phase = this.phase + 1 > 10 ? 0 : this.phase + 1;
         this.log.info(`Appliances animation phase ${this.phase}`);
 
+        // Dead front and onOff for Appliances
+        if (this.phase === 0) {
+          // Set dead front onOff on for Appliances: brings the appliances out of the "dead front" state
+          if (this.airConditioner || this.laundryWasher || this.laundryDryer || this.dishwasher) this.log.info(`Set appliances dead front OnOff to true`);
+          await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner.log);
+          await this.laundryWasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryWasher.log);
+          await this.laundryDryer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryDryer.log);
+          await this.dishwasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dishwasher.log);
+
+          // Set offOnly onOff cluster to on for Cooktop and the Surfaces: brings the appliances on
+          this.cooktop?.log.info(`Set Cooktop offOnly onOff clusters to on`);
+          await this.cooktop?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop.log);
+          await this.cooktop?.getChildEndpointByName('SurfaceTopLeft')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
+          await this.cooktop?.getChildEndpointByName('SurfaceTopRight')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
+        }
+
         if (this.roboticVacuum) {
           // RvcRunMode: 1 = Idle 2 = Cleaning 3 = Mapping 4 = Cleaning + Max
           // RvcCleanMode 1 = Vacuum 2 = Mop 3 = Clean
@@ -1822,21 +1838,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Docked, this.roboticVacuum.log);
           }
-        }
-
-        if (this.phase === 0) {
-          // Set dead front onOff on for Appliances: brings the appliances out of the "dead front" state
-          if (this.airConditioner || this.laundryWasher || this.laundryDryer || this.dishwasher) this.log.info(`Set appliances dead front OnOff to true`);
-          await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner.log);
-          await this.laundryWasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryWasher.log);
-          await this.laundryDryer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryDryer.log);
-          await this.dishwasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dishwasher.log);
-
-          // Set offOnly onOff cluster to on for Cooktop: brings the appliances on
-          this.cooktop?.log.info(`Set Cooktop offOnly onOff clusters to on`);
-          await this.cooktop?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop.log);
-          await this.cooktop?.getChildEndpointByName('SurfaceTopLeft')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
-          await this.cooktop?.getChildEndpointByName('SurfaceTopRight')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
         }
 
         if (this.oven) {
