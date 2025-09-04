@@ -76,6 +76,7 @@ It exposes 56 virtual devices:
 - a solar power device
 - a battery storage device
 - a heat pump device
+- a speaker device (supported by SmartThings)
 
 All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices), how to subscribe to attributes and how to trigger events.
 
