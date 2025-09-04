@@ -49,7 +49,6 @@ import {
   pumpDevice,
   waterValve,
   genericSwitch,
-  airConditioner,
   onOffMountedSwitch,
   dimmableMountedSwitch,
   extendedColorLight,
@@ -74,6 +73,7 @@ import {
   Oven,
   Cooktop,
   Refrigerator,
+  AirConditioner,
 } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
@@ -198,7 +198,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   smokeOnly: MatterbridgeEndpoint | undefined;
   coOnly: MatterbridgeEndpoint | undefined;
   airQuality: MatterbridgeEndpoint | undefined;
-  airConditioner: MatterbridgeEndpoint | undefined;
   airPurifier: MatterbridgeEndpoint | undefined;
   pump: MatterbridgeEndpoint | undefined;
   valve: MatterbridgeEndpoint | undefined;
@@ -219,6 +218,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   oven: Oven | undefined;
   cooktop: Cooktop | undefined;
   refrigerator: Refrigerator | undefined;
+  airConditioner: AirConditioner | undefined;
 
   phaseInterval: NodeJS.Timeout | undefined;
   phase: number = -1;
@@ -252,9 +252,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.5')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.6')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.2.5". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.2.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1029,39 +1029,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.airPurifier.log,
     );
 
-    // *********************** Create a airConditioner device ***********************
-    this.airConditioner = new MatterbridgeEndpoint([airConditioner, bridgedNode, powerSource], { uniqueStorageKey: 'Air Conditioner' }, this.config.debug as boolean)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Air Conditioner', 'ACO00027', 0xfff1, 'Matterbridge', 'Matterbridge Air Conditioner')
-      .createDefaultIdentifyClusterServer()
-      .createDeadFrontOnOffClusterServer(true)
-      .createDefaultThermostatClusterServer(20, 18, 22)
-      .createDefaultThermostatUserInterfaceConfigurationClusterServer()
-      .createDefaultFanControlClusterServer(FanControl.FanMode.Auto)
-      .createDefaultTemperatureMeasurementClusterServer(20 * 100)
-      .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
-      .createDefaultPowerSourceWiredClusterServer()
-      .addRequiredClusterServers();
-
-    this.airConditioner = await this.addDevice(this.airConditioner);
-
-    this.airConditioner?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
-      this.airConditioner?.log.info(`Command identify called identifyTime:${identifyTime}`);
-    });
-    this.airConditioner?.addCommandHandler('on', async () => {
-      this.airConditioner?.log.info('Command on called');
-      await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 20 * 100, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 20 * 100, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.airConditioner?.log);
-    });
-    this.airConditioner?.addCommandHandler('off', async () => {
-      this.airConditioner?.log.info('Command off called');
-      await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', null, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', null, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.airConditioner?.log);
-    });
-
     // *********************** Create a pumpDevice device ***********************
     this.pump = new MatterbridgeEndpoint([pumpDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Pump' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Pump', 'PUM00028', 0xfff1, 'Matterbridge', 'Matterbridge Pump')
@@ -1744,6 +1711,38 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       -1000,
     );
     this.refrigerator = (await this.addDevice(refrigerator)) as Refrigerator | undefined;
+
+    // *********************** Create a airConditioner device ***********************
+    this.airConditioner = new AirConditioner('Air Conditioner', 'ACO00027', {
+      localTemperature: 20,
+      occupiedCoolingSetpoint: 18,
+      occupiedHeatingSetpoint: 22,
+      fanMode: FanControl.FanMode.Auto,
+    })
+      .createDefaultTemperatureMeasurementClusterServer(20 * 100)
+      .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
+      .addRequiredClusterServers();
+
+    this.airConditioner = await this.addDevice(this.airConditioner);
+
+    this.airConditioner?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.airConditioner?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    // Dead front OnOff cluster
+    this.airConditioner?.addCommandHandler('on', async () => {
+      this.airConditioner?.log.info('Command on called');
+      await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 20 * 100, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 20 * 100, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', 50 * 100, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.airConditioner?.log);
+    });
+    this.airConditioner?.addCommandHandler('off', async () => {
+      this.airConditioner?.log.info('Command off called');
+      await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.airConditioner?.log);
+    });
   }
 
   override async onConfigure() {
@@ -1758,15 +1757,15 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
         // Dead front and onOff for Appliances
         if (this.phase === 0) {
-          // Set dead front onOff on for Appliances: brings the appliances out of the "dead front" state
+          // Set dead front onOff true for Appliances: brings the appliances out of the "dead front" state
           if (this.airConditioner || this.laundryWasher || this.laundryDryer || this.dishwasher) this.log.info(`Set appliances dead front OnOff to true`);
           await this.airConditioner?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.airConditioner.log);
           await this.laundryWasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryWasher.log);
           await this.laundryDryer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.laundryDryer.log);
           await this.dishwasher?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dishwasher.log);
 
-          // Set offOnly onOff cluster to on for Cooktop and the Surfaces: brings the appliances on
-          this.cooktop?.log.info(`Set Cooktop offOnly onOff clusters to on`);
+          // Set offOnly onOff cluster to true for Cooktop and the Surfaces: brings the appliances on
+          this.cooktop?.log.info(`Set Cooktop offOnly onOff clusters to true`);
           await this.cooktop?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop.log);
           await this.cooktop?.getChildEndpointByName('SurfaceTopLeft')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
           await this.cooktop?.getChildEndpointByName('SurfaceTopRight')?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.cooktop?.log);
