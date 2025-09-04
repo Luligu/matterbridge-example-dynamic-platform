@@ -1796,6 +1796,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 2, this.roboticVacuum.log); // Cleaning
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Running, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('ServiceArea', 'currentArea', 1, this.roboticVacuum.log); // Living
+            await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', Math.floor(Date.now() / 1000) + 300, this.roboticVacuum.log); // Epoch time in seconds
           }
           if (this.phase === 2) {
             this.roboticVacuum.log.info(`RVC: pause cleaning...`);
@@ -1808,12 +1809,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 2, this.roboticVacuum.log); // Cleaning
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Running, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('ServiceArea', 'currentArea', 2, this.roboticVacuum.log); // Kitchen
+            await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', Math.floor(Date.now() / 1000) + 180, this.roboticVacuum.log); // Epoch time in seconds
           }
           if (this.phase === 4) {
             this.roboticVacuum.log.info(`RVC: stop cleaning...`);
             await this.roboticVacuum.setAttribute('PowerSource', 'batPercentRemaining', 160, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Stopped, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', 0, this.roboticVacuum.log); // A value of 0 means that the operation has completed.
           }
           if (this.phase === 5) {
             this.roboticVacuum.log.info(`RVC: going home...`);
