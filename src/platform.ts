@@ -74,6 +74,7 @@ import {
   Cooktop,
   Refrigerator,
   AirConditioner,
+  Speaker,
 } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
@@ -219,6 +220,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   cooktop: Cooktop | undefined;
   refrigerator: Refrigerator | undefined;
   airConditioner: AirConditioner | undefined;
+  speaker: Speaker | undefined;
 
   phaseInterval: NodeJS.Timeout | undefined;
   phase: number = -1;
@@ -1743,6 +1745,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.airConditioner?.log);
     });
+
+    // *********************** Create a Speaker device ***********************
+    this.speaker = new Speaker('Speaker', 'SPE00057', false, 100);
+    this.speaker = (await this.addDevice(this.speaker)) as Speaker | undefined;
   }
 
   override async onConfigure() {

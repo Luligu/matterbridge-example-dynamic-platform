@@ -28,6 +28,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [platform]: Added AirConditioner device class from Matterbridge.
+- [platform]: Added a Speaker device type.
 
 ### Changed
 
