@@ -23,7 +23,7 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
-## [1.3.10] - 2025-09-05
+## [1.3.10] - 2025-09-06
 
 ### Added
 

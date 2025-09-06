@@ -1075,6 +1075,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.fanDefault = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Fan off low medium high auto' }, this.config.debug as boolean)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Fan', 'FAN00030', 0xfff1, 'Matterbridge', 'Matterbridge Fan')
       .createDefaultPowerSourceWiredClusterServer()
+      .createDefaultFanControlClusterServer()
       .addRequiredClusterServers();
 
     this.fanDefault = await this.addDevice(this.fanDefault);
@@ -1745,6 +1746,47 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurementCluster.id, 'measuredValue', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.airConditioner?.log);
     });
+    // Fan component of AirConditioner
+    await this.airConditioner?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'fanMode',
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.airConditioner?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+        );
+        if (context.offline === true) return; // Do not set attributes when offline
+        if (newValue === FanControl.FanMode.Off) {
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.airConditioner?.log);
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airConditioner?.log);
+        } else if (newValue === FanControl.FanMode.Low) {
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.airConditioner?.log);
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airConditioner?.log);
+        } else if (newValue === FanControl.FanMode.Medium) {
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.airConditioner?.log);
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airConditioner?.log);
+        } else if (newValue === FanControl.FanMode.High) {
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airConditioner?.log);
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airConditioner?.log);
+        } else if (newValue === FanControl.FanMode.On) {
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airConditioner?.log);
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airConditioner?.log);
+        } else if (newValue === FanControl.FanMode.Auto) {
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.airConditioner?.log);
+          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.airConditioner?.log);
+        }
+      },
+      this.airConditioner?.log,
+    );
+    await this.airConditioner?.subscribeAttribute(
+      FanControl.Cluster.id,
+      'percentSetting',
+      (newValue: number | null, oldValue: number | null, context) => {
+        this.airConditioner?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+        if (context.offline === true) return; // Do not set attributes when offline
+        if (isValidNumber(newValue, 0, 100)) this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airConditioner?.log);
+      },
+      this.airConditioner?.log,
+    );
 
     // *********************** Create a Speaker device ***********************
     this.speaker = new Speaker('Speaker', 'SPE00057', false, 100);
