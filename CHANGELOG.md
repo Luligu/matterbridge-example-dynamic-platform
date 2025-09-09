@@ -28,7 +28,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Changed
 
 - [package]: Updated dependencies.
-- [platform]: Removed attributes setting when is managed by the Matterbridge servers. This add support for **Apple Home Adaptive Lighting**.
+- [platform]: Removed attributes setting when is managed by the Matterbridge servers. This add support for **Apple Home Adaptive Lighting**. See https://github.com/Luligu/matterbridge/discussions/390.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
