@@ -391,15 +391,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.switch = await this.addDevice(this.switch);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer
     this.switch?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.switch?.addCommandHandler('on', async () => {
-      await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.switch.log);
       this.switch?.log.info('Command on called');
     });
     this.switch?.addCommandHandler('off', async () => {
-      await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.switch.log);
       this.switch?.log.info('Command off called');
     });
 
@@ -413,15 +412,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.mountedOnOffSwitch = await this.addDevice(this.mountedOnOffSwitch);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer
     this.mountedOnOffSwitch?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.mountedOnOffSwitch?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.mountedOnOffSwitch?.addCommandHandler('on', async () => {
-      await this.mountedOnOffSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.mountedOnOffSwitch.log);
       this.mountedOnOffSwitch?.log.info('Command on called');
     });
     this.mountedOnOffSwitch?.addCommandHandler('off', async () => {
-      await this.mountedOnOffSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.mountedOnOffSwitch.log);
       this.mountedOnOffSwitch?.log.info('Command off called');
     });
 
@@ -441,23 +439,20 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.mountedDimmerSwitch = await this.addDevice(this.mountedDimmerSwitch);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer and MatterbridgeLevelControlServer
     this.mountedDimmerSwitch?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.mountedDimmerSwitch?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.mountedDimmerSwitch?.addCommandHandler('on', async () => {
-      await this.mountedDimmerSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.mountedDimmerSwitch.log);
       this.mountedDimmerSwitch?.log.info('Command on called');
     });
     this.mountedDimmerSwitch?.addCommandHandler('off', async () => {
-      await this.mountedDimmerSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.mountedDimmerSwitch.log);
       this.mountedDimmerSwitch?.log.info('Command off called');
     });
     this.mountedDimmerSwitch?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.mountedDimmerSwitch?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.mountedDimmerSwitch.log);
       this.mountedDimmerSwitch?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.mountedDimmerSwitch?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.mountedDimmerSwitch?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.mountedDimmerSwitch.log);
       this.mountedDimmerSwitch?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
@@ -471,15 +466,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.lightOnOff = await this.addDevice(this.lightOnOff);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer
     this.lightOnOff?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightOnOff?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lightOnOff?.addCommandHandler('on', async () => {
-      await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightOnOff?.log);
       this.lightOnOff?.log.info('Command on called');
     });
     this.lightOnOff?.addCommandHandler('off', async () => {
-      await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightOnOff?.log);
       this.lightOnOff?.log.info('Command off called');
     });
 
@@ -494,23 +488,20 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.dimmer = await this.addDevice(this.dimmer);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer and MatterbridgeLevelControlServer
     this.dimmer?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.dimmer?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.dimmer?.addCommandHandler('on', async () => {
-      await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dimmer.log);
       this.dimmer?.log.info('Command on called');
     });
     this.dimmer?.addCommandHandler('off', async () => {
-      await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.dimmer.log);
       this.dimmer?.log.info('Command off called');
     });
     this.dimmer?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.dimmer.log);
       this.dimmer?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.dimmer?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.dimmer.log);
       this.dimmer?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
@@ -526,45 +517,35 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.light = await this.addDevice(this.light);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer, MatterbridgeLevelControlServer and MatterbridgeColorControlServer
     this.light?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.light?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.light?.addCommandHandler('on', async () => {
-      await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.light?.log);
       this.light?.log.info('Command on called');
     });
     this.light?.addCommandHandler('off', async () => {
-      await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.light?.log);
       this.light?.log.info('Command off called');
     });
     this.light?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.light?.log);
       this.light?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.light?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.light?.log);
       this.light?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
     this.light?.addCommandHandler('moveToColor', async ({ request: { colorX, colorY } }) => {
-      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentX', colorX, this.light?.log);
-      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentY', colorY, this.light?.log);
       this.light?.log.debug(`Command moveToColor called request: X ${colorX / 65536} Y ${colorY / 65536}`);
     });
     this.light?.addCommandHandler('moveToHueAndSaturation', async ({ request: { hue, saturation } }) => {
-      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentHue', hue, this.light?.log);
-      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', saturation, this.light?.log);
       this.light?.log.debug(`Command moveToHueAndSaturation called request: hue ${hue} saturation ${saturation}`);
     });
     this.light?.addCommandHandler('moveToHue', async ({ request: { hue } }) => {
-      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentHue', hue, this.light?.log);
       this.light?.log.debug(`Command moveToHue called request: hue ${hue}`);
     });
     this.light?.addCommandHandler('moveToSaturation', async ({ request: { saturation } }) => {
-      await this.light?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', saturation, this.light?.log);
       this.light?.log.debug(`Command moveToSaturation called request: saturation ${saturation}}`);
     });
     this.light?.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
-      await this.light?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.light?.log);
       this.light?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
@@ -580,40 +561,32 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.lightHS = await this.addDevice(this.lightHS);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer, MatterbridgeLevelControlServer and MatterbridgeColorControlServer
     this.lightHS?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightHS?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lightHS?.addCommandHandler('on', async () => {
-      await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightHS?.log);
       this.lightHS?.log.info('Command on called');
     });
     this.lightHS?.addCommandHandler('off', async () => {
-      await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightHS?.log);
       this.lightHS?.log.info('Command off called');
     });
     this.lightHS?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.lightHS?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
     this.lightHS?.addCommandHandler('moveToHueAndSaturation', async ({ request: { hue, saturation } }) => {
-      await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentHue', hue, this.lightHS?.log);
-      await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', saturation, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToHueAndSaturation called request: hue ${hue} saturation ${saturation}}`);
     });
     this.lightHS?.addCommandHandler('moveToHue', async ({ request: { hue } }) => {
-      await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentHue', hue, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToHue called request: hue ${hue}`);
     });
     this.lightHS?.addCommandHandler('moveToSaturation', async ({ request: { saturation } }) => {
-      await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'currentSaturation', saturation, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToSaturation called request: saturation ${saturation}`);
     });
     this.lightHS?.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
-      await this.lightHS?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightHS?.log);
       this.lightHS?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
@@ -629,32 +602,26 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.lightXY = await this.addDevice(this.lightXY);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer, MatterbridgeLevelControlServer and MatterbridgeColorControlServer
     this.lightXY?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightXY?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lightXY?.addCommandHandler('on', async () => {
-      await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightXY?.log);
       this.lightXY?.log.info('Command on called');
     });
     this.lightXY?.addCommandHandler('off', async () => {
-      await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightXY?.log);
       this.lightXY?.log.info('Command off called');
     });
     this.lightXY?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightXY?.log);
       this.lightXY?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.lightXY?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightXY?.log);
       this.lightXY?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
     this.lightXY?.addCommandHandler('moveToColor', async ({ request: { colorX, colorY } }) => {
-      await this.lightXY?.setAttribute(ColorControl.Cluster.id, 'currentX', colorX, this.lightXY?.log);
-      await this.lightXY?.setAttribute(ColorControl.Cluster.id, 'currentY', colorY, this.lightXY?.log);
       this.lightXY?.log.debug(`Command moveToColor called request: X ${colorX / 65536} Y ${colorY / 65536}`);
     });
     this.lightXY?.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
-      await this.lightXY?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightXY?.log);
       this.lightXY?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
@@ -670,27 +637,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.lightCT = await this.addDevice(this.lightCT);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer, MatterbridgeLevelControlServer and MatterbridgeColorControlServer
     this.lightCT?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lightCT?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lightCT?.addCommandHandler('on', async () => {
-      await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightCT?.log);
       this.lightCT?.log.info('Command on called');
     });
     this.lightCT?.addCommandHandler('off', async () => {
-      await this.lightCT?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightCT?.log);
       this.lightCT?.log.info('Command off called');
     });
     this.lightCT?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
-      await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightCT?.log);
       this.lightCT?.log.debug(`Command moveToLevel called request: ${level}`);
     });
     this.lightCT?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
-      await this.lightCT?.setAttribute(LevelControl.Cluster.id, 'currentLevel', level, this.lightCT?.log);
       this.lightCT?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
     this.lightCT?.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
-      await this.lightCT?.setAttribute(ColorControl.Cluster.id, 'colorTemperatureMireds', colorTemperatureMireds, this.lightCT?.log);
       this.lightCT?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
@@ -704,15 +667,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.outlet = await this.addDevice(this.outlet);
 
+    // The cluster attributes are set by MatterbridgeOnOffServer
     this.outlet?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.outlet?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.outlet?.addCommandHandler('on', async () => {
-      await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.outlet?.log);
       this.outlet?.log.info('Command on called');
     });
     this.outlet?.addCommandHandler('off', async () => {
-      await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outlet?.log);
       this.outlet?.log.info('Command off called');
     });
 
@@ -727,6 +689,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.coverLift = await this.addDevice(this.coverLift);
 
+    // The cluster attributes are set by MatterbridgeLiftWindowCoveringServer.  The implementation shall handle the movement (i.e. the currentPosition).
     this.coverLift?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.coverLift?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
@@ -762,6 +725,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.coverLiftTilt = await this.addDevice(this.coverLiftTilt);
 
+    // The cluster attributes are set by MatterbridgeLiftTiltWindowCoveringServer. The implementation shall handle the movement (i.e. the currentPosition).
     this.coverLiftTilt?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.coverLiftTilt?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
@@ -801,15 +765,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.lock = await this.addDevice(this.lock);
 
+    // The cluster attributes are set by MatterbridgeDoorLockServer
     this.lock?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.lock?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     this.lock?.addCommandHandler('lockDoor', async () => {
-      await this.lock?.setAttribute(DoorLock.Cluster.id, 'lockState', DoorLock.LockState.Locked, this.lock?.log);
       this.lock?.log.info('Command lockDoor called');
     });
     this.lock?.addCommandHandler('unlockDoor', async () => {
-      await this.lock?.setAttribute(DoorLock.Cluster.id, 'lockState', DoorLock.LockState.Unlocked, this.lock?.log);
       this.lock?.log.info('Command unlockDoor called');
     });
 
@@ -838,6 +801,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.thermoAuto = await this.addDevice(this.thermoAuto);
 
+    // The cluster attributes are set by MatterbridgeThermostatServer
     this.thermoAuto?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.thermoAuto?.log.info(`Command identify called identifyTime ${identifyTime}`);
     });
@@ -847,16 +811,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoAuto?.addCommandHandler('setpointRaiseLower', async ({ request: { mode, amount } }) => {
       const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
       this.thermoAuto?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
-      if (mode === Thermostat.SetpointRaiseLowerMode.Heat || mode === Thermostat.SetpointRaiseLowerMode.Both) {
-        const setpoint = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', this.thermoAuto?.log) / 100 + amount / 10;
-        await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', setpoint * 100, this.thermoAuto?.log);
-        this.thermoAuto?.log.info('Set occupiedHeatingSetpoint:', setpoint);
-      }
-      if (mode === Thermostat.SetpointRaiseLowerMode.Cool || mode === Thermostat.SetpointRaiseLowerMode.Both) {
-        const setpoint = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', this.thermoAuto?.log) / 100 + amount / 10;
-        await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', setpoint * 100, this.thermoAuto?.log);
-        this.thermoAuto?.log.info('Set occupiedCoolingSetpoint:', setpoint);
-      }
     });
     await this.thermoAuto?.subscribeAttribute(
       ThermostatCluster.id,
@@ -914,6 +868,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.thermoHeat = await this.addDevice(this.thermoHeat);
 
+    // The cluster attributes are set by MatterbridgeThermostatServer
     this.thermoHeat?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.thermoHeat?.log.info(`Command identify called identifyTime ${identifyTime}`);
     });
@@ -948,6 +903,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.thermoCool = await this.addDevice(this.thermoCool);
 
+    // The cluster attributes are set by MatterbridgeThermostatServer
     this.thermoCool?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.thermoCool?.log.info(`Command identify called identifyTime ${identifyTime}`);
     });
