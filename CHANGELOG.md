@@ -23,6 +23,22 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.3.12] - 2025-09-??
+
+### Added
+
+- [jest]: Added jest helper module v. 1.0.5.
+
+### Changed
+
+- [package]: Updated dependencies.
+- [package]: Updated to Automator v. 2.0.6.
+- [workflows]: Ignore any .md anywhere.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.3.11] - 2025-09-09
 
 ### Changed
