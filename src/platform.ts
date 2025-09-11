@@ -1786,7 +1786,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcCleanMode', 'currentMode', 1, this.roboticVacuum.log); // Vacuum
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Docked, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.NoError, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+            );
           }
           if (this.phase === 1) {
             this.roboticVacuum.log.info(`RVC: start cleaning...`);
@@ -1794,7 +1798,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('PowerSource', 'batVoltage', 5900, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 2, this.roboticVacuum.log); // Cleaning
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Running, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.NoError, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+            );
             await this.roboticVacuum.setAttribute('ServiceArea', 'currentArea', 1, this.roboticVacuum.log); // Living
             await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', Math.floor(Date.now() / 1000) + 300, this.roboticVacuum.log); // Epoch time in seconds
           }
@@ -1803,13 +1811,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('PowerSource', 'batPercentRemaining', 180, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 2, this.roboticVacuum.log); // Cleaning
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Paused, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.NoError, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+            );
           }
           if (this.phase === 3) {
             this.roboticVacuum.log.info(`RVC: resume cleaning...`);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 2, this.roboticVacuum.log); // Cleaning
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Running, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.NoError, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+            );
             await this.roboticVacuum.setAttribute('ServiceArea', 'currentArea', 2, this.roboticVacuum.log); // Kitchen
             await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', Math.floor(Date.now() / 1000) + 180, this.roboticVacuum.log); // Epoch time in seconds
           }
@@ -1818,14 +1834,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('PowerSource', 'batPercentRemaining', 160, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Stopped, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.NoError, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+            );
             await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', 0, this.roboticVacuum.log); // A value of 0 means that the operation has completed.
           }
           if (this.phase === 5) {
             this.roboticVacuum.log.info(`RVC: going home...`);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.SeekingCharger, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.NoError, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+            );
           }
           if (this.phase === 6) {
             this.roboticVacuum.log.info(`RVC: charging...`);
@@ -1834,7 +1858,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('PowerSource', 'batVoltage', 6100, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Charging, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.NoError, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+            );
             await this.roboticVacuum.setAttribute('ServiceArea', 'currentArea', 1, this.roboticVacuum.log); // Living
           }
           if (this.phase === 7) {
@@ -1842,7 +1870,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('PowerSource', 'batPercentRemaining', 190, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Charging, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.NoError, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+            );
           }
           if (this.phase === 8) {
             this.roboticVacuum.log.info(`RVC: docked...`);
@@ -1851,7 +1883,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('PowerSource', 'batVoltage', 6000, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Docked, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.NoError, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+            );
           }
           if (this.phase === 9) {
             this.roboticVacuum.log.info(`RVC: error...`);
@@ -1860,7 +1896,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('PowerSource', 'batVoltage', 6000, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Error, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', RvcOperationalState.ErrorState.DustBinMissing, this.roboticVacuum.log);
+            await this.roboticVacuum.setAttribute(
+              'RvcOperationalState',
+              'operationalError',
+              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.DustBinMissing }),
+            );
           }
         }
 
