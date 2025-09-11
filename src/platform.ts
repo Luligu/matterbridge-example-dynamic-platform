@@ -1789,7 +1789,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+              { errorStateId: RvcOperationalState.ErrorState.NoError },
+              this.roboticVacuum.log
             );
           }
           if (this.phase === 1) {
@@ -1801,7 +1802,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+              { errorStateId: RvcOperationalState.ErrorState.NoError },
+              this.roboticVacuum.log
             );
             await this.roboticVacuum.setAttribute('ServiceArea', 'currentArea', 1, this.roboticVacuum.log); // Living
             await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', Math.floor(Date.now() / 1000) + 300, this.roboticVacuum.log); // Epoch time in seconds
@@ -1814,7 +1816,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+              { errorStateId: RvcOperationalState.ErrorState.NoError },
+              this.roboticVacuum.log
             );
           }
           if (this.phase === 3) {
@@ -1824,7 +1827,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+              { errorStateId: RvcOperationalState.ErrorState.NoError },
+              this.roboticVacuum.log
             );
             await this.roboticVacuum.setAttribute('ServiceArea', 'currentArea', 2, this.roboticVacuum.log); // Kitchen
             await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', Math.floor(Date.now() / 1000) + 180, this.roboticVacuum.log); // Epoch time in seconds
@@ -1837,7 +1841,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+              { errorStateId: RvcOperationalState.ErrorState.NoError },
+              this.roboticVacuum.log
             );
             await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', 0, this.roboticVacuum.log); // A value of 0 means that the operation has completed.
           }
@@ -1848,7 +1853,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+              { errorStateId: RvcOperationalState.ErrorState.NoError },
+              this.roboticVacuum.log
             );
           }
           if (this.phase === 6) {
@@ -1861,7 +1867,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+              { errorStateId: RvcOperationalState.ErrorState.NoError },
+              this.roboticVacuum.log
             );
             await this.roboticVacuum.setAttribute('ServiceArea', 'currentArea', 1, this.roboticVacuum.log); // Living
           }
@@ -1873,7 +1880,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+              { errorStateId: RvcOperationalState.ErrorState.NoError },
+              this.roboticVacuum.log
             );
           }
           if (this.phase === 8) {
@@ -1886,7 +1894,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.NoError }),
+              { errorStateId: RvcOperationalState.ErrorState.NoError },
+              this.roboticVacuum.log
             );
           }
           if (this.phase === 9) {
@@ -1899,7 +1908,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute(
               'RvcOperationalState',
               'operationalError',
-              RvcOperationalState.TlvErrorStateStruct.encodeTlv({ errorStateId: RvcOperationalState.ErrorState.DustBinMissing }),
+              { errorStateId: RvcOperationalState.ErrorState.DustBinMissing },
+              this.roboticVacuum.log
             );
           }
         }
