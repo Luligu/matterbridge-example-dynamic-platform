@@ -23,6 +23,19 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
+## [1.3.13] - 2025-09-??
+
+### Added
+
+### Changed
+
+- [package]: Updated dependencies.
+- [workflows]: Ignore any .md anywhere in all workflows.
+
+<a href="https://www.buymeacoffee.com/luligugithub">
+  <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
+</a>
+
 ## [1.3.12] - 2025-09-14
 
 ### Added
