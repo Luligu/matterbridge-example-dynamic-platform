@@ -1854,18 +1854,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', { errorStateId: RvcOperationalState.ErrorState.NoError }, this.roboticVacuum.log);
           }
           if (this.phase === 9) {
-            this.roboticVacuum.log.info(`RVC: error...`);
+            this.roboticVacuum.log.info(`RVC: error DustBinFull...`);
             await this.roboticVacuum.setAttribute('PowerSource', 'batPercentRemaining', 200, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('PowerSource', 'batChargeState', PowerSource.BatChargeState.IsAtFullCharge, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('PowerSource', 'batVoltage', 6000, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Error, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute(
-              'RvcOperationalState',
-              'operationalError',
-              { errorStateId: RvcOperationalState.ErrorState.DustBinMissing },
-              this.roboticVacuum.log,
-            );
+            await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', { errorStateId: RvcOperationalState.ErrorState.DustBinFull }, this.roboticVacuum.log);
           }
         }
 

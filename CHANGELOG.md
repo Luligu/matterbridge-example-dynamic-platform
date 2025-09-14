@@ -28,6 +28,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [jest]: Added jest helper module v. 1.0.5.
+- [rvc]: Added DustBinFull to the Rvc animation (https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/31).
 
 ### Changed
 
