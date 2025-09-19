@@ -948,6 +948,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
       this.thermoHeat.log,
     );
+    await this.thermoHeat?.subscribeAttribute(
+      ThermostatCluster.id,
+      'unoccupiedHeatingSetpoint',
+      (value) => {
+        this.thermoHeat?.log.info('Subscribe unoccupiedHeatingSetpoint called with:', value / 100);
+      },
+      this.thermoHeat.log,
+    );
 
     // *********************** Create a thermostat with Cool device ***********************
     this.thermoCool = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Cool)' }, this.config.debug as boolean)
