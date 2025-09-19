@@ -893,7 +893,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoHeat.log,
     );
 
-
     // *********************** Create a thermostat with Heating and Occupancy features device ***********************
     this.thermoHeat = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Heat)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
