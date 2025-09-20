@@ -187,6 +187,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   lock: MatterbridgeEndpoint | undefined;
   thermoAuto: MatterbridgeEndpoint | undefined;
   thermoHeat: MatterbridgeEndpoint | undefined;
+  thermoHeatOccup: MatterbridgeEndpoint | undefined;
   thermoCool: MatterbridgeEndpoint | undefined;
   fanBase: MatterbridgeEndpoint | undefined;
   fanOnHigh: MatterbridgeEndpoint | undefined;
@@ -891,6 +892,69 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.thermoHeat?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
       },
       this.thermoHeat.log,
+    );
+
+    // *********************** Create a thermostat with Heating and Occupancy features device ***********************
+    this.thermoHeatOccup = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (Heat)' }, this.config.debug as boolean)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (Heat)', 'THEOC24', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
+      .createDefaultHeatingOccupancyThermostatClusterServer(20, 18, 17, 5, 35, true)
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 6010, 'AA 1.5V', 4);
+
+    this.thermoHeatOccup
+      .addChildDeviceType('TemperatureIN', [temperatureSensor], {
+        tagList: [
+          { mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null },
+          { mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: null },
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultTemperatureMeasurementClusterServer(21 * 100);
+
+    this.thermoHeatOccup
+      .addChildDeviceType('TemperatureOUT', [temperatureSensor], {
+        tagList: [
+          { mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: null },
+          { mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: null },
+        ],
+      })
+      .createDefaultIdentifyClusterServer()
+      .createDefaultTemperatureMeasurementClusterServer(15 * 100);
+
+    this.thermoHeatOccup = await this.addDevice(this.thermoHeatOccup);
+
+    // The cluster attributes are set by MatterbridgeThermostatServer
+    this.thermoHeatOccup?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.thermoHeatOccup?.log.info(`Command identify called identifyTime ${identifyTime}`);
+    });
+    this.thermoHeatOccup?.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+      this.thermoHeatOccup?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
+    });
+    await this.thermoHeatOccup?.subscribeAttribute(
+      ThermostatCluster.id,
+      'systemMode',
+      (value) => {
+        const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
+        this.thermoHeatOccup?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+      },
+      this.thermoHeatOccup.log,
+    );
+    await this.thermoHeatOccup?.subscribeAttribute(
+      ThermostatCluster.id,
+      'occupiedHeatingSetpoint',
+      (value) => {
+        this.thermoHeatOccup?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
+      },
+      this.thermoHeatOccup.log,
+    );
+    await this.thermoHeatOccup?.subscribeAttribute(
+      ThermostatCluster.id,
+      'unoccupiedHeatingSetpoint',
+      (value) => {
+        this.thermoHeatOccup?.log.info('Subscribe unoccupiedHeatingSetpoint called with:', value / 100);
+      },
+      this.thermoHeatOccup.log,
     );
 
     // *********************** Create a thermostat with Cool device ***********************
