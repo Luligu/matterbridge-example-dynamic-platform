@@ -28,6 +28,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [jest]: Added jest helper module v. 1.0.6.
+- [platform]: Added a thermostat with auto mode and occupancy and outdoorTemperature.
 
 ### Changed
 
