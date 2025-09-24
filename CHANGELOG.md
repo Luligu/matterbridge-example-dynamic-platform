@@ -27,10 +27,14 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
+- [jest]: Added jest helper module v. 1.0.6.
+
 ### Changed
 
 - [package]: Updated dependencies.
 - [workflows]: Ignore any .md anywhere in all workflows.
+- [package]: Updated to Automator v. 2.0.7.
+- [package]: Required matterbridge 3.2.9.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">

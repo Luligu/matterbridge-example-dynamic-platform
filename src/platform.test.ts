@@ -79,7 +79,7 @@ describe('TestPlatform', () => {
     matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
     matterbridgeCertDirectory: path.join(HOMEDIR, '.mattercert'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.2.6',
+    matterbridgeVersion: '3.2.9',
     log: mockLog,
     getDevices: jest.fn(() => {
       return [];
@@ -97,6 +97,7 @@ describe('TestPlatform', () => {
   const mockConfig = {
     name: 'matterbridge-example-dynamic-platform',
     type: 'DynamicPlatform',
+    version: '1.0.0',
     whiteList: [],
     blackList: [],
     useInterval: true,
@@ -170,9 +171,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "3.2.6". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.2.9". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '3.2.6';
+    mockMatterbridge.matterbridgeVersion = '3.2.9';
   });
 
   it('should initialize platform with config name and set the default config', () => {
@@ -219,7 +220,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(57);
+    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(58);
   }, 60000);
 
   it('should start the server', async () => {

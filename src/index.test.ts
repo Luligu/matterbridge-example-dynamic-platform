@@ -36,7 +36,7 @@ describe('initializePlugin', () => {
     matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
     matterbridgeCertDirectory: path.join(HOMEDIR, '.mattercert'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.2.6',
+    matterbridgeVersion: '3.2.9',
     log: mockLog,
     getDevices: jest.fn(() => {
       return [];
@@ -52,6 +52,7 @@ describe('initializePlugin', () => {
   const mockConfig = {
     name: 'matterbridge-example-dynamic-platform',
     type: 'DynamicPlatform',
+    version: '1.0.0',
     whiteList: [],
     blackList: [],
     useInterval: true,

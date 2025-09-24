@@ -186,6 +186,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   coverLiftTilt: MatterbridgeEndpoint | undefined;
   lock: MatterbridgeEndpoint | undefined;
   thermoAuto: MatterbridgeEndpoint | undefined;
+  thermoAutoOccupancy: MatterbridgeEndpoint | undefined;
   thermoHeat: MatterbridgeEndpoint | undefined;
   thermoCool: MatterbridgeEndpoint | undefined;
   fanBase: MatterbridgeEndpoint | undefined;
@@ -254,9 +255,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.6')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.9')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.2.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.2.9". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -780,7 +781,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoAuto = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (AutoMode)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoMode)', 'TAU00023', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (Auto)', 'TAU00023', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
       .createDefaultThermostatClusterServer(20, 18, 22)
       .createDefaultPowerSourceRechargeableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 4700);
 
@@ -836,6 +837,62 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.thermoAuto?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
       },
       this.thermoAuto.log,
+    );
+
+    // *********************** Create a thermostat with AutoMode and Occupancy device ***********************
+    this.thermoAutoOccupancy = new MatterbridgeEndpoint(
+      [thermostatDevice, bridgedNode, powerSource],
+      { uniqueStorageKey: 'Thermostat (AutoModeOccupancy)' },
+      this.config.debug as boolean,
+    )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoOccupancy)', 'TAO00023', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
+      .createDefaultThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5)
+      .createDefaultPowerSourceWiredClusterServer();
+
+    this.thermoAutoOccupancy = await this.addDevice(this.thermoAutoOccupancy);
+
+    await this.thermoAutoOccupancy?.subscribeAttribute(
+      ThermostatCluster.id,
+      'systemMode',
+      (value) => {
+        const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
+        this.thermoAutoOccupancy?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+      },
+      this.thermoAutoOccupancy.log,
+    );
+    await this.thermoAutoOccupancy?.subscribeAttribute(
+      ThermostatCluster.id,
+      'occupiedHeatingSetpoint',
+      (value) => {
+        this.thermoAutoOccupancy?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
+      },
+      this.thermoAutoOccupancy.log,
+    );
+    await this.thermoAutoOccupancy?.subscribeAttribute(
+      ThermostatCluster.id,
+      'occupiedCoolingSetpoint',
+      (value) => {
+        this.thermoAutoOccupancy?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
+      },
+      this.thermoAutoOccupancy.log,
+    );
+    await this.thermoAutoOccupancy?.subscribeAttribute(
+      ThermostatCluster.id,
+      'unoccupiedHeatingSetpoint',
+      (value) => {
+        this.thermoAutoOccupancy?.log.info('Subscribe unoccupiedHeatingSetpoint called with:', value / 100);
+      },
+      this.thermoAutoOccupancy.log,
+    );
+    await this.thermoAutoOccupancy?.subscribeAttribute(
+      ThermostatCluster.id,
+      'unoccupiedCoolingSetpoint',
+      (value) => {
+        this.thermoAutoOccupancy?.log.info('Subscribe unoccupiedCoolingSetpoint called with:', value / 100);
+      },
+      this.thermoAutoOccupancy.log,
     );
 
     // *********************** Create a thermostat with Heat device ***********************
@@ -2205,6 +2262,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await flow?.setAttribute(FlowMeasurement.Cluster.id, 'measuredValue', 10, this.thermoAuto?.log);
     this.thermoAuto?.log.info('Set thermostat ext temperature to 16°C, ext humidity to 50% and ext valve flow to 10');
 
+    await this.thermoAutoOccupancy?.setAttribute(ThermostatCluster.id, 'occupancy', { occupied: true }, this.thermoAutoOccupancy.log);
+    await this.thermoAutoOccupancy?.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Auto, this.thermoAutoOccupancy.log);
+    this.thermoAutoOccupancy?.log.info('Set thermostat occupancy to true and mode Auto');
+
     if (this.config.useInterval) {
       // Increment localTemperature every minute
       this.thermoInterval = setInterval(
@@ -2230,6 +2291,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             this.thermoAuto?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
             this.thermoHeat?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
             this.thermoCool?.log.info(`Set thermostat localTemperature to ${temperature / 100}°C`);
+          }
+
+          let temperatureOccupancy = this.thermoAutoOccupancy?.getAttribute(ThermostatCluster.id, 'localTemperature', this.thermoAutoOccupancy.log);
+          if (isValidNumber(temperatureOccupancy, 1600, 2400)) {
+            // Change temperature between 16°C and 24°C
+            temperatureOccupancy = temperatureOccupancy + 100 > 2400 ? 1600 : temperatureOccupancy + 100;
+            await this.thermoAutoOccupancy?.setAttribute(ThermostatCluster.id, 'localTemperature', temperatureOccupancy, this.thermoAutoOccupancy.log);
+            await this.thermoAutoOccupancy?.setAttribute(ThermostatCluster.id, 'outdoorTemperature', temperatureOccupancy + 100, this.thermoAutoOccupancy.log);
+            // Toggle occupancy
+            const occupancyValue = this.thermoAutoOccupancy?.getAttribute(Thermostat.Cluster.id, 'occupancy', this.thermoAutoOccupancy.log) as { occupied: boolean };
+            if (isValidObject(occupancyValue, 1)) {
+              occupancyValue.occupied = !occupancyValue.occupied;
+              await this.thermoAutoOccupancy?.setAttribute(Thermostat.Cluster.id, 'occupancy', occupancyValue, this.thermoAutoOccupancy.log);
+              this.thermoAutoOccupancy?.log.info(`Set thermostat occupancy to ${occupancyValue.occupied}`);
+            }
           }
         },
         60 * 1000 + 600,
