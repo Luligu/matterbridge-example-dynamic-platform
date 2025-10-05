@@ -2280,6 +2280,16 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await tempIn?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature - 50, this.thermoHeat?.log);
             const tempOut = this.thermoHeat?.getChildEndpointByName('TemperatureOUT');
             await tempOut?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature - 400, this.thermoHeat?.log);
+            // Toggle thermostatRunningState heat between true and false
+            const runningState = this.thermoHeat?.getAttribute(ThermostatCluster.id, 'thermostatRunningState', this.thermoHeat.log);
+            const newRunningState = {
+              heat: !runningState?.heat,
+              cool: false,
+              fan: false,
+            };
+            await this.thermoHeat?.setAttribute(ThermostatCluster.id, 'thermostatRunningState', newRunningState, this.thermoHeat.log);
+            this.thermoHeat?.log.info(`Set thermostat thermostatRunningState to ${newRunningState}`);
+            
 
             await this.thermoCool?.setAttribute(ThermostatCluster.id, 'localTemperature', temperature, this.thermoCool.log);
             const temp = this.thermoCool?.getChildEndpointByName('Temperature');
