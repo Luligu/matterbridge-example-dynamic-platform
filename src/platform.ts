@@ -1984,12 +1984,16 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         }
 
         if (this.heatPump) {
-          let optOutState;
+          const optOutState;
           optOutState = this.heatPump?.getAttribute('DeviceEnergyManagement', 'optOutState', this.heatPump.log);
-          if (optOutState ===  DeviceEnergyManagement.OptOutState.NoOptOut) await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.LocalOptOut, this.heatPump.log); 
-          if (optOutState ===  DeviceEnergyManagement.OptOutState.LocalOptOut) await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.GridOptOut, this.heatPump.log); 
-          if (optOutState ===  DeviceEnergyManagement.OptOutState.GridOptOut) await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.OptOut, this.heatPump.log); 
-          if (optOutState ===  DeviceEnergyManagement.OptOutState.OptOut) await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.NoOptOut, this.heatPump.log); 
+          if (optOutState === DeviceEnergyManagement.OptOutState.NoOptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.LocalOptOut, this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.LocalOptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.GridOptOut, this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.GridOptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.OptOut, this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.OptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.NoOptOut, this.heatPump.log);
         }
 
         if (this.refrigerator) {
