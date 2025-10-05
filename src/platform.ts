@@ -1984,8 +1984,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         }
 
         if (this.heatPump) {
-          const optOutState;
-          optOutState = this.heatPump?.getAttribute('DeviceEnergyManagement', 'optOutState', this.heatPump.log);
+          const optOutState = this.heatPump?.getAttribute('DeviceEnergyManagement', 'optOutState', this.heatPump.log);
           if (optOutState === DeviceEnergyManagement.OptOutState.NoOptOut)
             await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.LocalOptOut, this.heatPump.log);
           if (optOutState === DeviceEnergyManagement.OptOutState.LocalOptOut)
