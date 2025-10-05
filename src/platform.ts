@@ -120,6 +120,7 @@ import {
   PressureMeasurement,
   RefrigeratorAndTemperatureControlledCabinetMode,
   RvcOperationalState,
+  DeviceEnergyManagement,
 } from 'matterbridge/matter/clusters';
 
 /**
