@@ -120,6 +120,7 @@ import {
   PressureMeasurement,
   RefrigeratorAndTemperatureControlledCabinetMode,
   RvcOperationalState,
+  DeviceEnergyManagement,
 } from 'matterbridge/matter/clusters';
 
 /**
@@ -1988,6 +1989,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await lowerCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, lowerCabinet.log);
             await lowerCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 5000, lowerCabinet.log);
           }
+        }
+
+        if (this.heatPump) {
+          const optOutState = this.heatPump?.getAttribute('DeviceEnergyManagement', 'optOutState', this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.NoOptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.LocalOptOut, this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.LocalOptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.GridOptOut, this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.GridOptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.OptOut, this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.OptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.NoOptOut, this.heatPump.log);
         }
 
         if (this.refrigerator) {
