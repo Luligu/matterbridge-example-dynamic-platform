@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD033 -->
 # <img src="matterbridge.svg" alt="Matterbridge Logo" width="64px" height="64px">&nbsp;&nbsp;&nbsp;Matterbridge dynamic platform example plugin
 
 [![npm version](https://img.shields.io/npm/v/matterbridge-example-dynamic-platform.svg)](https://www.npmjs.com/package/matterbridge-example-dynamic-platform)
@@ -61,7 +62,7 @@ It exposes 58 virtual devices:
 - an airQuality device with all concentration measurements clusters (supported by Apple Home with the concentration measurements from version 18.5)
 - a momentary switch composed by three switches with Single Double Long (tagged with One Two Three and Top Middle Bottom) and three switches with Single only.
 - a latching switch
-- a Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read also https://github.com/Luligu/matterbridge/discussions/264.
+- a Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read also <https://github.com/Luligu/matterbridge/discussions/264>.
 - a onOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
 - a dimmer Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
 - a laundry Washer device (supported by SmartThings, Alexa and Home Assistant)
@@ -83,7 +84,7 @@ All these devices continuously change state and position. The plugin also shows 
 
 If you want to write your plugin, the easiest way to start create a new plugin is to clone the [Matterbridge Plugin Template](https://github.com/Luligu/matterbridge-plugin-template) which has **Dev Container support for instant development environment** and all tools and extensions (like Node.js, npm, TypeScript, ESLint, Prettier, Jest and Vitest) already loaded and configured.
 
-If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
+If you like this project and find it useful, please consider giving it a star on GitHub at <https://github.com/Luligu/matterbridge-example-dynamic-platform> and sponsoring it.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">

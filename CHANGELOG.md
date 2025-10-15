@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD024 MD033 -->
 # <img src="matterbridge.svg" alt="Matterbridge Logo" width="64px" height="64px">&nbsp;&nbsp;&nbsp;Matterbridge dynamic platform example plugin changelog
 
 [![npm version](https://img.shields.io/npm/v/matterbridge-example-dynamic-platform.svg)](https://www.npmjs.com/package/matterbridge-example-dynamic-platform)
@@ -17,7 +18,7 @@
 
 All notable changes to this project will be documented in this file.
 
-If you like this project and find it useful, please consider giving it a star on GitHub at https://github.com/Luligu/matterbridge-example-dynamic-platform and sponsoring it.
+If you like this project and find it useful, please consider giving it a star on GitHub at <https://github.com/Luligu/matterbridge-example-dynamic-platform> and sponsoring it.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
@@ -29,8 +30,8 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [jest]: Added jest helper module v. 1.0.6.
 - [platform]: Added a thermostat with auto mode and occupancy and outdoorTemperature.
-- [platform]: Added animation to Heat pump. Thanks Ludovic BOUÉ (https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/35).
-- [platform]: Added Toggle thermostatRunningState heat and cool. Thanks Ludovic BOUÉ (https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/36).
+- [platform]: Added animation to Heat pump. Thanks Ludovic BOUÉ (<https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/35>).
+- [platform]: Added Toggle thermostatRunningState heat and cool. Thanks Ludovic BOUÉ (<https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/36>).
 
 ### Changed
 
@@ -54,7 +55,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [jest]: Added jest helper module v. 1.0.5.
-- [rvc]: Added DustBinFull to the Rvc animation (https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/31).
+- [rvc]: Added DustBinFull to the Rvc animation (<https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/31>).
 
 ### Changed
 
@@ -71,7 +72,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Changed
 
 - [package]: Updated dependencies.
-- [platform]: Removed attributes setting when is managed by the Matterbridge servers. This add support for **Apple Home Adaptive Lighting**. See https://github.com/Luligu/matterbridge/discussions/390.
+- [platform]: Removed attributes setting when is managed by the Matterbridge servers. This add support for **Apple Home Adaptive Lighting**. See <https://github.com/Luligu/matterbridge/discussions/390>.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
@@ -335,7 +336,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
-- [platform]: Added Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read carefully the readme please and also https://github.com/Luligu/matterbridge/discussions/264.
+- [platform]: Added Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read carefully the readme please and also <https://github.com/Luligu/matterbridge/discussions/264>.
 - [platform]: Added OnOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant).
 - [platform]: Added Dimmer Mounted Switch device (supported by SmartThings, Alexa, Home Assistant).
 - [platform]: Added Laundry Washer device (supported by SmartThings, Alexa and Home Assistant).
