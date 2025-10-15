@@ -22,7 +22,6 @@
  */
 
 import {
-  Matterbridge,
   MatterbridgeEndpoint,
   MatterbridgeDynamicPlatform,
   PlatformConfig,
@@ -57,6 +56,7 @@ import {
   occupancySensor,
   lightSensor,
   modeSelect,
+  PlatformMatterbridge,
 } from 'matterbridge';
 import {
   RoboticVacuumCleaner,
@@ -120,6 +120,7 @@ import {
   PressureMeasurement,
   RefrigeratorAndTemperatureControlledCabinetMode,
   RvcOperationalState,
+  DeviceEnergyManagement,
 } from 'matterbridge/matter/clusters';
 
 /**
@@ -161,6 +162,13 @@ function matterToLux(value: number): number {
   const lux = Math.pow(10, v / 10000);
   return Math.round(lux < 0 ? 0 : lux);
 }
+
+export type DynamicPlatformConfig = PlatformConfig & {
+  whiteList: string[];
+  blackList: string[];
+  useInterval: boolean;
+  enableServerRvc: boolean;
+};
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   door: MatterbridgeEndpoint | undefined;
@@ -251,21 +259,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
   fanDirectionLookup = ['Forward', 'Reverse'];
 
-  constructor(matterbridge: Matterbridge, log: AnsiLogger, config: PlatformConfig) {
+  constructor(
+    matterbridge: PlatformMatterbridge,
+    log: AnsiLogger,
+    override config: DynamicPlatformConfig,
+  ) {
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.9')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.3.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.2.9". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.3.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
     this.log.info('Initializing platform:', this.config.name);
-    if (config.whiteList === undefined) config.whiteList = [];
-    if (config.blackList === undefined) config.blackList = [];
-    if (config.enableRVC !== undefined) delete config.enableRVC;
-    if (config.enableServerRvc === undefined) config.enableServerRvc = true;
   }
 
   override async onStart(reason?: string) {
@@ -510,7 +518,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, HS, CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, HS and CT)', 'LXC00015', 0xfff1, 'Matterbridge', 'Matterbridge Light')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, HS, CT)', 'LXC00015', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createDefaultColorControlClusterServer()
@@ -2002,6 +2010,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           }
         }
 
+        if (this.heatPump) {
+          const optOutState = this.heatPump?.getAttribute('DeviceEnergyManagement', 'optOutState', this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.NoOptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.LocalOptOut, this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.LocalOptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.GridOptOut, this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.GridOptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.OptOut, this.heatPump.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.OptOut)
+            await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.NoOptOut, this.heatPump.log);
+        }
+
         if (this.refrigerator) {
           if (this.phase === 0) {
             let mode;
@@ -2272,7 +2292,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Set local to 16°C
     await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'localTemperature', 16 * 100, this.thermoAuto.log);
     await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Auto, this.thermoAuto.log);
-    this.thermoAuto?.log.info('Set thermostat initial localTemperature to 16°C and mode Auto');
+
+    // istanbul ignore next if cause no runningState attribute before 3.3.3
+    if (this.thermoAuto?.hasAttributeServer(ThermostatCluster.id, 'thermostatRunningState')) {
+      const runningState = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'thermostatRunningState', this.thermoAuto.log);
+      this.thermoAuto?.setAttribute(ThermostatCluster.id, 'thermostatRunningState', { ...runningState, heat: true }, this.thermoAuto.log);
+    }
+
+    this.thermoAuto?.log.info('Set thermostat initial localTemperature to 16°C, mode Auto and heat runningState to true');
     const temperature = this.thermoAuto?.getChildEndpointByName('Temperature');
     await temperature?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 16 * 100, this.thermoAuto?.log);
     const humidity = this.thermoAuto?.getChildEndpointByName('Humidity');
@@ -2325,6 +2352,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
               await this.thermoAutoOccupancy?.setAttribute(Thermostat.Cluster.id, 'occupancy', occupancyValue, this.thermoAutoOccupancy.log);
               this.thermoAutoOccupancy?.log.info(`Set thermostat occupancy to ${occupancyValue.occupied}`);
             }
+          }
+
+          // istanbul ignore next if cause no runningState attribute before 3.3.3
+          if (this.thermoAuto?.hasAttributeServer(ThermostatCluster.id, 'thermostatRunningState')) {
+            const runningState = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'thermostatRunningState', this.thermoAuto.log);
+            runningState.heat = !runningState?.heat;
+            runningState.cool = !runningState?.cool;
+            this.thermoAuto?.setAttribute(ThermostatCluster.id, 'thermostatRunningState', runningState, this.thermoAuto.log);
           }
         },
         60 * 1000 + 600,

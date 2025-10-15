@@ -23,19 +23,25 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
-## [1.3.13] - 2025-09-??
+## [1.4.0] - 2025-10-15
 
 ### Added
 
 - [jest]: Added jest helper module v. 1.0.6.
 - [platform]: Added a thermostat with auto mode and occupancy and outdoorTemperature.
+- [platform]: Added animation to Heat pump. Thanks Ludovic BOUÉ (https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/35).
+- [platform]: Added Toggle thermostatRunningState heat and cool. Thanks Ludovic BOUÉ (https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/36).
 
 ### Changed
 
+- [package]: Require matterbridge 3.3.0.
+- [index]: Updated to new signature PlatformMatterbridge.
+- [platform]: Updated to new signature PlatformMatterbridge.
+- [platform]: Added whiteList and blackList.
+- [platform]: Typed TestPlatformConfig.
 - [package]: Updated dependencies.
+- [package]: Bumped package to automator version 2.0.7
 - [workflows]: Ignore any .md anywhere in all workflows.
-- [package]: Updated to Automator v. 2.0.7.
-- [package]: Required matterbridge 3.2.9.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
