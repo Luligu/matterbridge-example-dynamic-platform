@@ -162,6 +162,13 @@ function matterToLux(value: number): number {
   return Math.round(lux < 0 ? 0 : lux);
 }
 
+export type DynamicPlatformConfig = PlatformConfig & {
+  whiteList: string[];
+  blackList: string[];
+  useInterval: boolean;
+  enableServerRvc: boolean;
+};
+
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   door: MatterbridgeEndpoint | undefined;
   occupancy: MatterbridgeEndpoint | undefined;
@@ -251,7 +258,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
   fanDirectionLookup = ['Forward', 'Reverse'];
 
-  constructor(matterbridge: PlatformMatterbridge, log: AnsiLogger, config: PlatformConfig) {
+  constructor(
+    matterbridge: PlatformMatterbridge,
+    log: AnsiLogger,
+    override config: DynamicPlatformConfig,
+  ) {
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
@@ -262,10 +273,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     this.log.info('Initializing platform:', this.config.name);
-    if (config.whiteList === undefined) config.whiteList = [];
-    if (config.blackList === undefined) config.blackList = [];
-    if (config.enableRVC !== undefined) delete config.enableRVC;
-    if (config.enableServerRvc === undefined) config.enableServerRvc = true;
   }
 
   override async onStart(reason?: string) {

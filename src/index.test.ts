@@ -5,17 +5,17 @@ const HOMEDIR = path.join('jest', NAME);
 process.argv = ['node', 'index.test.js', '-novirtual', '-frontend', '0', '-homedir', HOMEDIR, '-port', MATTER_PORT.toString()];
 
 import path from 'node:path';
-import { rmSync } from 'node:fs';
 
 import { Matterbridge, MatterbridgeEndpoint, PlatformConfig } from 'matterbridge';
 import { AnsiLogger } from 'matterbridge/logger';
 import { jest } from '@jest/globals';
 
 import initializePlugin from './index.ts';
-import { ExampleMatterbridgeDynamicPlatform } from './platform.ts';
+import { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './platform.ts';
+import { setupTest } from './jestHelpers.ts';
 
-// Cleanup the test environment
-rmSync(HOMEDIR, { recursive: true, force: true });
+// Setup the test environment
+setupTest(NAME, false);
 
 describe('initializePlugin', () => {
   let dynamicPlatform: ExampleMatterbridgeDynamicPlatform;
@@ -49,7 +49,7 @@ describe('initializePlugin', () => {
     removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {}),
   } as unknown as Matterbridge;
 
-  const mockConfig: PlatformConfig = {
+  const mockConfig: DynamicPlatformConfig = {
     name: 'matterbridge-example-dynamic-platform',
     type: 'DynamicPlatform',
     version: '1.0.0',

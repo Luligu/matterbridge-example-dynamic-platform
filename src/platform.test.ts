@@ -5,7 +5,6 @@ const HOMEDIR = path.join('jest', NAME);
 process.argv = ['node', 'platform.test.js', '-novirtual', '-frontend', '0', '-homedir', HOMEDIR, '-port', MATTER_PORT.toString()];
 
 import path from 'node:path';
-import { rmSync } from 'node:fs';
 
 import { jest } from '@jest/globals';
 import { Matterbridge, PlatformConfig, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource, invokeSubscribeHandler } from 'matterbridge';
@@ -27,34 +26,12 @@ import {
   WindowCoveringCluster,
 } from 'matterbridge/matter/clusters';
 
-import { ExampleMatterbridgeDynamicPlatform } from './platform.ts';
+import { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './platform.ts';
 
-let loggerLogSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.log>;
-let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
-let consoleDebugSpy: jest.SpiedFunction<typeof console.log>;
-let consoleInfoSpy: jest.SpiedFunction<typeof console.log>;
-let consoleWarnSpy: jest.SpiedFunction<typeof console.log>;
-let consoleErrorSpy: jest.SpiedFunction<typeof console.log>;
-const debug = false; // Set to true to enable debug logs
+import { consoleErrorSpy, loggerLogSpy, setupTest, createTestEnvironment } from './jestHelpers.ts';
 
-if (!debug) {
-  loggerLogSpy = jest.spyOn(AnsiLogger.prototype, 'log').mockImplementation((level: string, message: string, ...parameters: any[]) => {});
-  consoleLogSpy = jest.spyOn(console, 'log').mockImplementation((...args: any[]) => {});
-  consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation((...args: any[]) => {});
-  consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation((...args: any[]) => {});
-  consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation((...args: any[]) => {});
-  consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {});
-} else {
-  loggerLogSpy = jest.spyOn(AnsiLogger.prototype, 'log');
-  consoleLogSpy = jest.spyOn(console, 'log');
-  consoleDebugSpy = jest.spyOn(console, 'debug');
-  consoleInfoSpy = jest.spyOn(console, 'info');
-  consoleWarnSpy = jest.spyOn(console, 'warn');
-  consoleErrorSpy = jest.spyOn(console, 'error');
-}
-
-// Cleanup the test environment
-rmSync(HOMEDIR, { recursive: true, force: true });
+// Setup the test environment
+setupTest(NAME, false);
 
 describe('TestPlatform', () => {
   let matterbridge: Matterbridge;
@@ -94,7 +71,7 @@ describe('TestPlatform', () => {
     removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {}),
   } as unknown as Matterbridge;
 
-  const mockConfig: PlatformConfig = {
+  const mockConfig: DynamicPlatformConfig = {
     name: 'matterbridge-example-dynamic-platform',
     type: 'DynamicPlatform',
     version: '1.0.0',
@@ -116,11 +93,8 @@ describe('TestPlatform', () => {
     matterbridge.matterbridgeCertDirectory = path.join(HOMEDIR, '.mattercert');
 
     // Setup matter environment
-    matterbridge.environment.vars.set('log.level', Level.NOTICE);
-    matterbridge.environment.vars.set('log.format', Format.ANSI);
-    matterbridge.environment.vars.set('path.root', path.join(HOMEDIR, '.matterbridge', 'matterstorage'));
-    matterbridge.environment.vars.set('runtime.signals', false);
-    matterbridge.environment.vars.set('runtime.exitcode', false);
+    // @ts-expect-error - access to private member for testing
+    matterbridge.environment = createTestEnvironment(HOMEDIR);
   });
 
   beforeEach(() => {
@@ -141,19 +115,22 @@ describe('TestPlatform', () => {
   });
 
   it('should create the context', async () => {
-    await (matterbridge as any).startMatterStorage();
+    // @ts-expect-error - access to private member for testing
+    await matterbridge.startMatterStorage();
     expect(matterbridge.matterStorageService).toBeDefined();
     expect(matterbridge.matterStorageManager).toBeDefined();
     expect(matterbridge.matterbridgeContext).toBeDefined();
   });
 
   it('should create the server', async () => {
-    server = await (matterbridge as any).createServerNode(matterbridge.matterbridgeContext);
+    // @ts-expect-error - access to private member for testing
+    server = await matterbridge.createServerNode(matterbridge.matterbridgeContext);
     expect(server).toBeDefined();
   });
 
   it('should create the aggregator', async () => {
-    aggregator = await (matterbridge as any).createAggregatorNode(matterbridge.matterbridgeContext);
+    // @ts-expect-error - access to private member for testing
+    aggregator = await matterbridge.createAggregatorNode(matterbridge.matterbridgeContext);
     expect(aggregator).toBeDefined();
   });
 
@@ -177,19 +154,13 @@ describe('TestPlatform', () => {
   });
 
   it('should initialize platform with config name and set the default config', () => {
-    mockConfig.whiteList = undefined;
-    mockConfig.blackList = undefined;
-    mockConfig.enableRVC = undefined;
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig);
     dynamicPlatform.version = '1.6.6';
     expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
     expect(mockConfig.whiteList).toEqual([]);
     expect(mockConfig.blackList).toEqual([]);
-    expect(mockConfig.enableRVC).toBe(undefined);
+    expect(mockConfig.useInterval).toBe(true);
     expect(mockConfig.enableServerRvc).toBe(true);
-    mockConfig.whiteList = [];
-    mockConfig.blackList = [];
-    mockConfig.enableRVC = true;
   });
 
   it('should initialize platform with config name', () => {
@@ -224,7 +195,8 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should start the server', async () => {
-    await (matterbridge as any).startServerNode(server);
+    // @ts-expect-error - access to private member for testing
+    await matterbridge.startServerNode(server);
     expect(server.lifecycle.isOnline).toBe(true);
   });
 
@@ -305,23 +277,34 @@ describe('TestPlatform', () => {
 
       if (device.hasClusterServer(ThermostatCluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.AutoMode))) {
         await device.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 100 });
-        if (device.deviceName === 'Thermostat (AutoMode)') {
+        if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (AutoOccupancy)') {
           await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
           await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Heat);
           await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Cool);
         }
-        if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (Heat)') {
+        if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (AutoOccupancy)' || device.deviceName === 'Thermostat (Heat)') {
           await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
           await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Heat);
           await device.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', 2800);
           await device.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', 2700);
         }
-        if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (Cool)') {
+        if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (AutoOccupancy)' || device.deviceName === 'Thermostat (Cool)') {
           await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
           await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Cool);
           await device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1500);
           await device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1400);
         }
+        if (device.deviceName === 'Thermostat (AutoOccupancy)') {
+          await device.setAttribute(ThermostatCluster.id, 'unoccupiedHeatingSetpoint', 2800);
+          await device.setAttribute(ThermostatCluster.id, 'unoccupiedHeatingSetpoint', 2700);
+          await device.setAttribute(ThermostatCluster.id, 'unoccupiedCoolingSetpoint', 1500);
+          await device.setAttribute(ThermostatCluster.id, 'unoccupiedCoolingSetpoint', 1400);
+        }
+        await invokeSubscribeHandler(device, 'Thermostat', 'systemMode', Thermostat.SystemMode.Off, Thermostat.SystemMode.Off);
+        await invokeSubscribeHandler(device, 'Thermostat', 'occupiedHeatingSetpoint', 2800, 2700);
+        await invokeSubscribeHandler(device, 'Thermostat', 'occupiedCoolingSetpoint', 1500, 1400);
+        await invokeSubscribeHandler(device, 'Thermostat', 'unoccupiedHeatingSetpoint', 2000, 1900);
+        await invokeSubscribeHandler(device, 'Thermostat', 'unoccupiedCoolingSetpoint', 2000, 1900);
       }
     }
   });
@@ -390,7 +373,8 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should stop the storage', async () => {
-    await (matterbridge as any).stopMatterStorage();
+    // @ts-expect-error - access to private member for testing
+    await matterbridge.stopMatterStorage();
     expect(matterbridge.matterStorageService).not.toBeDefined();
     expect(matterbridge.matterStorageManager).not.toBeDefined();
     expect(matterbridge.matterbridgeContext).not.toBeDefined();
