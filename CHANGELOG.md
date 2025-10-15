@@ -29,6 +29,8 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [jest]: Added jest helper module v. 1.0.6.
 - [platform]: Added a thermostat with auto mode and occupancy and outdoorTemperature.
+- [platform]: Added animation to Heat pump. Thanks Ludovic BOUÉ (https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/35).
+- [platform]: Added Toggle thermostatRunningState heat and cool. Thanks Ludovic BOUÉ (https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/36).
 
 ### Changed
 

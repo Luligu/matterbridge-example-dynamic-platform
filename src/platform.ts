@@ -122,6 +122,7 @@ import {
   RvcOperationalState,
   DeviceEnergyManagement,
 } from 'matterbridge/matter/clusters';
+import { run } from 'node:test';
 
 /**
  * Convert an illuminance value in lux to the Matter encoded representation used by the
@@ -2273,7 +2274,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Set local to 16°C
     await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'localTemperature', 16 * 100, this.thermoAuto.log);
     await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Auto, this.thermoAuto.log);
-    this.thermoAuto?.log.info('Set thermostat initial localTemperature to 16°C and mode Auto');
+
+    // istanbul ignore next if cause no runningState attribute before 3.3.3
+    if (this.thermoAuto?.hasAttributeServer(ThermostatCluster.id, 'thermostatRunningState')) {
+      const runningState = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'thermostatRunningState', this.thermoAuto.log);
+      this.thermoAuto?.setAttribute(ThermostatCluster.id, 'thermostatRunningState', { ...runningState, heat: true }, this.thermoAuto.log);
+    }
+
+    this.thermoAuto?.log.info('Set thermostat initial localTemperature to 16°C, mode Auto and heat runningState to true');
     const temperature = this.thermoAuto?.getChildEndpointByName('Temperature');
     await temperature?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', 16 * 100, this.thermoAuto?.log);
     const humidity = this.thermoAuto?.getChildEndpointByName('Humidity');
@@ -2326,6 +2334,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
               await this.thermoAutoOccupancy?.setAttribute(Thermostat.Cluster.id, 'occupancy', occupancyValue, this.thermoAutoOccupancy.log);
               this.thermoAutoOccupancy?.log.info(`Set thermostat occupancy to ${occupancyValue.occupied}`);
             }
+          }
+
+          // istanbul ignore next if cause no runningState attribute before 3.3.3
+          if (this.thermoAuto?.hasAttributeServer(ThermostatCluster.id, 'thermostatRunningState')) {
+            const runningState = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'thermostatRunningState', this.thermoAuto.log);
+            runningState.heat = !runningState?.heat;
+            runningState.cool = !runningState?.cool;
+            this.thermoAuto?.setAttribute(ThermostatCluster.id, 'thermostatRunningState', runningState, this.thermoAuto.log);
           }
         },
         60 * 1000 + 600,
