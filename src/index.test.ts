@@ -11,8 +11,8 @@ import { AnsiLogger } from 'matterbridge/logger';
 import { jest } from '@jest/globals';
 
 import initializePlugin from './index.ts';
-import { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './platform.ts';
-import { setupTest } from './jestHelpers.ts';
+import { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './platform.js';
+import { setupTest } from './jestHelpers.js';
 
 // Setup the test environment
 setupTest(NAME, false);

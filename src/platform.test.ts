@@ -26,7 +26,7 @@ import {
   WindowCoveringCluster,
 } from 'matterbridge/matter/clusters';
 
-import { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './platform.ts';
+import { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './platform.js';
 import {
   consoleErrorSpy,
   loggerLogSpy,
@@ -37,7 +37,7 @@ import {
   startMatterbridgeEnvironment,
   stopMatterbridgeEnvironment,
   flushAsync,
-} from './jestHelpers.ts';
+} from './jestHelpers.js';
 
 // Setup the test environment
 setupTest(NAME, false);
