@@ -27,7 +27,17 @@ import {
 } from 'matterbridge/matter/clusters';
 
 import { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './platform.ts';
-import { consoleErrorSpy, loggerLogSpy, setupTest, createTestEnvironment } from './jestHelpers.ts';
+import {
+  consoleErrorSpy,
+  loggerLogSpy,
+  setupTest,
+  createTestEnvironment,
+  createMatterbridgeEnvironment,
+  setDebug,
+  startMatterbridgeEnvironment,
+  stopMatterbridgeEnvironment,
+  flushAsync,
+} from './jestHelpers.ts';
 
 // Setup the test environment
 setupTest(NAME, false);
@@ -82,19 +92,7 @@ describe('TestPlatform', () => {
     unregisterOnShutdown: false,
   };
 
-  beforeAll(async () => {
-    // Create a MatterbridgeEdge instance
-    matterbridge = await Matterbridge.loadInstance(false);
-    matterbridge.rootDirectory = path.join(HOMEDIR);
-    matterbridge.homeDirectory = path.join(HOMEDIR);
-    matterbridge.matterbridgeDirectory = path.join(HOMEDIR, '.matterbridge');
-    matterbridge.matterbridgePluginDirectory = path.join(HOMEDIR, 'Matterbridge');
-    matterbridge.matterbridgeCertDirectory = path.join(HOMEDIR, '.mattercert');
-
-    // Setup matter environment
-    // @ts-expect-error - access to private member for testing
-    matterbridge.environment = createTestEnvironment(HOMEDIR);
-  });
+  beforeAll(async () => {});
 
   beforeEach(() => {
     // Clear all mocks
@@ -102,39 +100,24 @@ describe('TestPlatform', () => {
   });
 
   afterAll(async () => {
-    // Close the Matterbridge instance
-    await matterbridge.destroyInstance();
-
     // Restore all mocks
     jest.restoreAllMocks();
   });
 
-  it('should initialize matterbridge', () => {
+  it('should initialize matterbridge environment', async () => {
+    setDebug(true);
+    matterbridge = await createMatterbridgeEnvironment(HOMEDIR);
     expect(matterbridge).toBeDefined();
+    expect(matterbridge).toBeInstanceOf(Matterbridge);
   });
 
-  it('should create the context', async () => {
-    // @ts-expect-error - access to private member for testing
-    await matterbridge.startMatterStorage();
-    expect(matterbridge.matterStorageService).toBeDefined();
-    expect(matterbridge.matterStorageManager).toBeDefined();
-    expect(matterbridge.matterbridgeContext).toBeDefined();
-  });
-
-  it('should create the server', async () => {
-    // @ts-expect-error - access to private member for testing
-    server = await matterbridge.createServerNode(matterbridge.matterbridgeContext);
+  it('should start matterbridge environment', async () => {
+    [server, aggregator] = await startMatterbridgeEnvironment(matterbridge);
     expect(server).toBeDefined();
-  });
-
-  it('should create the aggregator', async () => {
-    // @ts-expect-error - access to private member for testing
-    aggregator = await matterbridge.createAggregatorNode(matterbridge.matterbridgeContext);
+    expect(server).toBeInstanceOf(ServerNode);
     expect(aggregator).toBeDefined();
-  });
-
-  it('should add the aggregator to the server', async () => {
-    expect(await server.add(aggregator)).toBeDefined();
+    expect(aggregator).toBeInstanceOf(Endpoint);
+    setDebug(false);
   });
 
   it('should add a device to the aggregator to the server', async () => {
@@ -174,14 +157,14 @@ describe('TestPlatform', () => {
     await dynamicPlatform.onStart();
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'none');
     expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(0);
-  }, 60000);
+  });
 
   it('should call onShutdown with reason and cleanup the interval', async () => {
     await dynamicPlatform.onShutdown('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
     expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
     expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(0);
-  }, 60000);
+  });
 
   it('should call onStart with reason and add all the devices', async () => {
     mockConfig.whiteList = [];
@@ -191,7 +174,7 @@ describe('TestPlatform', () => {
     await dynamicPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
     expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(58);
-  }, 60000);
+  });
 
   it('should start the server', async () => {
     // @ts-expect-error - access to private member for testing
@@ -312,8 +295,6 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledTimes(0);
     expect(loggerLogSpy).toHaveBeenCalledTimes(0);
 
-    consoleErrorSpy.mockRestore();
-
     jest.useFakeTimers();
 
     await dynamicPlatform.onConfigure();
@@ -334,6 +315,8 @@ describe('TestPlatform', () => {
 
     jest.useRealTimers();
 
+    await flushAsync(undefined, undefined, 500);
+
     expect(mockLog.info).toHaveBeenCalledWith('Appliances animation phase 0');
     expect(mockLog.info).toHaveBeenCalledWith('Appliances animation phase 10');
 
@@ -348,14 +331,14 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.Release'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Set lock lockState to Unlocked'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Set lock lockState to Locked'));
-  }, 60000);
+  });
 
   it('should call onShutdown with reason', async () => {
     await dynamicPlatform.onShutdown('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
     expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
     expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(0);
-  }, 60000);
+  });
 
   it('should call onShutdown with reason and remove the devices', async () => {
     mockConfig.unregisterOnShutdown = true;
@@ -363,19 +346,13 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
     expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
     expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(1);
-  }, 60000);
+  });
 
-  it('should stop the server', async () => {
-    await server.close();
+  it('should stop matterbridge environment', async () => {
+    await flushAsync();
+    setDebug(true);
+    await stopMatterbridgeEnvironment(matterbridge, server, aggregator);
     expect(server.lifecycle.isOnline).toBe(false);
-    await server.env.get(MdnsService)[Symbol.asyncDispose]();
-  }, 60000);
-
-  it('should stop the storage', async () => {
-    // @ts-expect-error - access to private member for testing
-    await matterbridge.stopMatterStorage();
-    expect(matterbridge.matterStorageService).not.toBeDefined();
-    expect(matterbridge.matterStorageManager).not.toBeDefined();
-    expect(matterbridge.matterbridgeContext).not.toBeDefined();
+    setDebug(false);
   });
 });
