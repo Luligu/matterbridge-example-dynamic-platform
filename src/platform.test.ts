@@ -105,7 +105,7 @@ describe('TestPlatform', () => {
   });
 
   it('should initialize matterbridge environment', async () => {
-    setDebug(true);
+    // setDebug(true);
     matterbridge = await createMatterbridgeEnvironment(HOMEDIR);
     expect(matterbridge).toBeDefined();
     expect(matterbridge).toBeInstanceOf(Matterbridge);
@@ -117,7 +117,7 @@ describe('TestPlatform', () => {
     expect(server).toBeInstanceOf(ServerNode);
     expect(aggregator).toBeDefined();
     expect(aggregator).toBeInstanceOf(Endpoint);
-    setDebug(false);
+    // setDebug(false);
   });
 
   it('should add a device to the aggregator to the server', async () => {
@@ -350,9 +350,9 @@ describe('TestPlatform', () => {
 
   it('should stop matterbridge environment', async () => {
     await flushAsync();
-    setDebug(true);
+    // setDebug(true);
     await stopMatterbridgeEnvironment(matterbridge, server, aggregator);
     expect(server.lifecycle.isOnline).toBe(false);
-    setDebug(false);
+    // setDebug(false);
   });
 });
