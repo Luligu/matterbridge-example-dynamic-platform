@@ -7,7 +7,7 @@ process.argv = ['node', 'platform.test.js', '-novirtual', '-frontend', '0', '-ho
 import path from 'node:path';
 
 import { jest } from '@jest/globals';
-import { Matterbridge, PlatformConfig, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource, invokeSubscribeHandler } from 'matterbridge';
+import { Matterbridge, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource, invokeSubscribeHandler } from 'matterbridge';
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { ServerNode, Endpoint, LogLevel as Level, LogFormat as Format, MdnsService } from 'matterbridge/matter';
 import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
@@ -27,7 +27,6 @@ import {
 } from 'matterbridge/matter/clusters';
 
 import { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './platform.ts';
-
 import { consoleErrorSpy, loggerLogSpy, setupTest, createTestEnvironment } from './jestHelpers.ts';
 
 // Setup the test environment
