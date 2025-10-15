@@ -39,7 +39,11 @@ If you like this project and find it useful, please consider giving it a star on
 - [platform]: Updated to new signature PlatformMatterbridge.
 - [package]: Updated dependencies.
 - [package]: Bumped package to automator version 2.0.7
-- [workflows]: Ignore any .md anywhere in all workflows.
+- [workflows]: Ignore any .md in build.yaml.
+- [workflows]: Ignore any .md in codeql.yaml.
+- [workflows]: Ignore any .md in codecov.yaml.
+- [template]: Updated bug_report.md.
+- [jest]: Updated jestHelpers to v. 1.0.6.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
   <img src="bmc-button.svg" alt="Buy me a coffee" width="80">
