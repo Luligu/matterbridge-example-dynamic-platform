@@ -22,7 +22,6 @@
  */
 
 import {
-  Matterbridge,
   MatterbridgeEndpoint,
   MatterbridgeDynamicPlatform,
   PlatformConfig,
@@ -57,6 +56,7 @@ import {
   occupancySensor,
   lightSensor,
   modeSelect,
+  PlatformMatterbridge,
 } from 'matterbridge';
 import {
   RoboticVacuumCleaner,
@@ -251,13 +251,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
   fanDirectionLookup = ['Forward', 'Reverse'];
 
-  constructor(matterbridge: Matterbridge, log: AnsiLogger, config: PlatformConfig) {
+  constructor(matterbridge: PlatformMatterbridge, log: AnsiLogger, config: PlatformConfig) {
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.2.9')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.3.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.2.9". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.3.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -510,7 +510,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { uniqueStorageKey: 'Light (XY, HS, CT)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, HS and CT)', 'LXC00015', 0xfff1, 'Matterbridge', 'Matterbridge Light')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, HS, CT)', 'LXC00015', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createDefaultColorControlClusterServer()

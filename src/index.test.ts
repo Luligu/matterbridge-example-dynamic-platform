@@ -36,7 +36,7 @@ describe('initializePlugin', () => {
     matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
     matterbridgeCertDirectory: path.join(HOMEDIR, '.mattercert'),
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.2.9',
+    matterbridgeVersion: '3.3.0',
     log: mockLog,
     getDevices: jest.fn(() => {
       return [];
@@ -49,7 +49,7 @@ describe('initializePlugin', () => {
     removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {}),
   } as unknown as Matterbridge;
 
-  const mockConfig = {
+  const mockConfig: PlatformConfig = {
     name: 'matterbridge-example-dynamic-platform',
     type: 'DynamicPlatform',
     version: '1.0.0',
@@ -59,7 +59,7 @@ describe('initializePlugin', () => {
     enableServerRvc: true,
     debug: true,
     unregisterOnShutdown: false,
-  } as PlatformConfig;
+  };
 
   it('should return an instance of the platform', async () => {
     dynamicPlatform = initializePlugin(mockMatterbridge, mockLog, mockConfig);
