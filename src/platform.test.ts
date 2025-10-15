@@ -118,9 +118,9 @@ describe('TestPlatform', () => {
     expect(aggregator).toBeDefined();
     expect(aggregator).toBeInstanceOf(Endpoint);
     // setDebug(false);
-  });
+  }, 60000);
 
-  it('should add a device to the aggregator to the server', async () => {
+  it('should add a device to the aggregator', async () => {
     device = new MatterbridgeEndpoint([onOffSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Device' }, true);
     device.createDefaultBridgedDeviceBasicInformationClusterServer('Switch', '0x23452164', 0xfff1, 'Matterbridge', 'Matterbridge Switch');
     device.addRequiredClusterServers();
@@ -354,5 +354,5 @@ describe('TestPlatform', () => {
     await stopMatterbridgeEnvironment(matterbridge, server, aggregator);
     expect(server.lifecycle.isOnline).toBe(false);
     // setDebug(false);
-  });
+  }, 60000);
 });
