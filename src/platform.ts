@@ -122,7 +122,6 @@ import {
   RvcOperationalState,
   DeviceEnergyManagement,
 } from 'matterbridge/matter/clusters';
-import { run } from 'node:test';
 
 /**
  * Convert an illuminance value in lux to the Matter encoded representation used by the
