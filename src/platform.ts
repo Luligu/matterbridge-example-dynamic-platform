@@ -840,6 +840,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
       this.thermoAuto?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
     });
+    this.thermoAuto?.addCommandHandler('setActivePresetRequest', async ({ request: { presetHandle } }) => {
+      this.thermoAuto?.log.info('Command setActivePresetRequest called with presetHandle:', presetHandle);
+    });
     await this.thermoAuto?.subscribeAttribute(
       ThermostatCluster.id,
       'systemMode',
