@@ -886,7 +886,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoAutoOccupancy?.addCommandHandler('setActivePresetRequest', async ({ request: { presetHandle } }) => {
       this.thermoAutoOccupancy?.log.info('Command setActivePresetRequest called with presetHandle:', presetHandle);
     });
-    
+
     await this.thermoAutoOccupancy?.subscribeAttribute(
       ThermostatCluster.id,
       'systemMode',
