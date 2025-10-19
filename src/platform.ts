@@ -786,24 +786,24 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // *********************** Create a thermostat with AutoMode device ***********************
-    const myPreset1: Thermostat.Preset = {
-      presetHandle: new Uint8Array([0]),
-      presetScenario: Thermostat.PresetScenario.Occupied,
-      name: 'Confort',
-      coolingSetpoint: 2200,
-      heatingSetpoint: 2000,
-      builtIn: true,
-    };
-    const myPreset2: Thermostat.Preset = {
-      presetHandle: new Uint8Array([1]),
-      presetScenario: Thermostat.PresetScenario.Unoccupied,
-      name: 'Away',
-      coolingSetpoint: 2600,
-      heatingSetpoint: 1800,
-      builtIn: true,
-    };
-    // Presets list
-    const presets_List = [myPreset1, myPreset2];
+    const presets_List = [
+      {
+        presetHandle: new Uint8Array([0]),
+        presetScenario: Thermostat.PresetScenario.Occupied,
+        name: 'Confort',
+        coolingSetpoint: 2200,
+        heatingSetpoint: 2000,
+        builtIn: true,
+      },
+      {
+        presetHandle: new Uint8Array([1]),
+        presetScenario: Thermostat.PresetScenario.Unoccupied,
+        name: 'Away',
+        coolingSetpoint: 2600,
+        heatingSetpoint: 1800,
+        builtIn: true,
+      }
+    ];
 
     this.thermoAuto = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (AutoMode)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
