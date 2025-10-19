@@ -787,25 +787,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // *********************** Create a thermostat with AutoMode device ***********************
-    const presets_List = [
-      {
-        presetHandle: new Uint8Array([0]),
-        presetScenario: Thermostat.PresetScenario.Occupied,
-        name: 'Confort',
-        coolingSetpoint: 2200,
-        heatingSetpoint: 2000,
-        builtIn: true,
-      },
-      {
-        presetHandle: new Uint8Array([1]),
-        presetScenario: Thermostat.PresetScenario.Unoccupied,
-        name: 'Away',
-        coolingSetpoint: 2600,
-        heatingSetpoint: 1800,
-        builtIn: true,
-      },
-    ];
-
     this.thermoAuto = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (AutoMode)' }, this.config.debug as boolean)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
@@ -879,7 +860,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoOccupancy)', 'TAO00058', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
-      .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, 0, presets_List)
+      .createDefaultThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5)
       .createDefaultPowerSourceWiredClusterServer();
 
     this.thermoAutoOccupancy = await this.addDevice(this.thermoAutoOccupancy);
@@ -931,6 +912,25 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // *********************** Create a thermostat with AutoMode and Presets device ***********************
+    const presets_List = [
+      {
+        presetHandle: new Uint8Array([0]),
+        presetScenario: Thermostat.PresetScenario.Occupied,
+        name: 'Confort',
+        coolingSetpoint: 2200,
+        heatingSetpoint: 2000,
+        builtIn: true,
+      },
+      {
+        presetHandle: new Uint8Array([1]),
+        presetScenario: Thermostat.PresetScenario.Unoccupied,
+        name: 'Away',
+        coolingSetpoint: 2600,
+        heatingSetpoint: 1800,
+        builtIn: true,
+      },
+    ];
+
     this.thermoAutoPresets = new MatterbridgeEndpoint(
       [thermostatDevice, bridgedNode, powerSource],
       { uniqueStorageKey: 'Thermostat (AutoModePresets)' },
@@ -942,7 +942,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, 0, presets_List)
       .createDefaultPowerSourceWiredClusterServer();
 
-    this.thermoAutoPresets = await this.addDevice(this.thermoAutoOccupancy);
+    this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
 
     // The cluster attributes are set by MatterbridgeThermostatServer
     this.thermoAutoPresets?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
