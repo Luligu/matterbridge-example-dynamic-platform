@@ -938,7 +938,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     )
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoOccupancy)', 'TAP00058', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoPresets)', 'TAP00058', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
       .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, 0, presets_List)
       .createDefaultPowerSourceWiredClusterServer();
 
