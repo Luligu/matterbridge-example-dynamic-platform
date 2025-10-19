@@ -802,7 +802,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         coolingSetpoint: 2600,
         heatingSetpoint: 1800,
         builtIn: true,
-      }
+      },
     ];
 
     this.thermoAuto = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { uniqueStorageKey: 'Thermostat (AutoMode)' }, this.config.debug as boolean)
