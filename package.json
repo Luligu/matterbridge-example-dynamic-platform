@@ -1,13 +1,13 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "1.4.1",
+  "version": "2.0.0",
   "description": "Matterbridge dynamic plugin",
   "author": "https://github.com/Luligu",
   "license": "Apache-2.0",
   "homepage": "https://www.npmjs.com/package/matterbridge-example-dynamic-platform",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/module.js",
+  "types": "dist/module.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Luligu/matterbridge-example-dynamic-platform.git"

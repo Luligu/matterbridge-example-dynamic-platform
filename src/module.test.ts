@@ -1,4 +1,4 @@
-const MATTER_PORT = 6002;
+const MATTER_PORT = 6000;
 const NAME = 'Platform';
 const HOMEDIR = path.join('jest', NAME);
 
@@ -8,7 +8,7 @@ import path from 'node:path';
 
 import { jest } from '@jest/globals';
 import { Matterbridge, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource, invokeSubscribeHandler } from 'matterbridge';
-import { AnsiLogger, LogLevel } from 'matterbridge/logger';
+import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
 import { ServerNode, Endpoint, LogLevel as Level, LogFormat as Format, MdnsService } from 'matterbridge/matter';
 import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
 import {
@@ -26,7 +26,7 @@ import {
   WindowCoveringCluster,
 } from 'matterbridge/matter/clusters';
 
-import { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './platform.js';
+import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
 import {
   consoleErrorSpy,
   loggerLogSpy,
@@ -48,39 +48,9 @@ describe('TestPlatform', () => {
   let aggregator: Endpoint<AggregatorEndpoint>;
   let device: MatterbridgeEndpoint;
   let dynamicPlatform: ExampleMatterbridgeDynamicPlatform;
+  let log: AnsiLogger;
 
-  const mockLog = {
-    fatal: jest.fn((message: string, ...parameters: any[]) => {}),
-    error: jest.fn((message: string, ...parameters: any[]) => {}),
-    warn: jest.fn((message: string, ...parameters: any[]) => {}),
-    notice: jest.fn((message: string, ...parameters: any[]) => {}),
-    info: jest.fn((message: string, ...parameters: any[]) => {}),
-    debug: jest.fn((message: string, ...parameters: any[]) => {}),
-  } as unknown as AnsiLogger;
-
-  const mockMatterbridge = {
-    homeDirectory: path.join(HOMEDIR),
-    rootDirectory: path.join(HOMEDIR),
-    matterbridgeDirectory: path.join(HOMEDIR, '.matterbridge'),
-    matterbridgePluginDirectory: path.join(HOMEDIR, 'Matterbridge'),
-    matterbridgeCertDirectory: path.join(HOMEDIR, '.mattercert'),
-    systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '3.3.0',
-    log: mockLog,
-    getDevices: jest.fn(() => {
-      return [];
-    }),
-    getPlugins: jest.fn(() => {
-      return [];
-    }),
-    addBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {
-      await aggregator.add(device);
-    }),
-    removeBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {}),
-    removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {}),
-  } as unknown as Matterbridge;
-
-  const mockConfig: DynamicPlatformConfig = {
+  const config: DynamicPlatformConfig = {
     name: 'matterbridge-example-dynamic-platform',
     type: 'DynamicPlatform',
     version: '1.0.0',
@@ -92,7 +62,11 @@ describe('TestPlatform', () => {
     unregisterOnShutdown: false,
   };
 
-  beforeAll(async () => {});
+  beforeAll(async () => {
+    matterbridge = await createMatterbridgeEnvironment(NAME);
+    [server, aggregator] = await startMatterbridgeEnvironment(matterbridge, MATTER_PORT);
+    log = new AnsiLogger({ logName: NAME, logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
+  });
 
   beforeEach(() => {
     // Clear all mocks
@@ -127,33 +101,39 @@ describe('TestPlatform', () => {
     expect(await aggregator.add(device)).toBeDefined();
   });
 
+  it('should return an instance of the platform', async () => {
+    dynamicPlatform = initializePlugin(mockMatterbridge, mockLog, config);
+    expect(dynamicPlatform).toBeInstanceOf(ExampleMatterbridgeDynamicPlatform);
+    await dynamicPlatform.onShutdown();
+  });
+
   it('should throw error in load when version is not valid', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
-    expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
+    expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, config)).toThrow(
       'This plugin requires Matterbridge version >= "3.3.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
     mockMatterbridge.matterbridgeVersion = '3.3.0';
   });
 
   it('should initialize platform with config name and set the default config', () => {
-    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig);
+    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, config);
     dynamicPlatform.version = '1.6.6';
-    expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
-    expect(mockConfig.whiteList).toEqual([]);
-    expect(mockConfig.blackList).toEqual([]);
-    expect(mockConfig.useInterval).toBe(true);
-    expect(mockConfig.enableServerRvc).toBe(true);
+    expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', config.name);
+    expect(config.whiteList).toEqual([]);
+    expect(config.blackList).toEqual([]);
+    expect(config.useInterval).toBe(true);
+    expect(config.enableServerRvc).toBe(true);
   });
 
   it('should initialize platform with config name', () => {
-    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, mockConfig);
+    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, config);
     dynamicPlatform.version = '1.6.6';
-    expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', mockConfig.name);
+    expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', config.name);
   });
 
   it('should call onStart without reason and add no devices', async () => {
-    mockConfig.whiteList = ['No devices'];
-    mockConfig.blackList = [];
+    config.whiteList = ['No devices'];
+    config.blackList = [];
     await dynamicPlatform.onStart();
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'none');
     expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(0);
@@ -167,8 +147,8 @@ describe('TestPlatform', () => {
   });
 
   it('should call onStart with reason and add all the devices', async () => {
-    mockConfig.whiteList = [];
-    mockConfig.blackList = [];
+    config.whiteList = [];
+    config.blackList = [];
     dynamicPlatform.version = '';
 
     await dynamicPlatform.onStart('Test reason');
@@ -341,7 +321,7 @@ describe('TestPlatform', () => {
   });
 
   it('should call onShutdown with reason and remove the devices', async () => {
-    mockConfig.unregisterOnShutdown = true;
+    config.unregisterOnShutdown = true;
     await dynamicPlatform.onShutdown('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
     expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);

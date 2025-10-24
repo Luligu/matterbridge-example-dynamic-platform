@@ -1,9 +1,9 @@
 /**
  * This file contains the class ExampleMatterbridgeDynamicPlatform.
  *
- * @file platform.ts
+ * @file module.ts
  * @author Luca Liguori
- * @version 1.2.5
+ * @version 2.0.0
  * @license Apache-2.0
  *
  * Copyright 2023, 2024, 2025, 2026 Luca Liguori.
@@ -169,6 +169,19 @@ export type DynamicPlatformConfig = PlatformConfig & {
   useInterval: boolean;
   enableServerRvc: boolean;
 };
+
+/**
+ * This is the standard interface for Matterbridge plugins.
+ * Each plugin should export a default function that follows this signature.
+ *
+ * @param {PlatformMatterbridge} matterbridge - The Matterbridge instance.
+ * @param {AnsiLogger} log - The logger instance.
+ * @param {PlatformConfig} config - The platform configuration.
+ * @returns {ExampleMatterbridgeDynamicPlatform} The initialized platform.
+ */
+export default function initializePlugin(matterbridge: PlatformMatterbridge, log: AnsiLogger, config: PlatformConfig): ExampleMatterbridgeDynamicPlatform {
+  return new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config as DynamicPlatformConfig);
+}
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
   door: MatterbridgeEndpoint | undefined;
