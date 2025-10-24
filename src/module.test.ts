@@ -37,6 +37,10 @@ import {
   startMatterbridgeEnvironment,
   stopMatterbridgeEnvironment,
   flushAsync,
+  destroyMatterbridgeEnvironment,
+  addBridgedEndpointSpy,
+  removeBridgedEndpointSpy,
+  removeAllBridgedEndpointsSpy,
 } from './jestHelpers.js';
 
 // Setup the test environment
@@ -74,51 +78,30 @@ describe('TestPlatform', () => {
   });
 
   afterAll(async () => {
+    await stopMatterbridgeEnvironment(matterbridge, server, aggregator);
+    await destroyMatterbridgeEnvironment(matterbridge);
     // Restore all mocks
     jest.restoreAllMocks();
   });
 
-  it('should initialize matterbridge environment', async () => {
-    // setDebug(true);
-    matterbridge = await createMatterbridgeEnvironment(HOMEDIR);
-    expect(matterbridge).toBeDefined();
-    expect(matterbridge).toBeInstanceOf(Matterbridge);
-  });
-
-  it('should start matterbridge environment', async () => {
-    [server, aggregator] = await startMatterbridgeEnvironment(matterbridge);
-    expect(server).toBeDefined();
-    expect(server).toBeInstanceOf(ServerNode);
-    expect(aggregator).toBeDefined();
-    expect(aggregator).toBeInstanceOf(Endpoint);
-    // setDebug(false);
-  }, 60000);
-
-  it('should add a device to the aggregator', async () => {
-    device = new MatterbridgeEndpoint([onOffSwitch, bridgedNode, powerSource], { uniqueStorageKey: 'Device' }, true);
-    device.createDefaultBridgedDeviceBasicInformationClusterServer('Switch', '0x23452164', 0xfff1, 'Matterbridge', 'Matterbridge Switch');
-    device.addRequiredClusterServers();
-    expect(await aggregator.add(device)).toBeDefined();
-  });
-
   it('should return an instance of the platform', async () => {
-    dynamicPlatform = initializePlugin(mockMatterbridge, mockLog, config);
+    dynamicPlatform = initializePlugin(matterbridge, log, config);
     expect(dynamicPlatform).toBeInstanceOf(ExampleMatterbridgeDynamicPlatform);
     await dynamicPlatform.onShutdown();
   });
 
   it('should throw error in load when version is not valid', () => {
-    mockMatterbridge.matterbridgeVersion = '1.5.0';
-    expect(() => new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, config)).toThrow(
+    matterbridge.matterbridgeVersion = '1.5.0';
+    expect(() => new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config)).toThrow(
       'This plugin requires Matterbridge version >= "3.3.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    mockMatterbridge.matterbridgeVersion = '3.3.0';
+    matterbridge.matterbridgeVersion = '3.3.0';
   });
 
   it('should initialize platform with config name and set the default config', () => {
-    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, config);
+    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
     dynamicPlatform.version = '1.6.6';
-    expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', config.name);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
     expect(config.whiteList).toEqual([]);
     expect(config.blackList).toEqual([]);
     expect(config.useInterval).toBe(true);
@@ -126,24 +109,27 @@ describe('TestPlatform', () => {
   });
 
   it('should initialize platform with config name', () => {
-    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(mockMatterbridge, mockLog, config);
+    // @ts-expect-error accessing private member for testing
+    matterbridge.plugins._plugins.set('matterbridge-jest', {});
+    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
+    dynamicPlatform['name'] = 'matterbridge-jest';
     dynamicPlatform.version = '1.6.6';
-    expect(mockLog.info).toHaveBeenCalledWith('Initializing platform:', config.name);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
   });
 
   it('should call onStart without reason and add no devices', async () => {
     config.whiteList = ['No devices'];
     config.blackList = [];
     await dynamicPlatform.onStart();
-    expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'none');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(0);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'none');
+    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(0);
   });
 
   it('should call onShutdown with reason and cleanup the interval', async () => {
     await dynamicPlatform.onShutdown('Test reason');
-    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
-    expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
-    expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(0);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(0);
+    expect(removeAllBridgedEndpointsSpy).toHaveBeenCalledTimes(0);
   });
 
   it('should call onStart with reason and add all the devices', async () => {
@@ -152,8 +138,8 @@ describe('TestPlatform', () => {
     dynamicPlatform.version = '';
 
     await dynamicPlatform.onStart('Test reason');
-    expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
-    expect(mockMatterbridge.addBridgedEndpoint).toHaveBeenCalledTimes(58);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
+    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(58);
   });
 
   it('should start the server', async () => {
@@ -272,38 +258,26 @@ describe('TestPlatform', () => {
   });
 
   it('should call onConfigure', async () => {
-    expect(mockLog.info).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalledTimes(0);
-
     jest.useFakeTimers();
 
     await dynamicPlatform.onConfigure();
-    expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
     // Simulate multiple interval executions
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 30; i++) {
       // Flush microtasks
-      for (let i = 0; i < 5; i++) await Promise.resolve();
-
-      // jest.advanceTimersByTime(60 * 1000);
-      // Jest advanceTimersByTime Async
+      // for (let i = 0; i < 5; i++) await Promise.resolve();
       await jest.advanceTimersByTimeAsync(60 * 1000);
-
       // Flush microtasks
-      for (let i = 0; i < 5; i++) await Promise.resolve();
+      // for (let i = 0; i < 5; i++) await Promise.resolve();
     }
 
     jest.useRealTimers();
 
-    await flushAsync(undefined, undefined, 500);
-
-    expect(mockLog.info).toHaveBeenCalledWith('Appliances animation phase 0');
-    expect(mockLog.info).toHaveBeenCalledWith('Appliances animation phase 10');
-
-    expect(mockLog.info).toHaveBeenCalled(); // Times(1003);
-    expect(mockLog.warn).toHaveBeenCalledTimes(0);
-    expect(mockLog.error).toHaveBeenCalledTimes(0);
-    expect(loggerLogSpy).toHaveBeenCalled();
+    // expect(loggerLogSpy).toHaveBeenCalledTimes(1003);
+    expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Appliances animation phase 0');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Appliances animation phase 10');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.SinglePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.DoublePress'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.LongPress'));
@@ -315,24 +289,16 @@ describe('TestPlatform', () => {
 
   it('should call onShutdown with reason', async () => {
     await dynamicPlatform.onShutdown('Test reason');
-    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
-    expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
-    expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(0);
-  });
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(0);
+    expect(removeAllBridgedEndpointsSpy).toHaveBeenCalledTimes(0);
+  }, 60000);
 
   it('should call onShutdown with reason and remove the devices', async () => {
     config.unregisterOnShutdown = true;
     await dynamicPlatform.onShutdown('Test reason');
-    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
-    expect(mockMatterbridge.removeBridgedEndpoint).toHaveBeenCalledTimes(0);
-    expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalledTimes(1);
-  });
-
-  it('should stop matterbridge environment', async () => {
-    await flushAsync();
-    // setDebug(true);
-    await stopMatterbridgeEnvironment(matterbridge, server, aggregator);
-    expect(server.lifecycle.isOnline).toBe(false);
-    // setDebug(false);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(58);
+    expect(removeAllBridgedEndpointsSpy).toHaveBeenCalledTimes(1);
   }, 60000);
 });

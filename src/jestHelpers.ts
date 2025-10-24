@@ -58,6 +58,10 @@ export let consoleInfoSpy: jest.SpiedFunction<typeof console.log>;
 export let consoleWarnSpy: jest.SpiedFunction<typeof console.log>;
 export let consoleErrorSpy: jest.SpiedFunction<typeof console.log>;
 
+export const addBridgedEndpointSpy = jest.spyOn(Matterbridge.prototype, 'addBridgedEndpoint');
+export const removeBridgedEndpointSpy = jest.spyOn(Matterbridge.prototype, 'removeBridgedEndpoint');
+export const removeAllBridgedEndpointsSpy = jest.spyOn(Matterbridge.prototype, 'removeAllBridgedEndpoints');
+
 /**
  * Setup the Jest environment:
  * - it will remove any existing home directory
@@ -139,6 +143,8 @@ export async function createMatterbridgeEnvironment(name: string): Promise<Matte
   const matterbridge = await Matterbridge.loadInstance(false);
   expect(matterbridge).toBeDefined();
   expect(matterbridge).toBeInstanceOf(Matterbridge);
+  matterbridge.matterbridgeVersion = '3.3.0';
+  matterbridge.bridgeMode = 'bridge';
   matterbridge.rootDirectory = path.join('jest', name);
   matterbridge.homeDirectory = path.join('jest', name);
   matterbridge.matterbridgeDirectory = path.join('jest', name, '.matterbridge');
@@ -159,9 +165,10 @@ export async function createMatterbridgeEnvironment(name: string): Promise<Matte
  * Start the matterbridge environment
  *
  * @param {Matterbridge} matterbridge The Matterbridge instance to start.
+ * @param {number} port The matter server port.
  * @returns {Promise<[ServerNode<ServerNode.RootEndpoint>, Endpoint<AggregatorEndpoint>]>} The started server and aggregator.
  */
-export async function startMatterbridgeEnvironment(matterbridge: Matterbridge): Promise<[ServerNode<ServerNode.RootEndpoint>, Endpoint<AggregatorEndpoint>]> {
+export async function startMatterbridgeEnvironment(matterbridge: Matterbridge, port: number = 5540): Promise<[ServerNode<ServerNode.RootEndpoint>, Endpoint<AggregatorEndpoint>]> {
   // @ts-expect-error - access to private member for testing
   await matterbridge.startMatterStorage();
   expect(matterbridge.matterStorageService).toBeDefined();
@@ -169,14 +176,16 @@ export async function startMatterbridgeEnvironment(matterbridge: Matterbridge): 
   expect(matterbridge.matterbridgeContext).toBeDefined();
 
   // @ts-expect-error - access to private member for testing
-  const server = await matterbridge.createServerNode(matterbridge.matterbridgeContext);
+  const server = await matterbridge.createServerNode(matterbridge.matterbridgeContext, port);
   expect(server).toBeDefined();
   expect(server).toBeDefined();
   expect(server.lifecycle.isReady).toBeTruthy();
+  matterbridge.serverNode = server;
 
   // @ts-expect-error - access to private member for testing
   const aggregator = await matterbridge.createAggregatorNode(matterbridge.matterbridgeContext);
   expect(aggregator).toBeDefined();
+  matterbridge.aggregatorNode = aggregator;
 
   expect(await server.add(aggregator)).toBeDefined();
   expect(server.parts.has(aggregator.id)).toBeTruthy();
@@ -261,6 +270,8 @@ export async function stopMatterbridgeEnvironment(
  */
 export async function destroyMatterbridgeEnvironment(matterbridge: Matterbridge): Promise<void> {
   await matterbridge.destroyInstance(10);
+  // @ts-expect-error - accessing private member for testing
+  Matterbridge.instance = undefined;
 }
 
 /**
