@@ -25,10 +25,11 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
-## [1.4.1] - 2025-10-24
+## [2.0.0] - 2025-10-24
 
 ### Changed
 
+- [package]: Bumped platform to v. 2.0.0.
 - [package]: Updated dependencies.
 - [package]: Bumped package to automator version 2.0.9
 - [jest]: Updated jestHelpers to v. 1.0.9.
