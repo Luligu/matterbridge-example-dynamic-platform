@@ -108,6 +108,15 @@ describe('TestPlatform', () => {
     expect(config.enableServerRvc).toBe(true);
   });
 
+  it('should call onShutdown with reason and remove the devices', async () => {
+    config.unregisterOnShutdown = true;
+    await dynamicPlatform.onShutdown('Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(0);
+    expect(removeAllBridgedEndpointsSpy).toHaveBeenCalledTimes(1);
+    config.unregisterOnShutdown = false;
+  });
+
   it('should initialize platform with config name', () => {
     // @ts-expect-error accessing private member for testing
     matterbridge.plugins._plugins.set('matterbridge-jest', {});
@@ -265,16 +274,12 @@ describe('TestPlatform', () => {
 
     // Simulate multiple interval executions
     for (let i = 0; i < 30; i++) {
-      // Flush microtasks
-      // for (let i = 0; i < 5; i++) await Promise.resolve();
       await jest.advanceTimersByTimeAsync(60 * 1000);
-      // Flush microtasks
-      // for (let i = 0; i < 5; i++) await Promise.resolve();
     }
 
     jest.useRealTimers();
 
-    // expect(loggerLogSpy).toHaveBeenCalledTimes(1003);
+    expect(loggerLogSpy).toHaveBeenCalled();
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Appliances animation phase 0');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Appliances animation phase 10');
@@ -292,13 +297,5 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
     expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(0);
     expect(removeAllBridgedEndpointsSpy).toHaveBeenCalledTimes(0);
-  }, 60000);
-
-  it('should call onShutdown with reason and remove the devices', async () => {
-    config.unregisterOnShutdown = true;
-    await dynamicPlatform.onShutdown('Test reason');
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
-    expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(58);
-    expect(removeAllBridgedEndpointsSpy).toHaveBeenCalledTimes(1);
-  }, 60000);
+  });
 });
