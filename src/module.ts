@@ -110,7 +110,6 @@ import {
   EnergyEvse,
   RvcRunMode,
   RvcCleanMode,
-  ConcentrationMeasurement,
   Descriptor,
   BridgedDeviceBasicInformation,
   OvenMode,
@@ -1391,17 +1390,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultBridgedDeviceBasicInformationClusterServer('Air quality sensor', 'AQS00040', 0xfff1, 'Matterbridge', 'Matterbridge Air Quality Sensor')
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Warning, 2900, 'CR2450', 1)
       .addRequiredClusterServers()
-      .addClusterServers([TemperatureMeasurement.Cluster.id, RelativeHumidityMeasurement.Cluster.id])
-      .createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(10)
-      .createDefaultCarbonDioxideConcentrationMeasurementClusterServer(400)
-      .createDefaultNitrogenDioxideConcentrationMeasurementClusterServer(1)
-      .createDefaultOzoneConcentrationMeasurementClusterServer(1)
-      .createDefaultFormaldehydeConcentrationMeasurementClusterServer(1, ConcentrationMeasurement.MeasurementUnit.Ugm3)
-      .createDefaultPm1ConcentrationMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3)
-      .createDefaultPm25ConcentrationMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3)
-      .createDefaultPm10ConcentrationMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3)
-      .createDefaultRadonConcentrationMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3)
-      .createDefaultTvocMeasurementClusterServer(100, ConcentrationMeasurement.MeasurementUnit.Ugm3);
+      .addClusterServers([TemperatureMeasurement.Cluster.id, RelativeHumidityMeasurement.Cluster.id]) // Apple Home doesn't show the optional TemperatureMeasurement cluster server
+      .createDefaultAirQualityClusterServer(AirQuality.AirQualityEnum.Good)
+      .createDefaultCarbonMonoxideConcentrationMeasurementClusterServer(10) // Apple Home requires Ppm unit here
+      .createDefaultCarbonDioxideConcentrationMeasurementClusterServer(400) // Apple Home requires Ppm unit here
+      .createDefaultNitrogenDioxideConcentrationMeasurementClusterServer(1) // Apple Home requires Ugm3 unit here
+      .createDefaultOzoneConcentrationMeasurementClusterServer(1) // Apple Home requires Ugm3 unit here
+      .createDefaultFormaldehydeConcentrationMeasurementClusterServer(1) // Apple Home doesn't support Formaldehyde!
+      .createDefaultPm1ConcentrationMeasurementClusterServer(100) // Apple Home doesn't support Pm1!
+      .createDefaultPm25ConcentrationMeasurementClusterServer(100) // Apple Home requires Ugm3 unit here
+      .createDefaultPm10ConcentrationMeasurementClusterServer(100) // Apple Home requires Ugm3 unit here
+      .createDefaultRadonConcentrationMeasurementClusterServer(100) // Apple Home doesn't support Radon!
+      .createDefaultTvocMeasurementClusterServer(100); // Apple Home requires Ugm3 unit here
 
     this.airQuality = await this.addDevice(this.airQuality);
 
@@ -1483,7 +1483,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.momentarySwitch = await this.addDevice(this.momentarySwitch);
 
     if (this.momentarySwitch) {
-      // No effect so far on any controller
+      // This is just a test. No effect so far on any controller
       await switch4.addFixedLabel('name', 'Switch 4');
       await switch4.addFixedLabel('room', 'Living Room');
       await switch4.addFixedLabel('switch', 'Switch 4');
