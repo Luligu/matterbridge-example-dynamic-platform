@@ -22,7 +22,7 @@ export default defineConfig({
         'src/**/*.test.{ts,tsx,js,jsx}',
         'src/**/*.spec.{ts,tsx,js,jsx}',
         // Exclude helper file(s) not meant for coverage
-        'src/jestHelpers.ts',
+        'src/**/jestHelpers.ts',
         // Exclude type declaration files
         'src/**/*.d.ts',
       ],

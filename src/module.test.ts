@@ -7,10 +7,8 @@ process.argv = ['node', 'platform.test.js', '-novirtual', '-frontend', '0', '-ho
 import path from 'node:path';
 
 import { jest } from '@jest/globals';
-import { Matterbridge, MatterbridgeEndpoint, onOffSwitch, bridgedNode, powerSource, invokeSubscribeHandler } from 'matterbridge';
+import { MatterbridgeEndpoint, invokeSubscribeHandler } from 'matterbridge';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
-import { ServerNode, Endpoint, LogLevel as Level, LogFormat as Format, MdnsService } from 'matterbridge/matter';
-import { AggregatorEndpoint } from 'matterbridge/matter/endpoints';
 import {
   ColorControlCluster,
   DoorLockCluster,
@@ -28,31 +26,26 @@ import {
 
 import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
 import {
-  consoleErrorSpy,
   loggerLogSpy,
   setupTest,
-  createTestEnvironment,
   createMatterbridgeEnvironment,
-  setDebug,
   startMatterbridgeEnvironment,
   stopMatterbridgeEnvironment,
-  flushAsync,
   destroyMatterbridgeEnvironment,
   addBridgedEndpointSpy,
   removeBridgedEndpointSpy,
   removeAllBridgedEndpointsSpy,
-} from './jestHelpers.js';
+  matterbridge,
+  server,
+} from './utils/jestHelpers.js';
 
 // Setup the test environment
 setupTest(NAME, false);
 
 describe('TestPlatform', () => {
-  let matterbridge: Matterbridge;
-  let server: ServerNode<ServerNode.RootEndpoint>;
-  let aggregator: Endpoint<AggregatorEndpoint>;
   let device: MatterbridgeEndpoint;
   let dynamicPlatform: ExampleMatterbridgeDynamicPlatform;
-  let log: AnsiLogger;
+  const log = new AnsiLogger({ logName: NAME, logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
 
   const config: DynamicPlatformConfig = {
     name: 'matterbridge-example-dynamic-platform',
@@ -67,9 +60,8 @@ describe('TestPlatform', () => {
   };
 
   beforeAll(async () => {
-    matterbridge = await createMatterbridgeEnvironment(NAME);
-    [server, aggregator] = await startMatterbridgeEnvironment(matterbridge, MATTER_PORT);
-    log = new AnsiLogger({ logName: NAME, logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
+    await createMatterbridgeEnvironment(NAME);
+    await startMatterbridgeEnvironment(MATTER_PORT);
   });
 
   beforeEach(() => {
@@ -78,8 +70,8 @@ describe('TestPlatform', () => {
   });
 
   afterAll(async () => {
-    await stopMatterbridgeEnvironment(matterbridge, server, aggregator);
-    await destroyMatterbridgeEnvironment(matterbridge);
+    await stopMatterbridgeEnvironment();
+    await destroyMatterbridgeEnvironment();
     // Restore all mocks
     jest.restoreAllMocks();
   });
