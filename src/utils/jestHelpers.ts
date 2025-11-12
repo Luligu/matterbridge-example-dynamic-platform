@@ -52,6 +52,13 @@ import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { MATTER_STORAGE_NAME, Matterbridge, MatterbridgePlatform } from 'matterbridge';
 
 export let loggerLogSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.log>;
+export let loggerDebugSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.debug>;
+export let loggerInfoSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.info>;
+export let loggerNoticeSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.notice>;
+export let loggerWarnSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.warn>;
+export let loggerErrorSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.error>;
+export let loggerFatalSpy: jest.SpiedFunction<typeof AnsiLogger.prototype.fatal>;
+
 export let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
 export let consoleDebugSpy: jest.SpiedFunction<typeof console.log>;
 export let consoleInfoSpy: jest.SpiedFunction<typeof console.log>;
@@ -95,6 +102,12 @@ export function setupTest(name: string, debug: boolean = false): void {
   // Cleanup any existing home directory
   rmSync(path.join('jest', name), { recursive: true, force: true });
 
+  loggerDebugSpy = jest.spyOn(AnsiLogger.prototype, 'debug');
+  loggerInfoSpy = jest.spyOn(AnsiLogger.prototype, 'info');
+  loggerNoticeSpy = jest.spyOn(AnsiLogger.prototype, 'notice');
+  loggerWarnSpy = jest.spyOn(AnsiLogger.prototype, 'warn');
+  loggerErrorSpy = jest.spyOn(AnsiLogger.prototype, 'error');
+  loggerFatalSpy = jest.spyOn(AnsiLogger.prototype, 'fatal');
   if (debug) {
     loggerLogSpy = jest.spyOn(AnsiLogger.prototype, 'log');
     consoleLogSpy = jest.spyOn(console, 'log');
