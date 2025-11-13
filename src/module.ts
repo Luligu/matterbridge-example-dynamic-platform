@@ -1009,7 +1009,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.airPurifier?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.airPurifier?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    // Apple sends Off and High
+    // Apple sends Off, High and Auto
     await this.airPurifier?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
@@ -1027,10 +1027,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         } else if (newValue === FanControl.FanMode.Medium) {
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airPurifier?.log);
-        } else if (newValue === FanControl.FanMode.High) {
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airPurifier?.log);
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
-        } else if (newValue === FanControl.FanMode.On || newValue === FanControl.FanMode.Auto) {
+        } else if (newValue === FanControl.FanMode.High || newValue === FanControl.FanMode.On || newValue === FanControl.FanMode.Auto) {
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airPurifier?.log);
           this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
         }
