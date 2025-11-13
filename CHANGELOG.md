@@ -25,13 +25,13 @@ If you like this project and find it useful, please consider giving it a star on
   <img src="bmc-button.svg" alt="Buy me a coffee" width="120">
 </a>
 
-## [2.0.1] - 2025-11-11
+## [2.0.1] - 2025-11-13
 
 ### Changed
 
 - [package]: Updated dependencies.
-- [package]: Bumped package to automator v. 2.0.12.
-- [jest]: Updated jestHelpers to v. 1.0.12.
+- [package]: Bumped package to automator v.2.0.12.
+- [jest]: Updated jestHelpers to v.1.0.12.
 - [workflows]: Use shallow clones and --no-fund --no-audit for faster builds.
 
 <a href="https://www.buymeacoffee.com/luligugithub">
