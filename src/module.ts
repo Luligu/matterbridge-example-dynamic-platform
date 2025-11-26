@@ -90,7 +90,6 @@ import {
   FlowMeasurement,
   ColorControl,
   DoorLock,
-  DoorLockCluster,
   FanControl,
   FormaldehydeConcentrationMeasurement,
   NitrogenDioxideConcentrationMeasurement,
@@ -790,7 +789,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.lock?.log.info('Command unlockDoor called');
     });
     await this.lock?.subscribeAttribute(
-      DoorLockCluster.id,
+      DoorLock.Cluster.id,
       'operatingMode',
       (value) => {
         const lookupOperatingMode = ['Normal', 'Vacation', 'Privacy', 'NoRemoteLockUnlock', 'Passage'];
