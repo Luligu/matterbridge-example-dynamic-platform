@@ -90,6 +90,7 @@ import {
   FlowMeasurement,
   ColorControl,
   DoorLock,
+  DoorLockCluster,
   FanControl,
   FormaldehydeConcentrationMeasurement,
   NitrogenDioxideConcentrationMeasurement,
