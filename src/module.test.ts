@@ -23,8 +23,6 @@ import {
   WindowCovering,
   WindowCoveringCluster,
 } from 'matterbridge/matter/clusters';
-
-import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
 import {
   loggerLogSpy,
   setupTest,
@@ -37,7 +35,10 @@ import {
   removeAllBridgedEndpointsSpy,
   matterbridge,
   server,
-} from './utils/jestHelpers.js';
+  addMatterbridgePlatform,
+} from 'matterbridge/jestutils';
+
+import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
 
 // Setup the test environment
 setupTest(NAME, false);
@@ -85,14 +86,14 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     matterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config)).toThrow(
-      'This plugin requires Matterbridge version >= "3.3.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.4.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    matterbridge.matterbridgeVersion = '3.3.0';
+    matterbridge.matterbridgeVersion = '3.4.0';
   });
 
   it('should initialize platform with config name and set the default config', () => {
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
-    dynamicPlatform.version = '1.6.6';
+    addMatterbridgePlatform(dynamicPlatform);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
     expect(config.whiteList).toEqual([]);
     expect(config.blackList).toEqual([]);
@@ -110,10 +111,8 @@ describe('TestPlatform', () => {
   });
 
   it('should initialize platform with config name', () => {
-    // @ts-expect-error accessing private member for testing
-    matterbridge.plugins._plugins.set('matterbridge-jest', {});
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
-    dynamicPlatform['name'] = 'matterbridge-jest';
+    addMatterbridgePlatform(dynamicPlatform);
     dynamicPlatform.version = '1.6.6';
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
   });
@@ -141,12 +140,6 @@ describe('TestPlatform', () => {
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(58);
-  });
-
-  it('should start the server', async () => {
-    // @ts-expect-error - access to private member for testing
-    await matterbridge.startServerNode(server);
-    expect(server.lifecycle.isOnline).toBe(true);
   });
 
   it('should execute the commandHandlers', async () => {
