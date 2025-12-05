@@ -788,6 +788,15 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lock?.addCommandHandler('unlockDoor', async () => {
       this.lock?.log.info('Command unlockDoor called');
     });
+    await this.lock?.subscribeAttribute(
+      DoorLock.Cluster.id,
+      'operatingMode',
+      (value) => {
+        const lookupOperatingMode = ['Normal', 'Vacation', 'Privacy', 'NoRemoteLockUnlock', 'Passage'];
+        this.lock?.log.info('Subscribe operatingMode called with:', lookupOperatingMode[value]);
+      },
+      this.lock.log,
+    );
 
     // *********************** Create a thermostat with AutoMode device ***********************
     this.thermoAuto = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (AutoMode)' }, this.config.debug)
