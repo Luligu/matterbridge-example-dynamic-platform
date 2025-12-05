@@ -11,6 +11,7 @@ import { MatterbridgeEndpoint, invokeSubscribeHandler } from 'matterbridge';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
 import {
   ColorControlCluster,
+  DoorLock,
   DoorLockCluster,
   FanControl,
   FanControlCluster,
@@ -189,6 +190,8 @@ describe('TestPlatform', () => {
       if (device.hasClusterServer(DoorLockCluster)) {
         await device.executeCommandHandler('lockDoor');
         await device.executeCommandHandler('unlockDoor');
+        await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.Vacation);
+        await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.Normal);
       }
 
       if (device.hasClusterServer(FanControlCluster)) {
