@@ -1,6 +1,6 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Matterbridge dynamic plugin",
   "author": "https://github.com/Luligu",
   "license": "Apache-2.0",
@@ -44,7 +44,7 @@
     "test": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --maxWorkers=100%",
     "test:verbose": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --maxWorkers=100% --verbose",
     "test:watch": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --maxWorkers=100% --watch",
-    "test:coverage": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --maxWorkers=100% --verbose --coverage",
+    "test:coverage": "node --no-warnings --experimental-vm-modules node_modules/jest/bin/jest.js --maxWorkers=100% --verbose --coverage --coverageThreshold=\"{ \\\"global\\\": { \\\"lines\\\": 100, \\\"functions\\\": 100 } }\"",
     "test:vitest": "vitest run",
     "test:vitest:watch": "vitest --reporter verbose",
     "test:vitest:verbose": "vitest run --reporter verbose",

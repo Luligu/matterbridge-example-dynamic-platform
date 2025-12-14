@@ -23,6 +23,19 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
+## [2.0.3] - 2025-12-19
+
+### Changed
+
+- [package]: Updated dependencies.
+- [package]: Bumped package to automator v.2.1.1.
+
+### Fixed
+
+- [doorLock]: Fix test for doorLock. Thanks Ludovic BOUÉ (<https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/40>).
+
+<a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
+
 ## [2.0.2] - 2025-12-05
 
 ### Changed
