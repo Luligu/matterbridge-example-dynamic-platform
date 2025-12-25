@@ -30,7 +30,6 @@ eslint.config.*
 install-matterbridge-dev.sh
 install-matterbridge-main.sh
 jest.config.*
-jestHelpers.*
 nodemon.json
 prettier.config.*
 TODO.md
