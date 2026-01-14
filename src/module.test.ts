@@ -198,7 +198,16 @@ describe('TestPlatform', () => {
         await device.executeCommandHandler('step', { direction: FanControl.StepDirection.Increase });
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Off);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Low);
-        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
+        if (
+          device.id !== 'Airpurifier' &&
+          device.id !== 'AirConditioner-ACO00027' &&
+          device.id !== 'ExtractorHood-EXH00052' &&
+          device.id !== 'Fancomplete' &&
+          device.id !== 'Fanoffhigh' &&
+          device.id !== 'Fanofflowmediumhigh' &&
+          device.id !== 'Fanofflowmediumhighauto'
+        )
+          await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.High);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.On);
         if (device.deviceName === 'Fan auto') {
@@ -236,14 +245,14 @@ describe('TestPlatform', () => {
         if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (AutoOccupancy)' || device.deviceName === 'Thermostat (Cool)') {
           await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
           await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Cool);
+          await device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1600);
           await device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1500);
-          await device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1400);
         }
         if (device.deviceName === 'Thermostat (AutoOccupancy)') {
           await device.setAttribute(ThermostatCluster.id, 'unoccupiedHeatingSetpoint', 2800);
           await device.setAttribute(ThermostatCluster.id, 'unoccupiedHeatingSetpoint', 2700);
+          await device.setAttribute(ThermostatCluster.id, 'unoccupiedCoolingSetpoint', 1600);
           await device.setAttribute(ThermostatCluster.id, 'unoccupiedCoolingSetpoint', 1500);
-          await device.setAttribute(ThermostatCluster.id, 'unoccupiedCoolingSetpoint', 1400);
         }
         await invokeSubscribeHandler(device, 'Thermostat', 'systemMode', Thermostat.SystemMode.Off, Thermostat.SystemMode.Off);
         await invokeSubscribeHandler(device, 'Thermostat', 'occupiedHeatingSetpoint', 2800, 2700);

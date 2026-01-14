@@ -1887,7 +1887,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.roboticVacuum.setAttribute('RvcRunMode', 'currentMode', 1, this.roboticVacuum.log); // Idle
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalState', RvcOperationalState.OperationalState.Stopped, this.roboticVacuum.log);
             await this.roboticVacuum.setAttribute('RvcOperationalState', 'operationalError', { errorStateId: RvcOperationalState.ErrorState.NoError }, this.roboticVacuum.log);
-            await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', 0, this.roboticVacuum.log); // A value of 0 means that the operation has completed.
+            await this.roboticVacuum.setAttribute('ServiceArea', 'estimatedEndTime', null, this.roboticVacuum.log); // A value of null means that the operation has completed.
           }
           if (this.phase === 5) {
             this.roboticVacuum.log.info(`RVC: going home...`);

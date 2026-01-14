@@ -7,7 +7,7 @@
 set -euo pipefail
 
 echo "1 - Installing updates and scripts..."
-sudo npm install -g npm npm-check-updates shx
+sudo npm install -g npm npm-check-updates shx cross-env
 
 echo "2 - Building Matterbridge..."
 sudo chmod +x .devcontainer/install-matterbridge-*.sh

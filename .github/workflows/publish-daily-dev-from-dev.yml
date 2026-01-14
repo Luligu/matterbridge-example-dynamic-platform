@@ -1,5 +1,5 @@
-# .github\workflows\publish-matterbridge-plugin-dev-daily-from-main.yml
-name: Plugin daily dev publish to npm from main branch
+# .github\workflows\publish-matterbridge-plugin-dev-daily-from-dev.yml
+name: Plugin daily dev publish to npm from dev branch
 
 on:
   # Daily at midnight UTC
@@ -12,11 +12,11 @@ jobs:
   publish-dev:
     runs-on: ubuntu-latest
     steps:
-      # Always check out the main branch, even for scheduled runs
-      - name: Checkout main
+      # Always check out the dev branch, even for scheduled runs
+      - name: Checkout dev
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: dev
 
       - name: Set up Node.js & registry
         uses: actions/setup-node@v4
@@ -50,7 +50,7 @@ jobs:
           npm run lint
           npm install -g .
           npm run test -- --forceExit
-          npm pkg delete devDependencies scripts types
+          npm pkg delete devDependencies scripts
           npx shx rm -rf ./node_modules
           npm install --omit=dev
           npm shrinkwrap
