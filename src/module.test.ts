@@ -198,15 +198,8 @@ describe('TestPlatform', () => {
         await device.executeCommandHandler('step', { direction: FanControl.StepDirection.Increase });
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Off);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Low);
-        if (
-          device.id !== 'Airpurifier' &&
-          device.id !== 'AirConditioner-ACO00027' &&
-          device.id !== 'ExtractorHood-EXH00052' &&
-          device.id !== 'Fancomplete' &&
-          device.id !== 'Fanoffhigh' &&
-          device.id !== 'Fanofflowmediumhigh' &&
-          device.id !== 'Fanofflowmediumhighauto'
-        )
+        const sequence = device.getAttribute(FanControlCluster.id, 'fanModeSequence');
+        if (sequence === FanControl.FanModeSequence.OffLowMedHigh || sequence === FanControl.FanModeSequence.OffLowMedHighAuto)
           await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.High);
         await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.On);
