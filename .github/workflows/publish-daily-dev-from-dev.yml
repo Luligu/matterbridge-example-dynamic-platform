@@ -42,18 +42,20 @@ jobs:
         working-directory: ../matterbridge
         run: npm link --no-fund --no-audit
 
-      - name: Lint & test & build the plugin
-        run: |
-          npm ci
-          npm link matterbridge
-          npm run buildProduction
-          npm run lint
-          npm install -g .
-          npm run test -- --forceExit
-          npm pkg delete devDependencies scripts
-          npx shx rm -rf ./node_modules
-          npm install --omit=dev
-          npm shrinkwrap
+      - name: Install plugin dependencies
+        run: npm ci
+
+      - name: Link matterbridge in the project
+        run: npm link matterbridge
+
+      - name: Build the plugin
+        run: npm run build
+
+      - name: Lint the plugin
+        run: npm run lint
+
+      - name: Test the plugin
+        run: npm run test -- --forceExit
 
       - name: Extract base version and date
         id: vars
@@ -66,7 +68,7 @@ jobs:
           echo "ORIG_SHA=$SHA"    >> $GITHUB_ENV
 
       - name: Bump to date-commit-stamped version --no-git-tag-version tag ${{ env.DEV_TAG }} sha ${{ env.ORIG_SHA }}
-        run: npm version "${{ env.DEV_TAG }}" --no-git-tag-version
+        run: npm version "${{ env.DEV_TAG }}" --no-git-tag-version --ignore-scripts
 
       - name: Check if a new dev-publish is needed
         id: check_new
