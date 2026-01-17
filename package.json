@@ -93,6 +93,7 @@
     "bin",
     "dist",
     "npm-shrinkwrap.json",
+    "CHANGELOG.md",
     "*.config.json",
     "*.schema.json"
   ],
