@@ -1506,9 +1506,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     If the RVC is in a bridge with other devices, the whole Home app crashes... so don't try it. If your controller is Apple Home use server mode for the RVC.
     */
     this.roboticVacuum = new RoboticVacuumCleaner(
-      'Robot Vacuum',
+      this.config.enableServerRvc ? 'Robot Vacuum Server' : 'Robot Vacuum',
       'RVC00043',
-      this.config.enableServerRvc === true ? 'server' : undefined,
+      this.config.enableServerRvc ? 'server' : undefined,
       1, // currentRunMode
       [
         { label: 'Idle', mode: 1, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
