@@ -989,7 +989,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
       this.thermoAutoPresets?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
     });
-    // Mirror the Matter SetActivePresetRequest command into the activePresetHandle attribute
+    // Mirror the Matter SetActivePresetRequest command into the activePresetHandle attribute and update setpoints
     this.thermoAutoPresets?.addCommandHandler('setActivePresetRequest', async ({ request: { presetHandle } }) => {
       const handle = Uint8Array.from(presetHandle);
       const preset = presets_List.find((p) => p.presetHandle.length === handle.length && p.presetHandle.every((v, i) => v === handle[i]));
@@ -998,7 +998,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         return;
       }
       await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'activePresetHandle', handle, this.thermoAutoPresets?.log);
-      this.thermoAutoPresets?.log.info(`Command setActivePresetRequest applied. Active preset is now '${preset.name}' (handle ${Array.from(handle).join(',')}).`);
+      // Also update the heating and cooling setpoints from the selected preset
+      if (preset.heatingSetpoint !== undefined) {
+        await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', preset.heatingSetpoint, this.thermoAutoPresets?.log);
+      }
+      if (preset.coolingSetpoint !== undefined) {
+        await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', preset.coolingSetpoint, this.thermoAutoPresets?.log);
+      }
+      this.thermoAutoPresets?.log.info(`Command setActivePresetRequest applied. Active preset is now '${preset.name}' (handle ${Array.from(handle).join(',')}) with heating setpoint ${preset.heatingSetpoint / 100}°C and cooling setpoint ${preset.coolingSetpoint / 100}°C.`);
     });
     await this.thermoAutoPresets?.subscribeAttribute(
       ThermostatCluster.id,
