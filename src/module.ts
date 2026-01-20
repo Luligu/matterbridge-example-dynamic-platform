@@ -914,25 +914,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // *********************** Create a thermostat with AutoMode and Presets device ***********************
-    const presetTypes_List = [
-      {
-        presetScenario: Thermostat.PresetScenario.Occupied,
-        numberOfPresets: 1,
-        presetTypeFeatures: {
-          automatic: false,
-          supportsNames: true,
-        },
-      },
-      {
-        presetScenario: Thermostat.PresetScenario.Unoccupied,
-        numberOfPresets: 1,
-        presetTypeFeatures: {
-          automatic: false,
-          supportsNames: true,
-        },
-      },
-    ];
-
     const presets_List = [
       {
         presetHandle: new Uint8Array([0]),
@@ -952,31 +933,52 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
     ];
 
+    const presetTypes_List = [
+      {
+        presetScenario: Thermostat.PresetScenario.Occupied,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Occupied).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+      {
+        presetScenario: Thermostat.PresetScenario.Unoccupied,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Unoccupied).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+    ];
+
     this.thermoAutoPresets = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (AutoModePresets)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoPresets)', 'TAP00058', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
-      .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, 0, presets_List, presetTypes_List)
+      .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, undefined, presets_List, presetTypes_List)
       .createDefaultPowerSourceWiredClusterServer();
 
     this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
 
-    this.thermoAutoPresets!
-      .addChildDeviceType('Flow', flowSensor)
-      .createDefaultFlowMeasurementClusterServer(1 * 10)
-      .addRequiredClusterServers();
+    if (this.thermoAutoPresets) {
+      this.thermoAutoPresets
+        .addChildDeviceType('Flow', flowSensor)
+        .createDefaultFlowMeasurementClusterServer(1 * 10)
+        .addRequiredClusterServers();
 
-    this.thermoAutoPresets!
-      .addChildDeviceType('Temperature', temperatureSensor)
-      .createDefaultTemperatureMeasurementClusterServer(21 * 100)
-      .addRequiredClusterServers();
+      this.thermoAutoPresets
+        .addChildDeviceType('Temperature', temperatureSensor)
+        .createDefaultTemperatureMeasurementClusterServer(21 * 100)
+        .addRequiredClusterServers();
 
-    this.thermoAutoPresets!
-      .addChildDeviceType('Humidity', humiditySensor)
-      .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
-      .addRequiredClusterServers();
+      this.thermoAutoPresets
+        .addChildDeviceType('Humidity', humiditySensor)
+        .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
+        .addRequiredClusterServers();
 
-    this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets!);
+      this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
+    }
 
     // The cluster attributes are set by MatterbridgeThermostatServer
     this.thermoAutoPresets?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
