@@ -989,6 +989,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
       this.thermoAutoPresets?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
     });
+    // Mirror the Matter SetActivePresetRequest command into the activePresetHandle attribute
+    this.thermoAutoPresets?.addCommandHandler('setActivePresetRequest', async ({ request: { presetHandle } }) => {
+      const handle = Uint8Array.from(presetHandle);
+      const preset = presets_List.find((p) => p.presetHandle.length === handle.length && p.presetHandle.every((v, i) => v === handle[i]));
+      if (!preset) {
+        this.thermoAutoPresets?.log.error(`Command setActivePresetRequest received unknown presetHandle: ${Array.from(handle).join(',')}`);
+        return;
+      }
+      await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'activePresetHandle', handle, this.thermoAutoPresets?.log);
+      this.thermoAutoPresets?.log.info(`Command setActivePresetRequest applied. Active preset is now '${preset.name}' (handle ${Array.from(handle).join(',')}).`);
+    });
     await this.thermoAutoPresets?.subscribeAttribute(
       ThermostatCluster.id,
       'systemMode',
