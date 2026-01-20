@@ -933,7 +933,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       },
     ];
 
-    const presetTypes_List = [
+    const presetTypeDefinitions = [
       {
         presetScenario: Thermostat.PresetScenario.Occupied,
         numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Occupied).length,
@@ -956,7 +956,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoPresets)', 'TAP00058', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
-      .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, undefined, presets_List, presetTypes_List)
+      .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, undefined, presets_List, presetTypeDefinitions)
       .createDefaultPowerSourceWiredClusterServer();
 
     this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
