@@ -23,12 +23,17 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
-## [2.0.4] - 2026-01-14
+## [2.0.4] - 2026-01-20
+
+### Added
+
+- [matter]: Conformance to Matter 1.4.2 and matterbridge 3.5.x.
 
 ### Changed
 
 - [package]: Updated dependencies.
 - [package]: Bumped package to automator v.3.0.0.
+- [package]: Refactor Dev Container to use Matterbridge mDNS reflector.
 
 ### Fixed
 
