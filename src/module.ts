@@ -942,22 +942,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
 
-    this.thermoAutoPresets
+    this.thermoAutoPresets!
       .addChildDeviceType('Flow', flowSensor)
       .createDefaultFlowMeasurementClusterServer(1 * 10)
       .addRequiredClusterServers();
 
-    this.thermoAutoPresets
+    this.thermoAutoPresets!
       .addChildDeviceType('Temperature', temperatureSensor)
       .createDefaultTemperatureMeasurementClusterServer(21 * 100)
       .addRequiredClusterServers();
 
-    this.thermoAutoPresets
+    this.thermoAutoPresets!
       .addChildDeviceType('Humidity', humiditySensor)
       .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
       .addRequiredClusterServers();
 
-    this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
+    this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets!);
 
     // The cluster attributes are set by MatterbridgeThermostatServer
     this.thermoAutoPresets?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
