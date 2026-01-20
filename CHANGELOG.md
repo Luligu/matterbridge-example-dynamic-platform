@@ -33,7 +33,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [package]: Updated dependencies.
 - [package]: Bumped package to automator v.3.0.0.
-- [package]: Refactor Dev Container to use Matterbridge mDNS reflector.
+- [package]: Refactored Dev Container to use Matterbridge mDNS reflector.
 
 ### Fixed
 
