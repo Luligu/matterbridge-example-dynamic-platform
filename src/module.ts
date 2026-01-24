@@ -1007,7 +1007,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       if (preset.coolingSetpoint !== undefined) {
         await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', preset.coolingSetpoint, this.thermoAutoPresets?.log);
       }
-      this.thermoAutoPresets?.log.info(`Command setActivePresetRequest applied. Active preset is now '${preset.name}' (handle ${Array.from(handle).join(',')}) with heating setpoint ${preset.heatingSetpoint / 100}°C and cooling setpoint ${preset.coolingSetpoint / 100}°C.`);
+      this.thermoAutoPresets?.log.info(
+        `Command setActivePresetRequest applied. Active preset is now '${preset.name}' (handle ${Array.from(handle).join(',')}) with heating setpoint ${preset.heatingSetpoint / 100}°C and cooling setpoint ${preset.coolingSetpoint / 100}°C.`,
+      );
     });
     await this.thermoAutoPresets?.subscribeAttribute(
       ThermostatCluster.id,
