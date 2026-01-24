@@ -266,6 +266,9 @@ describe('TestPlatform', () => {
       }
     }
 
+    expect(thermoAutoPreset).toBeDefined();
+    expect(thermoAutoPreset?.hasClusterServer(ThermostatCluster)).toBe(true);
+
     if (thermoAutoPreset && thermoAutoPreset.hasClusterServer(ThermostatCluster)) {
       // Test setpointRaiseLower command
       await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Heat, amount: 100 });
@@ -286,10 +289,10 @@ describe('TestPlatform', () => {
       await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'occupiedCoolingSetpoint', 1400, 1500);
       await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'activePresetHandle', new Uint8Array([0x00]), new Uint8Array([0x00]));
       await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'presets', [], []);
-
-      expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('setpointRaiseLower'));
-      expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.ERROR, expect.stringContaining('unknown presetHandle'));
     }
+
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('setpointRaiseLower'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.ERROR, expect.stringContaining('unknown presetHandle'));
   });
 
   it('should call onConfigure', async () => {
