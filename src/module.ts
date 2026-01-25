@@ -1075,7 +1075,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
 
     if (this.thermoAutoPresets) {
-
       this.thermoAutoPresets
         .addChildDeviceType('Temperature', temperatureSensor)
         .createDefaultTemperatureMeasurementClusterServer(21 * 100)
