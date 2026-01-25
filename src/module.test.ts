@@ -258,10 +258,10 @@ describe('TestPlatform', () => {
   });
 
   it('should execute thermostat preset commands and subscriptions', async () => {
-    // Find the Thermostat (AutoPresets) device which has presets
+    // Find the Thermostat (AutoModePresets) device which has presets
     let thermoAutoPreset: MatterbridgeEndpoint | undefined;
     for (const [key, device] of Array.from(dynamicPlatform.bridgedDevices)) {
-      if (device.deviceName === 'Thermostat (AutoPresets)') {
+      if (device.deviceName === 'Thermostat (AutoModePresets)') {
         thermoAutoPreset = device;
         break;
       }
