@@ -57,6 +57,7 @@ import {
   lightSensor,
   modeSelect,
   PlatformMatterbridge,
+  electricalSensor,
 } from 'matterbridge';
 import {
   RoboticVacuumCleaner,
@@ -202,6 +203,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   lightHS: MatterbridgeEndpoint | undefined;
   lightCT: MatterbridgeEndpoint | undefined;
   outlet: MatterbridgeEndpoint | undefined;
+  outletEnergy: MatterbridgeEndpoint | undefined;
+  outletEnergyApparent: MatterbridgeEndpoint | undefined;
   coverLift: MatterbridgeEndpoint | undefined;
   coverLiftTilt: MatterbridgeEndpoint | undefined;
   lock: MatterbridgeEndpoint | undefined;
@@ -690,6 +693,52 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.outlet?.addCommandHandler('off', async () => {
       this.outlet?.log.info('Command off called');
+    });
+
+    // *********************** Create an outlet device with energy measurements ***********************
+    this.outletEnergy = new MatterbridgeEndpoint([onOffOutlet, electricalSensor, bridgedNode, powerSource], { id: 'OutletEnergy' }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultElectricalEnergyMeasurementClusterServer()
+      .createDefaultElectricalPowerMeasurementClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('OutletEnergy', 'OEN00019', 0xfff1, 'Matterbridge', 'Matterbridge Outlet With Energy')
+      .createDefaultOnOffClusterServer()
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
+
+    this.outletEnergy = await this.addDevice(this.outletEnergy);
+
+    // The cluster attributes are set by MatterbridgeOnOffServer
+    this.outletEnergy?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.outletEnergy?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.outletEnergy?.addCommandHandler('on', async () => {
+      this.outletEnergy?.log.info('Command on called');
+    });
+    this.outletEnergy?.addCommandHandler('off', async () => {
+      this.outletEnergy?.log.info('Command off called');
+    });
+
+    // *********************** Create an outlet device with apparent energy measurements ***********************
+    this.outletEnergyApparent = new MatterbridgeEndpoint([onOffOutlet, electricalSensor, bridgedNode, powerSource], { id: 'OutletEnergyApparent' }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createApparentElectricalPowerMeasurementClusterServer()
+      .createDefaultElectricalPowerMeasurementClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('OutletEnergyApparent', 'OEA00019', 0xfff1, 'Matterbridge', 'Matterbridge Outlet With Apparent Energy')
+      .createDefaultOnOffClusterServer()
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
+
+    this.outletEnergyApparent = await this.addDevice(this.outletEnergyApparent);
+
+    // The cluster attributes are set by MatterbridgeOnOffServer
+    this.outletEnergyApparent?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.outletEnergyApparent?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.outletEnergyApparent?.addCommandHandler('on', async () => {
+      this.outletEnergyApparent?.log.info('Command on called');
+    });
+    this.outletEnergyApparent?.addCommandHandler('off', async () => {
+      this.outletEnergyApparent?.log.info('Command off called');
     });
 
     // *********************** Create a window covering device ***********************
@@ -2353,14 +2402,28 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Set outlet to off
     await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outlet.log);
     this.outlet?.log.info('Set outlet initial onOff to false');
+    await this.outletEnergy?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outletEnergy.log);
+    this.outletEnergy?.log.info('Set outlet initial onOff to false');
+    await this.outletEnergyApparent?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outletEnergyApparent.log);
+    this.outletEnergyApparent?.log.info('Set outlet initial onOff to false');
     if (this.config.useInterval) {
       // Toggle outlet onOff every minute
       this.outletInterval = setInterval(
         async () => {
-          const state = this.outlet?.getAttribute(OnOff.Cluster.id, 'onOff', this.outlet.log);
+          let state = this.outlet?.getAttribute(OnOff.Cluster.id, 'onOff', this.outlet.log);
           if (isValidBoolean(state)) {
             await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outlet.log);
             this.outlet?.log.info(`Set outlet onOff to ${!state}`);
+          }
+          state = this.outletEnergy?.getAttribute(OnOff.Cluster.id, 'onOff', this.outletEnergy.log);
+          if (isValidBoolean(state)) {
+            await this.outletEnergy?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outletEnergy.log);
+            this.outletEnergy?.log.info(`Set outlet onOff to ${!state}`);
+          }
+          state = this.outletEnergyApparent?.getAttribute(OnOff.Cluster.id, 'onOff', this.outletEnergyApparent.log);
+          if (isValidBoolean(state)) {
+            await this.outletEnergyApparent?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outletEnergyApparent.log);
+            this.outletEnergyApparent?.log.info(`Set outlet onOff to ${!state}`);
           }
         },
         60 * 1000 + 300,

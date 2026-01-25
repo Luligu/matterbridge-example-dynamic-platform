@@ -29,13 +29,13 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [thermostat]: Added a thermostat auto mode with presets (Comfort and Away modes) including 3 sub endpoints with flowMeasurement, temperature and humidity sensors.
 - [presets]: Added support for Matter Thermostat Presets feature with preset activation and setpoint management.
-
-<a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
+- [Energy]: Added an outlet (plug) with onOff cluster, energy measurements and power measurements
+- [EnergyApparent]: Added an outlet (plug) with onOff cluster, apparent energy measurements and power measurements
 
 ### Changed
 
 - [package]: Updated dependencies.
-- [package]: Bumped package to automator v.3.0.1.
+- [package]: Bumped package to automator v.3.0.2.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 

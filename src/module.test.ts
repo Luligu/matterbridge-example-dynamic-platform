@@ -140,7 +140,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
-    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(59);
+    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(61);
   });
 
   it('should execute the commandHandlers', async () => {
@@ -267,9 +267,9 @@ describe('TestPlatform', () => {
     }
 
     expect(thermoAutoPreset).toBeDefined();
-    expect(thermoAutoPreset?.hasClusterServer(ThermostatCluster)).toBe(true);
+    expect(thermoAutoPreset?.hasClusterServer(Thermostat.Cluster.id)).toBe(true);
 
-    if (thermoAutoPreset && thermoAutoPreset.hasClusterServer(ThermostatCluster)) {
+    if (thermoAutoPreset && thermoAutoPreset.hasClusterServer(Thermostat.Cluster.id)) {
       // Test setpointRaiseLower command
       await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Heat, amount: 100 });
       await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Cool, amount: 100 });
