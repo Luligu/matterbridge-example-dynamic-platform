@@ -270,43 +270,45 @@ describe('TestPlatform', () => {
     expect(thermoAutoPreset).toBeDefined();
     expect(thermoAutoPreset?.hasClusterServer(ThermostatCluster)).toBe(true);
 
-    if (thermoAutoPreset && thermoAutoPreset.hasClusterServer(ThermostatCluster)) {
-      // Test setpointRaiseLower command
-      await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Heat, amount: 100 });
-      await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Cool, amount: 100 });
-      await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 100 });
+    if (!thermoAutoPreset || !thermoAutoPreset.hasClusterServer(ThermostatCluster)) {
+      return;
+    }
 
-      // Test setActivePresetRequest command with valid preset
-      const presetHandle = new Uint8Array([0x00]);
-      await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle });
+    // Test setpointRaiseLower command
+    await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Heat, amount: 100 });
+    await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Cool, amount: 100 });
+    await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 100 });
 
-      // Test setActivePresetRequest command with invalid preset
-      const invalidPresetHandle = new Uint8Array([0xff]);
-      await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle: invalidPresetHandle });
+    // Test setActivePresetRequest command with valid preset
+    const presetHandle = new Uint8Array([0x00]);
+    await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle });
 
-      // Test subscriptions
-      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'systemMode', Thermostat.SystemMode.Off, Thermostat.SystemMode.Heat);
-      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'occupiedHeatingSetpoint', 2700, 2800);
-      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'occupiedCoolingSetpoint', 1400, 1500);
-      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'activePresetHandle', new Uint8Array([0x00]), new Uint8Array([0x00]));
-      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'presets', [], []);
-      // Verify all presets apply correct setpoints and active handle
-      const presetsToCheck: Array<{ handle: number; heat: number; cool: number }> = [
-        { handle: 0x00, heat: 2200, cool: 2300 }, // Home
-        { handle: 0x01, heat: 1800, cool: 2600 }, // Away
-        { handle: 0x02, heat: 1800, cool: 2100 }, // Sleep
-        { handle: 0x03, heat: 1900, cool: 2400 }, // Wake
-        { handle: 0x04, heat: 1600, cool: 2700 }, // Vacation
-        { handle: 0x05, heat: 1850, cool: 2200 }, // GoingToSleep
-      ];
+    // Test setActivePresetRequest command with invalid preset
+    const invalidPresetHandle = new Uint8Array([0xff]);
+    await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle: invalidPresetHandle });
 
-      for (const p of presetsToCheck) {
-        await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle: new Uint8Array([p.handle]) });
-        const heat = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint') as number | undefined;
-        const cool = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint') as number | undefined;
-        expect(heat).toBe(p.heat);
-        expect(cool).toBe(p.cool);
-      }
+    // Test subscriptions
+    await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'systemMode', Thermostat.SystemMode.Off, Thermostat.SystemMode.Heat);
+    await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'occupiedHeatingSetpoint', 2700, 2800);
+    await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'occupiedCoolingSetpoint', 1400, 1500);
+    await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'activePresetHandle', new Uint8Array([0x00]), new Uint8Array([0x00]));
+    await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'presets', [], []);
+    // Verify all presets apply correct setpoints and active handle
+    const presetsToCheck: Array<{ handle: number; heat: number; cool: number }> = [
+      { handle: 0x00, heat: 2200, cool: 2300 }, // Home
+      { handle: 0x01, heat: 1800, cool: 2600 }, // Away
+      { handle: 0x02, heat: 1800, cool: 2100 }, // Sleep
+      { handle: 0x03, heat: 1900, cool: 2400 }, // Wake
+      { handle: 0x04, heat: 1600, cool: 2700 }, // Vacation
+      { handle: 0x05, heat: 1850, cool: 2200 }, // GoingToSleep
+    ];
+
+    for (const p of presetsToCheck) {
+      await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle: new Uint8Array([p.handle]) });
+      const heat = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint') as number | undefined;
+      const cool = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint') as number | undefined;
+      expect(heat).toBe(p.heat);
+      expect(cool).toBe(p.cool);
     }
 
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('setpointRaiseLower'));
