@@ -46,7 +46,7 @@ It exposes 61 virtual devices:
 - a thermostat auto mode (i.e. with Auto Heat and Cool features) with thermostat cluster and 3 sub endpoints with flowMeasurement cluster, temperatureMeasurement cluster
   and relativeHumidityMeasurement cluster (to show how to create a composed device with sub endpoints)
 - a thermostat with auto mode (i.e. with Auto Heat and Cool features), occupancy and outdoorTemperature
-- a thermostat auto mode with presets (Home, Away, Sleep, Wake, Vacation and GoingToSleep modes) including 3 sub endpoints with temperature and humidity sensors
+- a thermostat auto mode with presets (Home, Away, Sleep, Wake, Vacation and GoingToSleep modes) including 2 sub endpoints with temperature and humidity sensors
 - a thermostat heat only with two external temperature sensors (tagged like Indoor and Outdoor)
 - a thermostat cool only
 - a fan with Off High presets
