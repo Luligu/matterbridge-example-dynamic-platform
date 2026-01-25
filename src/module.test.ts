@@ -140,7 +140,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
-    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(58);
+    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(59);
   });
 
   it('should execute the commandHandlers', async () => {
@@ -254,6 +254,45 @@ describe('TestPlatform', () => {
         await invokeSubscribeHandler(device, 'Thermostat', 'unoccupiedCoolingSetpoint', 2000, 1900);
       }
     }
+  });
+
+  it('should execute thermostat preset commands and subscriptions', async () => {
+    // Find the Thermostat (AutoPresets) device which has presets
+    let thermoAutoPreset: MatterbridgeEndpoint | undefined;
+    for (const [key, device] of Array.from(dynamicPlatform.bridgedDevices)) {
+      if (device.deviceName === 'Thermostat (AutoPresets)') {
+        thermoAutoPreset = device;
+        break;
+      }
+    }
+
+    expect(thermoAutoPreset).toBeDefined();
+    expect(thermoAutoPreset?.hasClusterServer(ThermostatCluster)).toBe(true);
+
+    if (thermoAutoPreset && thermoAutoPreset.hasClusterServer(ThermostatCluster)) {
+      // Test setpointRaiseLower command
+      await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Heat, amount: 100 });
+      await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Cool, amount: 100 });
+      await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 100 });
+
+      // Test setActivePresetRequest command with valid preset
+      const presetHandle = new Uint8Array([0x00]);
+      await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle });
+
+      // Test setActivePresetRequest command with invalid preset
+      const invalidPresetHandle = new Uint8Array([0xff]);
+      await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle: invalidPresetHandle });
+
+      // Test subscriptions
+      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'systemMode', Thermostat.SystemMode.Off, Thermostat.SystemMode.Heat);
+      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'occupiedHeatingSetpoint', 2700, 2800);
+      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'occupiedCoolingSetpoint', 1400, 1500);
+      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'activePresetHandle', new Uint8Array([0x00]), new Uint8Array([0x00]));
+      await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'presets', [], []);
+    }
+
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('setpointRaiseLower'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.ERROR, expect.stringContaining('unknown presetHandle'));
   });
 
   it('should call onConfigure', async () => {

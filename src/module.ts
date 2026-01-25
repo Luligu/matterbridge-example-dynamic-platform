@@ -207,6 +207,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   lock: MatterbridgeEndpoint | undefined;
   thermoAuto: MatterbridgeEndpoint | undefined;
   thermoAutoOccupancy: MatterbridgeEndpoint | undefined;
+  thermoAutoPresets: MatterbridgeEndpoint | undefined;
   thermoHeat: MatterbridgeEndpoint | undefined;
   thermoCool: MatterbridgeEndpoint | undefined;
   fanBase: MatterbridgeEndpoint | undefined;
@@ -910,6 +911,146 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.thermoAutoOccupancy?.log.info('Subscribe unoccupiedCoolingSetpoint called with:', value / 100);
       },
       this.thermoAutoOccupancy.log,
+    );
+
+    // *********************** Create a thermostat with AutoMode and Presets device ***********************
+    const presets_List = [
+      {
+        presetHandle: new Uint8Array([0]),
+        presetScenario: Thermostat.PresetScenario.Occupied,
+        name: 'Confort',
+        coolingSetpoint: 2200,
+        heatingSetpoint: 2000,
+        builtIn: true,
+      },
+      {
+        presetHandle: new Uint8Array([1]),
+        presetScenario: Thermostat.PresetScenario.Unoccupied,
+        name: 'Away',
+        coolingSetpoint: 2600,
+        heatingSetpoint: 1800,
+        builtIn: true,
+      },
+    ];
+
+    const presetTypeDefinitions = [
+      {
+        presetScenario: Thermostat.PresetScenario.Occupied,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Occupied).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+      {
+        presetScenario: Thermostat.PresetScenario.Unoccupied,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Unoccupied).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+    ];
+
+    this.thermoAutoPresets = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (AutoModePresets)' }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultGroupsClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoPresets)', 'TAP00058', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
+      .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, undefined, presets_List, presetTypeDefinitions)
+      .createDefaultPowerSourceWiredClusterServer();
+
+    this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
+
+    if (this.thermoAutoPresets) {
+      this.thermoAutoPresets
+        .addChildDeviceType('Flow', flowSensor)
+        .createDefaultFlowMeasurementClusterServer(1 * 10)
+        .addRequiredClusterServers();
+
+      this.thermoAutoPresets
+        .addChildDeviceType('Temperature', temperatureSensor)
+        .createDefaultTemperatureMeasurementClusterServer(21 * 100)
+        .addRequiredClusterServers();
+
+      this.thermoAutoPresets
+        .addChildDeviceType('Humidity', humiditySensor)
+        .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
+        .addRequiredClusterServers();
+
+      this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
+    }
+
+    // The cluster attributes are set by MatterbridgeThermostatServer
+    this.thermoAutoPresets?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.thermoAutoPresets?.log.info(`Command identify called identifyTime ${identifyTime}`);
+    });
+    this.thermoAutoPresets?.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+      this.thermoAutoPresets?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
+    });
+    this.thermoAutoPresets?.addCommandHandler('setpointRaiseLower', async ({ request: { mode, amount } }) => {
+      const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
+      this.thermoAutoPresets?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
+    });
+    // Mirror the Matter SetActivePresetRequest command into the activePresetHandle attribute and update setpoints
+    this.thermoAutoPresets?.addCommandHandler('setActivePresetRequest', async ({ request: { presetHandle } }) => {
+      const handle = Uint8Array.from(presetHandle);
+      const preset = presets_List.find((p) => p.presetHandle.length === handle.length && p.presetHandle.every((v, i) => v === handle[i]));
+      if (!preset) {
+        this.thermoAutoPresets?.log.error(`Command setActivePresetRequest received unknown presetHandle: ${Array.from(handle).join(',')}`);
+        return;
+      }
+      await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'activePresetHandle', handle, this.thermoAutoPresets?.log);
+      // Also update the heating and cooling setpoints from the selected preset
+      if (preset.heatingSetpoint !== undefined) {
+        await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', preset.heatingSetpoint, this.thermoAutoPresets?.log);
+      }
+      if (preset.coolingSetpoint !== undefined) {
+        await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', preset.coolingSetpoint, this.thermoAutoPresets?.log);
+      }
+      this.thermoAutoPresets?.log.info(
+        `Command setActivePresetRequest applied. Active preset is now '${preset.name}' (handle ${Array.from(handle).join(',')}) with heating setpoint ${preset.heatingSetpoint / 100}°C and cooling setpoint ${preset.coolingSetpoint / 100}°C.`,
+      );
+    });
+    await this.thermoAutoPresets?.subscribeAttribute(
+      ThermostatCluster.id,
+      'systemMode',
+      (value) => {
+        const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
+        this.thermoAutoPresets?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+      },
+      this.thermoAutoPresets.log,
+    );
+    await this.thermoAutoPresets?.subscribeAttribute(
+      ThermostatCluster.id,
+      'occupiedHeatingSetpoint',
+      (value) => {
+        this.thermoAutoPresets?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
+      },
+      this.thermoAutoPresets.log,
+    );
+    await this.thermoAutoPresets?.subscribeAttribute(
+      ThermostatCluster.id,
+      'occupiedCoolingSetpoint',
+      (value) => {
+        this.thermoAutoPresets?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
+      },
+      this.thermoAutoPresets.log,
+    );
+    await this.thermoAutoPresets?.subscribeAttribute(
+      ThermostatCluster.id,
+      'activePresetHandle',
+      (value) => {
+        this.thermoAutoPresets?.log.info('Subscribe activePresetHandle called with:', value);
+      },
+      this.thermoAutoPresets.log,
+    );
+    await this.thermoAutoPresets?.subscribeAttribute(
+      ThermostatCluster.id,
+      'presets',
+      (value) => {
+        this.thermoAutoPresets?.log.info('Subscribe presets called with:', value);
+      },
+      this.thermoAutoPresets.log,
     );
 
     // *********************** Create a thermostat with Heat device ***********************
