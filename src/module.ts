@@ -969,9 +969,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       {
         presetHandle: new Uint8Array([0]),
         presetScenario: Thermostat.PresetScenario.Occupied,
-        name: 'Confort',
-        coolingSetpoint: 2200,
-        heatingSetpoint: 2000,
+        name: 'Home',
+        coolingSetpoint: 2300,
+        heatingSetpoint: 2200,
         builtIn: true,
       },
       {
@@ -980,6 +980,38 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         name: 'Away',
         coolingSetpoint: 2600,
         heatingSetpoint: 1800,
+        builtIn: true,
+      },
+      {
+        presetHandle: new Uint8Array([2]),
+        presetScenario: Thermostat.PresetScenario.Sleep,
+        name: 'Sleep',
+        coolingSetpoint: 2100,
+        heatingSetpoint: 1800,
+        builtIn: true,
+      },
+      {
+        presetHandle: new Uint8Array([3]),
+        presetScenario: Thermostat.PresetScenario.Wake,
+        name: 'Wake',
+        coolingSetpoint: 2400,
+        heatingSetpoint: 1900,
+        builtIn: true,
+      },
+      {
+        presetHandle: new Uint8Array([4]),
+        presetScenario: Thermostat.PresetScenario.Vacation,
+        name: 'Vacation',
+        coolingSetpoint: 2700,
+        heatingSetpoint: 1600,
+        builtIn: true,
+      },
+      {
+        presetHandle: new Uint8Array([5]),
+        presetScenario: Thermostat.PresetScenario.GoingToSleep,
+        name: 'GoingToSleep',
+        coolingSetpoint: 2200,
+        heatingSetpoint: 1850,
         builtIn: true,
       },
     ];
@@ -1001,6 +1033,38 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           supportsNames: true,
         },
       },
+      {
+        presetScenario: Thermostat.PresetScenario.Sleep,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Sleep).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+      {
+        presetScenario: Thermostat.PresetScenario.Wake,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Wake).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+      {
+        presetScenario: Thermostat.PresetScenario.Vacation,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Vacation).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+      {
+        presetScenario: Thermostat.PresetScenario.GoingToSleep,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.GoingToSleep).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
     ];
 
     this.thermoAutoPresets = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (AutoModePresets)' }, this.config.debug)
@@ -1011,11 +1075,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultPowerSourceWiredClusterServer();
 
     if (this.thermoAutoPresets) {
-      this.thermoAutoPresets
-        .addChildDeviceType('Flow', flowSensor)
-        .createDefaultFlowMeasurementClusterServer(1 * 10)
-        .addRequiredClusterServers();
-
       this.thermoAutoPresets
         .addChildDeviceType('Temperature', temperatureSensor)
         .createDefaultTemperatureMeasurementClusterServer(21 * 100)
