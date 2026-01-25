@@ -1025,8 +1025,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         .addChildDeviceType('Humidity', humiditySensor)
         .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
         .addRequiredClusterServers();
-
-      this.thermoAutoPresets = await this.addDevice(this.thermoAutoPresets);
     }
 
     // The cluster attributes are set by MatterbridgeThermostatServer
