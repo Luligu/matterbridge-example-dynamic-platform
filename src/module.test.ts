@@ -268,9 +268,9 @@ describe('TestPlatform', () => {
     }
 
     expect(thermoAutoPreset).toBeDefined();
-    expect(thermoAutoPreset?.hasClusterServer(ThermostatCluster)).toBe(true);
+    expect(thermoAutoPreset?.hasClusterServer(Thermostat.Cluster.id)).toBe(true);
 
-    if (!thermoAutoPreset || !thermoAutoPreset.hasClusterServer(ThermostatCluster)) {
+    if (!thermoAutoPreset || !thermoAutoPreset.hasClusterServer(Thermostat.Cluster.id)) {
       return;
     }
 
