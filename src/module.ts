@@ -1031,6 +1031,38 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           supportsNames: true,
         },
       },
+      {
+        presetScenario: Thermostat.PresetScenario.Sleep,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Sleep).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+      {
+        presetScenario: Thermostat.PresetScenario.Wake,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Wake).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+      {
+        presetScenario: Thermostat.PresetScenario.Vacation,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.Vacation).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
+      {
+        presetScenario: Thermostat.PresetScenario.GoingToSleep,
+        numberOfPresets: presets_List.filter((p) => p.presetScenario === Thermostat.PresetScenario.GoingToSleep).length,
+        presetTypeFeatures: {
+          automatic: false,
+          supportsNames: true,
+        },
+      },
     ];
 
     this.thermoAutoPresets = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (AutoModePresets)' }, this.config.debug)
