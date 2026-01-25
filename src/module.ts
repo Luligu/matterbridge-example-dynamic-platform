@@ -121,6 +121,8 @@ import {
   RefrigeratorAndTemperatureControlledCabinetMode,
   RvcOperationalState,
   DeviceEnergyManagement,
+  ElectricalEnergyMeasurement,
+  ElectricalPowerMeasurement,
 } from 'matterbridge/matter/clusters';
 
 /**
@@ -698,8 +700,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create an outlet device with energy measurements ***********************
     this.outletEnergy = new MatterbridgeEndpoint([onOffOutlet, electricalSensor, bridgedNode, powerSource], { id: 'OutletEnergy' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultElectricalEnergyMeasurementClusterServer()
-      .createDefaultElectricalPowerMeasurementClusterServer()
+      .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
+      .createDefaultElectricalPowerMeasurementClusterServer(220_000, 0, 0, 50_000)
       .createDefaultBridgedDeviceBasicInformationClusterServer('OutletEnergy', 'OEN00019', 0xfff1, 'Matterbridge', 'Matterbridge Outlet With Energy')
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceWiredClusterServer()
@@ -721,8 +723,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create an outlet device with apparent energy measurements ***********************
     this.outletEnergyApparent = new MatterbridgeEndpoint([onOffOutlet, electricalSensor, bridgedNode, powerSource], { id: 'OutletEnergyApparent' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createApparentElectricalPowerMeasurementClusterServer()
-      .createDefaultElectricalPowerMeasurementClusterServer()
+      .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
+      .createApparentElectricalPowerMeasurementClusterServer(220_000, 0, 0, 50_000)
       .createDefaultBridgedDeviceBasicInformationClusterServer('OutletEnergyApparent', 'OEA00019', 0xfff1, 'Matterbridge', 'Matterbridge Outlet With Apparent Energy')
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceWiredClusterServer()
@@ -2400,30 +2402,76 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     // Set outlet to off
-    await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outlet.log);
     this.outlet?.log.info('Set outlet initial onOff to false');
+    await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outlet.log);
+
+    this.outletEnergy?.log.info('Set outlet initial onOff to false and energy/power to 0');
     await this.outletEnergy?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outletEnergy.log);
-    this.outletEnergy?.log.info('Set outlet initial onOff to false');
+    await this.outletEnergy?.setAttribute(ElectricalEnergyMeasurement.Cluster.id, 'cumulativeEnergyImported', { energy: 0 }, this.outletEnergy.log);
+    await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'voltage', 220_000, this.outletEnergy.log);
+    await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'activeCurrent', 0, this.outletEnergy.log);
+    await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'activePower', 0, this.outletEnergy.log);
+
+    this.outletEnergyApparent?.log.info('Set outlet initial onOff to false and apparent energy/power to 0');
     await this.outletEnergyApparent?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.outletEnergyApparent.log);
-    this.outletEnergyApparent?.log.info('Set outlet initial onOff to false');
+    await this.outletEnergyApparent?.setAttribute(ElectricalEnergyMeasurement.Cluster.id, 'cumulativeEnergyImported', { energy: 0 }, this.outletEnergyApparent.log);
+    await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'voltage', 220_000, this.outletEnergyApparent.log);
+    await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'apparentCurrent', 0, this.outletEnergyApparent.log);
+    await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'apparentPower', 0, this.outletEnergyApparent.log);
+
     if (this.config.useInterval) {
       // Toggle outlet onOff every minute
       this.outletInterval = setInterval(
         async () => {
           let state = this.outlet?.getAttribute(OnOff.Cluster.id, 'onOff', this.outlet.log);
           if (isValidBoolean(state)) {
-            await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outlet.log);
             this.outlet?.log.info(`Set outlet onOff to ${!state}`);
+            await this.outlet?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outlet.log);
           }
           state = this.outletEnergy?.getAttribute(OnOff.Cluster.id, 'onOff', this.outletEnergy.log);
           if (isValidBoolean(state)) {
-            await this.outletEnergy?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outletEnergy.log);
             this.outletEnergy?.log.info(`Set outlet onOff to ${!state}`);
+            await this.outletEnergy?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outletEnergy.log);
+            if (!state) {
+              await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'activeCurrent', 100_000, this.outletEnergy.log);
+              await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'activePower', 220_000_000, this.outletEnergy.log);
+              const energy = this.outletEnergy?.getAttribute(
+                ElectricalEnergyMeasurement.Cluster.id,
+                'cumulativeEnergyImported',
+                this.outletEnergy.log,
+              ) as ElectricalEnergyMeasurement.EnergyMeasurement | null;
+              if (isValidObject(energy, 1)) {
+                if (typeof energy.energy === 'bigint') energy.energy += 5000n;
+                else energy.energy += 5000;
+                await this.outletEnergy?.setAttribute(ElectricalEnergyMeasurement.Cluster.id, 'cumulativeEnergyImported', energy, this.outletEnergy.log);
+              }
+              await this.outletEnergy?.setAttribute(ElectricalEnergyMeasurement.Cluster.id, 'cumulativeEnergyImported', { energy: 0 }, this.outletEnergy.log);
+            } else {
+              await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'activeCurrent', 0, this.outletEnergy.log);
+              await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'activePower', 0, this.outletEnergy.log);
+            }
           }
           state = this.outletEnergyApparent?.getAttribute(OnOff.Cluster.id, 'onOff', this.outletEnergyApparent.log);
           if (isValidBoolean(state)) {
-            await this.outletEnergyApparent?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outletEnergyApparent.log);
             this.outletEnergyApparent?.log.info(`Set outlet onOff to ${!state}`);
+            await this.outletEnergyApparent?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.outletEnergyApparent.log);
+            if (!state) {
+              await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'apparentCurrent', 100_000, this.outletEnergyApparent.log);
+              await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'apparentPower', 220_000_000, this.outletEnergyApparent.log);
+              const energy = this.outletEnergyApparent?.getAttribute(
+                ElectricalEnergyMeasurement.Cluster.id,
+                'cumulativeEnergyImported',
+                this.outletEnergyApparent.log,
+              ) as ElectricalEnergyMeasurement.EnergyMeasurement | null;
+              if (isValidObject(energy, 1)) {
+                if (typeof energy.energy === 'bigint') energy.energy += 5000n;
+                else energy.energy += 5000;
+                await this.outletEnergyApparent?.setAttribute(ElectricalEnergyMeasurement.Cluster.id, 'cumulativeEnergyImported', energy, this.outletEnergyApparent.log);
+              }
+            } else {
+              await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'apparentCurrent', 0, this.outletEnergyApparent.log);
+              await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'apparentPower', 0, this.outletEnergyApparent.log);
+            }
           }
         },
         60 * 1000 + 300,
