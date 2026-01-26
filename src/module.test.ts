@@ -81,7 +81,7 @@ describe('TestPlatform', () => {
   });
 
   it('should return an instance of the platform', async () => {
-    matterbridge.matterbridgeVersion = '3.5.1';
+    matterbridge.matterbridgeVersion = '3.5.2';
     dynamicPlatform = initializePlugin(matterbridge, log, config);
     expect(dynamicPlatform).toBeInstanceOf(ExampleMatterbridgeDynamicPlatform);
     await dynamicPlatform.onShutdown();
@@ -90,9 +90,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     matterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config)).toThrow(
-      'This plugin requires Matterbridge version >= "3.5.1". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.5.2". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    matterbridge.matterbridgeVersion = '3.5.1';
+    matterbridge.matterbridgeVersion = '3.5.2';
   });
 
   it('should initialize platform with config name and set the default config', () => {
