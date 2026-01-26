@@ -23,6 +23,19 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
+## [2.0.6] - Dev branch
+
+### Added
+
+- [BasicVideoPlayer]: Added a BasicVideoPlayer device (supported by SmartThings).
+
+### Changed
+
+- [package]: Updated dependencies.
+- [package]: Required matterbridge 3.5.2.
+
+<a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
+
 ## [2.0.5] - 2026-01-26
 
 ### Added
@@ -30,7 +43,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [thermostat]: Added a thermostat auto mode with presets (Home, Away, Sleep, Wake, Vacation and GoingToSleep modes) including 3 sub endpoints with flowMeasurement, temperature and humidity sensors. Thanks Ludovic BOUÉ (<https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/42> and https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/43).
 - [Energy]: Added an outlet (plug) with onOff cluster, energy measurements and power measurements.
 - [EnergyApparent]: Added an outlet (plug) with onOff cluster, apparent energy measurements and power measurements.
-- [mountedSwitches]: Added onOffOutlet and dimmableOutlet device types to the mounted device types for conformancy to Matter 1.4.2.
+- [mountedSwitches]: Added onOffOutlet and dimmableOutlet device types to the mounted device types for conformance to Matter 1.4.2.
 
 ### Changed
 

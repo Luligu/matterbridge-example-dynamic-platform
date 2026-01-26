@@ -16,6 +16,7 @@ import {
   FanControl,
   FanControlCluster,
   IdentifyCluster,
+  KeypadInput,
   LevelControlCluster,
   ModeSelectCluster,
   OnOffCluster,
@@ -37,6 +38,7 @@ import {
   matterbridge,
   server,
   addMatterbridgePlatform,
+  loggerInfoSpy,
 } from 'matterbridge/jestutils';
 
 import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
@@ -141,12 +143,12 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
-    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(61);
+    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(62);
   });
 
   it('should execute the commandHandlers', async () => {
     // Invoke command handlers
-    for (const [key, device] of Array.from(dynamicPlatform.bridgedDevices)) {
+    for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
 
       if (device.hasClusterServer(IdentifyCluster)) {
@@ -259,33 +261,26 @@ describe('TestPlatform', () => {
 
   it('should execute thermostat preset commands and subscriptions', async () => {
     // Find the Thermostat (AutoModePresets) device which has presets
-    let thermoAutoPreset: MatterbridgeEndpoint | undefined;
-    for (const [key, device] of Array.from(dynamicPlatform.bridgedDevices)) {
-      if (device.deviceName === 'Thermostat (AutoModePresets)') {
-        thermoAutoPreset = device;
-        break;
-      }
-    }
-
+    const thermoAutoPreset = dynamicPlatform.getDeviceByName('Thermostat (AutoModePresets)');
     expect(thermoAutoPreset).toBeDefined();
-    expect(thermoAutoPreset?.hasClusterServer(Thermostat.Cluster.id)).toBe(true);
-
-    if (!thermoAutoPreset || !thermoAutoPreset.hasClusterServer(Thermostat.Cluster.id)) {
-      return;
-    }
+    if (!thermoAutoPreset) return;
+    expect(thermoAutoPreset.hasClusterServer(Thermostat.Cluster.id)).toBe(true);
 
     // Test setpointRaiseLower command
     await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Heat, amount: 100 });
     await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Cool, amount: 100 });
     await thermoAutoPreset.executeCommandHandler('setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 100 });
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command setpointRaiseLower called'));
 
     // Test setActivePresetRequest command with valid preset
     const presetHandle = new Uint8Array([0x00]);
     await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle });
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command setActivePresetRequest applied'));
 
     // Test setActivePresetRequest command with invalid preset
     const invalidPresetHandle = new Uint8Array([0xff]);
     await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle: invalidPresetHandle });
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.ERROR, expect.stringContaining('Command setActivePresetRequest received unknown presetHandle'));
 
     // Test subscriptions
     await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'systemMode', Thermostat.SystemMode.Off, Thermostat.SystemMode.Heat);
@@ -293,6 +288,7 @@ describe('TestPlatform', () => {
     await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'occupiedCoolingSetpoint', 1400, 1500);
     await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'activePresetHandle', new Uint8Array([0x00]), new Uint8Array([0x00]));
     await invokeSubscribeHandler(thermoAutoPreset, 'Thermostat', 'presets', [], []);
+
     // Verify all presets apply correct setpoints and active handle
     const presetsToCheck: Array<{ handle: number; heat: number; cool: number }> = [
       { handle: 0x00, heat: 2200, cool: 2300 }, // Home
@@ -302,7 +298,6 @@ describe('TestPlatform', () => {
       { handle: 0x04, heat: 1600, cool: 2700 }, // Vacation
       { handle: 0x05, heat: 1850, cool: 2200 }, // GoingToSleep
     ];
-
     for (const p of presetsToCheck) {
       await thermoAutoPreset.executeCommandHandler('setActivePresetRequest', { presetHandle: new Uint8Array([p.handle]) });
       const heat = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint') as number | undefined;
@@ -310,9 +305,33 @@ describe('TestPlatform', () => {
       expect(heat).toBe(p.heat);
       expect(cool).toBe(p.cool);
     }
+  });
 
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('setpointRaiseLower'));
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.ERROR, expect.stringContaining('unknown presetHandle'));
+  it('should execute basic video player commands', async () => {
+    // Find the BasicVideoPlayer device
+    const basicVideoPlayer = dynamicPlatform.getDeviceByName('BasicVideoPlayer');
+    expect(basicVideoPlayer).toBeDefined();
+    if (!basicVideoPlayer) return;
+
+    // Test MediaPlayback commands
+    await basicVideoPlayer.executeCommandHandler('play', {});
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Command play called');
+    await basicVideoPlayer.executeCommandHandler('pause', {});
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Command pause called');
+    await basicVideoPlayer.executeCommandHandler('stop', {});
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Command stop called');
+    await basicVideoPlayer.executeCommandHandler('previous', {});
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Command previous called');
+    await basicVideoPlayer.executeCommandHandler('next', {});
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Command next called');
+    await basicVideoPlayer.executeCommandHandler('skipForward', {});
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Command skipForward called');
+    await basicVideoPlayer.executeCommandHandler('skipBackward', {});
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Command skipBackward called');
+
+    // Test KeypadInput commands
+    await basicVideoPlayer.executeCommandHandler('sendKey', { keyCode: KeypadInput.CecKeyCode.Down });
+    expect(loggerInfoSpy).toHaveBeenCalledWith(`Command sendKey with ${KeypadInput.CecKeyCode.Down} called`);
   });
 
   it('should call onConfigure', async () => {

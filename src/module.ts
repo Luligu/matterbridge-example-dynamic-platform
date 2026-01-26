@@ -77,6 +77,8 @@ import {
   Refrigerator,
   AirConditioner,
   Speaker,
+  BasicVideoPlayer,
+  CastingVideoPlayer,
 } from 'matterbridge/devices';
 import { isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
 import { AnsiLogger, debugStringify } from 'matterbridge/logger';
@@ -248,6 +250,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   cooktop: Cooktop | undefined;
   refrigerator: Refrigerator | undefined;
   airConditioner: AirConditioner | undefined;
+  basicVideoPlayer: BasicVideoPlayer | undefined;
+  castingVideoPlayer: CastingVideoPlayer | undefined;
   speaker: Speaker | undefined;
 
   phaseInterval: NodeJS.Timeout | undefined;
@@ -272,8 +276,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   intervalOnOff = false;
   intervalLevel = 1;
   intervalColorTemperature = 147;
-
-  bridgedDevices = new Map<string, MatterbridgeEndpoint>();
 
   fanModeLookup = ['Off', 'Low', 'Medium', 'High', 'On', 'Auto', 'Smart'];
   fanDirectionLookup = ['Forward', 'Reverse'];
@@ -2062,6 +2064,39 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.airConditioner?.log,
     );
 
+    // *********************** Create a basic video player device ***********************
+    this.basicVideoPlayer = new BasicVideoPlayer('BasicVideoPlayer', 'BVP00062');
+    this.basicVideoPlayer = (await this.addDevice(this.basicVideoPlayer)) as BasicVideoPlayer | undefined;
+    this.basicVideoPlayer
+      ?.addCommandHandler('play', async () => {
+        this.basicVideoPlayer?.log.info(`Command play called`);
+      })
+      .addCommandHandler('pause', async () => {
+        this.basicVideoPlayer?.log.info(`Command pause called`);
+      })
+      .addCommandHandler('stop', async () => {
+        this.basicVideoPlayer?.log.info(`Command stop called`);
+      })
+      .addCommandHandler('previous', async () => {
+        this.basicVideoPlayer?.log.info(`Command previous called`);
+      })
+      .addCommandHandler('next', async () => {
+        this.basicVideoPlayer?.log.info(`Command next called`);
+      })
+      .addCommandHandler('skipForward', async () => {
+        this.basicVideoPlayer?.log.info(`Command skipForward called`);
+      })
+      .addCommandHandler('skipBackward', async () => {
+        this.basicVideoPlayer?.log.info(`Command skipBackward called`);
+      })
+      .addCommandHandler('sendKey', async ({ request: { keyCode } }) => {
+        this.basicVideoPlayer?.log.info(`Command sendKey with ${keyCode} called`);
+      });
+
+    // *********************** Create a casting video player device ***********************
+    // this.castingVideoPlayer = new CastingVideoPlayer('CastingVideoPlayer', 'CVP00063');
+    // this.castingVideoPlayer = (await this.addDevice(this.castingVideoPlayer)) as CastingVideoPlayer | undefined;
+
     // *********************** Create a Speaker device ***********************
     this.speaker = new Speaker('Speaker', 'SPE00057', false, 100);
     this.speaker = (await this.addDevice(this.speaker)) as Speaker | undefined;
@@ -2925,7 +2960,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       }
 
       await this.registerDevice(device);
-      this.bridgedDevices.set(device.deviceName, device);
       return device;
     } else {
       return undefined;
