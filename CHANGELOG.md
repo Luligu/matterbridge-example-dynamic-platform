@@ -29,8 +29,9 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [thermostat]: Added a thermostat auto mode with presets (Comfort and Away modes) including 3 sub endpoints with flowMeasurement, temperature and humidity sensors. Thanks Ludovic BOUÉ (<https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/42> and https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/43).
 - [presets]: Added support for Matter Thermostat Presets feature with preset activation and setpoint management.
-- [Energy]: Added an outlet (plug) with onOff cluster, energy measurements and power measurements
-- [EnergyApparent]: Added an outlet (plug) with onOff cluster, apparent energy measurements and power measurements
+- [Energy]: Added an outlet (plug) with onOff cluster, energy measurements and power measurements.
+- [EnergyApparent]: Added an outlet (plug) with onOff cluster, apparent energy measurements and power measurements.
+- [mountedSwitches]: Added onOffOutlet and dimmableOutlet device types for conformancy to Matter 1.4.2.
 
 ### Changed
 

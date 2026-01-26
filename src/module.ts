@@ -58,6 +58,7 @@ import {
   modeSelect,
   PlatformMatterbridge,
   electricalSensor,
+  dimmableOutlet,
 } from 'matterbridge';
 import {
   RoboticVacuumCleaner,
@@ -426,7 +427,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // *********************** Create a mounted onOff switch device ***********************
-    this.mountedOnOffSwitch = new MatterbridgeEndpoint([onOffMountedSwitch, bridgedNode, powerSource], { id: 'OnOffMountedSwitch' }, this.config.debug)
+    this.mountedOnOffSwitch = new MatterbridgeEndpoint([onOffMountedSwitch, onOffOutlet, bridgedNode, powerSource], { id: 'OnOffMountedSwitch' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('OnOff Mounted Switch', 'OMS00011', 0xfff1, 'Matterbridge', 'Matterbridge OnOff Mounted Switch')
@@ -447,7 +448,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // *********************** Create a mounted dimmer switch device ***********************
-    this.mountedDimmerSwitch = new MatterbridgeEndpoint([dimmableMountedSwitch, bridgedNode, powerSource], { id: 'DimmerMountedSwitch' }, this.config.debug)
+    this.mountedDimmerSwitch = new MatterbridgeEndpoint([dimmableMountedSwitch, dimmableOutlet, bridgedNode, powerSource], { id: 'DimmerMountedSwitch' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
       .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Dimmer Mounted Switch', 'DMS00012', 0xfff1, 'Matterbridge', 'Matterbridge Dimmer Mounted Switch')
