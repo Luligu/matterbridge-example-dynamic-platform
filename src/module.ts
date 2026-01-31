@@ -126,6 +126,7 @@ import {
   DeviceEnergyManagement,
   ElectricalEnergyMeasurement,
   ElectricalPowerMeasurement,
+  OnOffCluster,
 } from 'matterbridge/matter/clusters';
 
 /**
@@ -210,6 +211,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   outlet: MatterbridgeEndpoint | undefined;
   outletEnergy: MatterbridgeEndpoint | undefined;
   outletEnergyApparent: MatterbridgeEndpoint | undefined;
+  smartOutlet: MatterbridgeEndpoint | undefined;
+
   coverLift: MatterbridgeEndpoint | undefined;
   coverLiftTilt: MatterbridgeEndpoint | undefined;
   lock: MatterbridgeEndpoint | undefined;
@@ -745,6 +748,41 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.outletEnergyApparent?.addCommandHandler('off', async () => {
       this.outletEnergyApparent?.log.info('Command off called');
     });
+
+    // *********************** Create an smart outlet device with 4 sockets ***********************
+    this.smartOutlet = new MatterbridgeEndpoint([bridgedNode, powerSource, electricalSensor], { id: 'SmartOutlet' }, this.config.debug)
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Smart outlet', 'SOU00063', 0xfff1, 'Matterbridge', 'Matterbridge Smart Outlet')
+      .createDefaultPowerSourceWiredClusterServer()
+      .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
+      .createDefaultElectricalPowerMeasurementClusterServer(220_000, 0, 0, 50_000)
+      .addRequiredClusterServers();
+
+    this.smartOutlet
+      .addChildDeviceTypeWithClusterServer('Socket 1', onOffOutlet, [OnOffCluster.id], {
+        id: 'Socket1',
+        tagList: [{ mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: null }],
+      })
+      .addRequiredClusterServers();
+    this.smartOutlet
+      .addChildDeviceTypeWithClusterServer('Socket 2', onOffOutlet, [OnOffCluster.id], {
+        id: 'Socket2',
+        tagList: [{ mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: null }],
+      })
+      .addRequiredClusterServers();
+    this.smartOutlet
+      .addChildDeviceTypeWithClusterServer('Socket 3', onOffOutlet, [OnOffCluster.id], {
+        id: 'Socket3',
+        tagList: [{ mfgCode: null, namespaceId: NumberTag.Three.namespaceId, tag: NumberTag.Three.tag, label: null }],
+      })
+      .addRequiredClusterServers();
+    this.smartOutlet
+      .addChildDeviceTypeWithClusterServer('Socket 4', onOffOutlet, [OnOffCluster.id], {
+        id: 'Socket4',
+        tagList: [{ mfgCode: null, namespaceId: NumberTag.Four.namespaceId, tag: NumberTag.Four.tag, label: null }],
+      })
+      .addRequiredClusterServers();
+
+    this.smartOutlet = await this.addDevice(this.smartOutlet);
 
     // *********************** Create a window covering device ***********************
     // Matter uses 10000 = fully closed   0 = fully opened
@@ -2565,6 +2603,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
               await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'apparentCurrent', 0, this.outletEnergyApparent.log);
               await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.Cluster.id, 'apparentPower', 0, this.outletEnergyApparent.log);
             }
+          }
+          state = this.smartOutlet?.getChildEndpointById('Socket1')?.getAttribute(OnOff.Cluster.id, 'onOff', this.smartOutlet.log);
+          if (isValidBoolean(state)) {
+            this.smartOutlet?.log.info(`Set smart outlets onOff`);
+            await this.smartOutlet?.getChildEndpointById('Socket1')?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.smartOutlet.log);
+            await this.smartOutlet?.getChildEndpointById('Socket2')?.setAttribute(OnOff.Cluster.id, 'onOff', state, this.smartOutlet.log);
+            await this.smartOutlet?.getChildEndpointById('Socket3')?.setAttribute(OnOff.Cluster.id, 'onOff', !state, this.smartOutlet.log);
+            await this.smartOutlet?.getChildEndpointById('Socket4')?.setAttribute(OnOff.Cluster.id, 'onOff', state, this.smartOutlet.log);
           }
         },
         60 * 1000 + 300,

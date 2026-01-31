@@ -19,7 +19,7 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 62 virtual devices:
+It exposes 63 virtual devices:
 
 - a door contact sensor
 - a motion sensor
@@ -40,6 +40,7 @@ It exposes 62 virtual devices:
 - an outlet (plug) with onOff cluster
 - an outlet (plug) with onOff cluster, energy measurements and power measurements
 - an outlet (plug) with onOff cluster, apparent energy measurements and power measurements
+- a smart outlet with an energy meter and four individually controllable sockets (with tagList 1, 2, 3 and 4)
 - a cover with windowCovering cluster and lift feature
 - a cover with windowCovering cluster and both lift and tilt features
 - a lock with doorLock cluster
