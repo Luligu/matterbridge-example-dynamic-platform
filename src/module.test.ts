@@ -39,6 +39,7 @@ import {
   server,
   addMatterbridgePlatform,
   loggerInfoSpy,
+  flushAsync,
 } from 'matterbridge/jestutils';
 
 import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
@@ -147,6 +148,7 @@ describe('TestPlatform', () => {
   });
 
   it('should execute the commandHandlers', async () => {
+    await flushAsync();
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
@@ -193,6 +195,7 @@ describe('TestPlatform', () => {
       if (device.hasClusterServer(DoorLockCluster)) {
         await device.executeCommandHandler('lockDoor');
         await device.executeCommandHandler('unlockDoor');
+        await flushAsync();
         await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.NoRemoteLockUnlock);
         await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.Normal);
       }
