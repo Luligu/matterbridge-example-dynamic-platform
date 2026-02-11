@@ -39,6 +39,7 @@ import {
   server,
   addMatterbridgePlatform,
   loggerInfoSpy,
+  flushAsync,
 } from 'matterbridge/jestutils';
 
 import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
@@ -147,6 +148,7 @@ describe('TestPlatform', () => {
   });
 
   it('should execute the commandHandlers', async () => {
+    await flushAsync();
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
@@ -335,6 +337,7 @@ describe('TestPlatform', () => {
   });
 
   it('should call onConfigure', async () => {
+    await flushAsync();
     jest.useFakeTimers();
 
     await dynamicPlatform.onConfigure();

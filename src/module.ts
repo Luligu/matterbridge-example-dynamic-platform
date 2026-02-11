@@ -887,6 +887,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       (value) => {
         const lookupOperatingMode = ['Normal', 'Vacation', 'Privacy', 'NoRemoteLockUnlock', 'Passage'];
         this.lock?.log.info('Subscribe operatingMode called with:', lookupOperatingMode[value]);
+        const actuatorEnabled = value !== DoorLock.OperatingMode.NoRemoteLockUnlock;
+        this.lock?.setAttribute(DoorLock.Cluster.id, 'actuatorEnabled', actuatorEnabled);
+        this.lock?.log.info(`actuatorEnabled set to ${actuatorEnabled}`);
       },
       this.lock.log,
     );
