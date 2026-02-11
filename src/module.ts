@@ -257,23 +257,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   castingVideoPlayer: CastingVideoPlayer | undefined;
   speaker: Speaker | undefined;
 
-  phaseInterval: NodeJS.Timeout | undefined;
-  phase: number = -1;
-  sensorInterval: NodeJS.Timeout | undefined;
-  switchInterval: NodeJS.Timeout | undefined;
-  lightInterval: NodeJS.Timeout | undefined;
-  outletInterval: NodeJS.Timeout | undefined;
-  coverInterval: NodeJS.Timeout | undefined;
-  lockInterval: NodeJS.Timeout | undefined;
-  thermoInterval: NodeJS.Timeout | undefined;
-  fanInterval: NodeJS.Timeout | undefined;
-  waterLeakInterval: NodeJS.Timeout | undefined;
-  waterFreezeInterval: NodeJS.Timeout | undefined;
-  rainInterval: NodeJS.Timeout | undefined;
-  smokeInterval: NodeJS.Timeout | undefined;
-  airQualityInterval: NodeJS.Timeout | undefined;
-  airConditionerInterval: NodeJS.Timeout | undefined;
-  genericSwitchInterval: NodeJS.Timeout | undefined;
+  phase: number = 0;
   genericSwitchLastEvent: 'Single' | 'Double' | 'Long' | 'Press' | 'Release' = 'Release';
 
   intervalOnOff = false;
@@ -2143,14 +2127,35 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.speaker = (await this.addDevice(this.speaker)) as Speaker | undefined;
   }
 
+  // This is just a helper to execute the intervals callbacks immediately without waiting for the interval time, useful for testing
+  intervals: { interval: NodeJS.Timeout; callback: () => Promise<void> }[] = [];
+  addInterval(callback: () => Promise<void>, intervalTime: number) {
+    const interval = setInterval(callback, intervalTime);
+    this.intervals.push({ interval, callback });
+    return interval;
+  }
+  async executeIntervals(times: number, pauseTime: number = 100) {
+    for (let i = 0; i < times; i++) {
+      for (const { callback } of this.intervals) {
+        await callback();
+      }
+      if (pauseTime > 0) {
+        await new Promise((resolve) => setTimeout(resolve, pauseTime));
+      }
+    }
+  }
+  clearIntervals() {
+    this.intervals.forEach(({ interval }) => clearInterval(interval));
+    this.intervals = [];
+  }
+
   override async onConfigure() {
     await super.onConfigure();
     this.log.info('onConfigure called');
 
     // Use interval for appliances animation
     if (this.config.useInterval) {
-      this.phaseInterval = setInterval(async () => {
-        this.phase = this.phase + 1 > 10 ? 0 : this.phase + 1;
+      this.addInterval(async () => {
         this.log.info(`Appliances animation phase ${this.phase}`);
 
         // Dead front and onOff for Appliances
@@ -2363,12 +2368,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           if (this.phase === 9) await this.refrigerator.setDoorOpenState('FreezerBottom', false);
           if (this.phase === 9) await this.refrigerator.triggerDoorOpenState('FreezerBottom', false);
         }
+        this.phase++;
+        this.phase = this.phase >= 10 ? 0 : this.phase;
       }, 10 * 1000);
     }
 
     // Use interval for sensor updates
     if (this.config.useInterval) {
-      this.sensorInterval = setInterval(
+      this.addInterval(
         async () => {
           let value = this.door?.getAttribute(BooleanState.Cluster.id, 'stateValue', this.door.log);
           if (isValidBoolean(value)) {
@@ -2433,7 +2440,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.switch?.log.info(`Set switch initial onOff to ${this.intervalOnOff}`);
     if (this.config.useInterval) {
       // Toggle switch onOff every minute
-      this.switchInterval = setInterval(
+      this.addInterval(
         async () => {
           await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.switch.log);
           await this.mountedOnOffSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.mountedOnOffSwitch.log);
@@ -2487,7 +2494,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightCT?.log.info('Set light CT initial onOff to true, currentLevel to 128, colorTemperatureMireds to 250.');
 
     if (this.config.useInterval) {
-      this.lightInterval = setInterval(
+      this.addInterval(
         async () => {
           this.intervalLevel += 10;
           if (this.intervalLevel >= 250) {
@@ -2555,7 +2562,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     if (this.config.useInterval) {
       // Toggle outlet onOff every minute
-      this.outletInterval = setInterval(
+      this.addInterval(
         async () => {
           let state = this.outlet?.getAttribute(OnOff.Cluster.id, 'onOff', this.outlet.log);
           if (isValidBoolean(state)) {
@@ -2625,7 +2632,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.coverLift?.log.info('Set cover initial targetPositionLiftPercent100ths = currentPositionLiftPercent100ths and operationalStatus to Stopped.');
     if (this.config.useInterval) {
       // Increment cover position every minute
-      this.coverInterval = setInterval(
+      this.addInterval(
         async () => {
           let position = this.coverLift?.getAttribute(WindowCovering.Cluster.id, 'currentPositionLiftPercent100ths', this.coverLift.log);
           if (isValidNumber(position, 0, 10000)) {
@@ -2650,7 +2657,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lock?.log.info('Set lock initial lockState to Locked');
     if (this.config.useInterval) {
       // Toggle lock every minute
-      this.lockInterval = setInterval(
+      this.addInterval(
         async () => {
           const status = this.lock?.getAttribute(DoorLock.Cluster.id, 'lockState', this.lock.log);
           if (isValidNumber(status, DoorLock.LockState.Locked, DoorLock.LockState.Unlocked)) {
@@ -2692,7 +2699,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     if (this.config.useInterval) {
       // Increment localTemperature every minute
-      this.thermoInterval = setInterval(
+      this.addInterval(
         async () => {
           let temperature = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'localTemperature', this.thermoAuto.log);
           if (isValidNumber(temperature, 1600, 2400)) {
@@ -2749,7 +2756,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.airConditioner?.setAttribute(ThermostatCluster.id, 'localTemperature', 2000, this.airConditioner.log);
     if (this.config.useInterval) {
       // Increment airConditioner localTemperature every minute
-      this.airConditionerInterval = setInterval(
+      this.addInterval(
         async () => {
           let temperature = this.airConditioner?.getAttribute(ThermostatCluster.id, 'localTemperature', this.airConditioner.log);
           if (isValidNumber(temperature, 1600, 2400)) {
@@ -2777,7 +2784,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanComplete.log);
     if (this.config.useInterval) {
       // Increment fan percentCurrent every minute
-      this.fanInterval = setInterval(
+      this.addInterval(
         async () => {
           let mode = this.fanBase?.getAttribute(FanControl.Cluster.id, 'fanMode', this.fanBase.log);
           let value = this.fanBase?.getAttribute(FanControl.Cluster.id, 'percentCurrent', this.fanBase.log);
@@ -2806,7 +2813,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.waterLeak?.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.waterLeak.log);
     if (this.config.useInterval) {
       // Toggle waterLeak every minute
-      this.waterLeakInterval = setInterval(
+      this.addInterval(
         async () => {
           let value = this.waterLeak?.getAttribute(BooleanState.Cluster.id, 'stateValue', this.waterLeak.log);
           if (isValidBoolean(value)) {
@@ -2823,7 +2830,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.waterFreeze?.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.waterFreeze.log);
     if (this.config.useInterval) {
       // Toggle waterFreeze every minute
-      this.waterFreezeInterval = setInterval(
+      this.addInterval(
         async () => {
           let value = this.waterFreeze?.getAttribute(BooleanState.Cluster.id, 'stateValue', this.waterFreeze.log);
           if (isValidBoolean(value)) {
@@ -2840,7 +2847,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.rain?.setAttribute(BooleanState.Cluster.id, 'stateValue', false, this.rain.log);
     if (this.config.useInterval) {
       // Toggle rain every minute
-      this.rainInterval = setInterval(
+      this.addInterval(
         async () => {
           let value = this.rain?.getAttribute(BooleanState.Cluster.id, 'stateValue', this.rain.log);
           if (isValidBoolean(value)) {
@@ -2860,7 +2867,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.coOnly?.setAttribute(SmokeCoAlarm.Cluster.id, 'coState', SmokeCoAlarm.AlarmState.Normal, this.coOnly.log);
     if (this.config.useInterval) {
       // Toggle smoke every minute
-      this.smokeInterval = setInterval(
+      this.addInterval(
         async () => {
           let value = this.smokeCo?.getAttribute(SmokeCoAlarm.Cluster.id, 'smokeState', this.smokeCo.log);
           if (isValidNumber(value, SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Critical)) {
@@ -2893,7 +2900,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     if (this.config.useInterval) {
       // Toggle air quality every minute
-      this.airQualityInterval = setInterval(
+      this.addInterval(
         async () => {
           let value = this.airQuality?.getAttribute(AirQuality.Cluster.id, 'airQuality', this.airQuality?.log);
           if (isValidNumber(value, AirQuality.AirQualityEnum.Good, AirQuality.AirQualityEnum.ExtremelyPoor)) {
@@ -2909,7 +2916,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.config.useInterval) {
       // Trigger the switches every minute
       this.genericSwitchLastEvent = 'Release';
-      this.genericSwitchInterval = setInterval(
+      this.addInterval(
         async () => {
           // console.error('Entering generic switch interval triggered', this.genericSwitchLastEvent);
           if (this.genericSwitchLastEvent === 'Release') {
@@ -2945,22 +2952,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   }
 
   override async onShutdown(reason?: string) {
-    clearInterval(this.phaseInterval);
-    clearInterval(this.sensorInterval);
-    clearInterval(this.switchInterval);
-    clearInterval(this.lightInterval);
-    clearInterval(this.outletInterval);
-    clearInterval(this.coverInterval);
-    clearInterval(this.lockInterval);
-    clearInterval(this.thermoInterval);
-    clearInterval(this.fanInterval);
-    clearInterval(this.waterLeakInterval);
-    clearInterval(this.waterFreezeInterval);
-    clearInterval(this.rainInterval);
-    clearInterval(this.smokeInterval);
-    clearInterval(this.airQualityInterval);
-    clearInterval(this.airConditionerInterval);
-    clearInterval(this.genericSwitchInterval);
+    this.clearIntervals();
     await super.onShutdown(reason);
     this.log.info('onShutdown called with reason:', reason ?? 'none');
     if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices(500);

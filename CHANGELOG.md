@@ -26,6 +26,20 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
+## [2.0.10] - 2026-02-11
+
+### Added
+
+- [platform]: Change actuatorEnabled to false when operatingMode = DoorLock.OperatingMode.NoRemoteLockUnlock. Thanks Ludovic BOUÉ (https://github.com/Luligu/matterbridge-example-dynamic-platform/pull/48).
+
+### Changed
+
+- [package]: Updated dependencies.
+- [package]: Bumped package to automator v.3.0.7.
+- [animations]: Changed interval management to improve tests efficency.
+
+<a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
+
 ## [2.0.9] - 2026-02-07
 
 ### Changed
