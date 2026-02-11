@@ -195,7 +195,6 @@ describe('TestPlatform', () => {
       if (device.hasClusterServer(DoorLockCluster)) {
         await device.executeCommandHandler('lockDoor');
         await device.executeCommandHandler('unlockDoor');
-        await flushAsync();
         await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.NoRemoteLockUnlock);
         await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.Normal);
       }
@@ -338,6 +337,7 @@ describe('TestPlatform', () => {
   });
 
   it('should call onConfigure', async () => {
+    await flushAsync();
     jest.useFakeTimers();
 
     await dynamicPlatform.onConfigure();
