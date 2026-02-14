@@ -1625,7 +1625,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a smokeCoAlarm device ***********************
     this.smokeCo = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { id: 'SmokeCo alarm sensor' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('SmokeCo alarm sensor', 'SCA00037', 0xfff1, 'Matterbridge', 'Matterbridge SmokeCoAlarm')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('SmokeCo alarm sensor', 'SCA00037', 0xfff1, 'Matterbridge', 'Matterbridge SmokeCo Sensor')
       .createDefaultIdentifyClusterServer()
       .createDefaultSmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal, SmokeCoAlarm.AlarmState.Normal)
       .createDefaultPowerSourceReplaceableBatteryClusterServer()
@@ -1635,7 +1635,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a smokeCoAlarm smoke only device ***********************
     this.smokeOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { id: 'Smoke alarm sensor' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Smoke alarm sensor', 'SAL00038', 0xfff1, 'Matterbridge', 'Matterbridge SmokeCoAlarm')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Smoke alarm sensor', 'SAL00038', 0xfff1, 'Matterbridge', 'Matterbridge Smoke Sensor')
       .createDefaultIdentifyClusterServer()
       .createSmokeOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal)
       .createDefaultPowerSourceReplaceableBatteryClusterServer();
@@ -1644,7 +1644,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a smokeCoAlarm co only device ***********************
     this.coOnly = new MatterbridgeEndpoint([smokeCoAlarm, bridgedNode, powerSource], { id: 'Co alarm sensor' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Co alarm sensor', 'COA00039', 0xfff1, 'Matterbridge', 'Matterbridge SmokeCoAlarm')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Co alarm sensor', 'COA00039', 0xfff1, 'Matterbridge', 'Matterbridge Co Sensor')
       .createDefaultIdentifyClusterServer()
       .createCoOnlySmokeCOAlarmClusterServer(SmokeCoAlarm.AlarmState.Normal)
       .createDefaultPowerSourceReplaceableBatteryClusterServer()
