@@ -2786,7 +2786,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       // Increment fan percentCurrent every minute
       this.addInterval(
         async () => {
+          // eslint-disable-next-line no-useless-assignment
           let mode = this.fanBase?.getAttribute(FanControl.Cluster.id, 'fanMode', this.fanBase.log);
+          // eslint-disable-next-line no-useless-assignment
           let value = this.fanBase?.getAttribute(FanControl.Cluster.id, 'percentCurrent', this.fanBase.log);
           mode = this.fanDefault?.getAttribute(FanControl.Cluster.id, 'fanMode', this.fanDefault.log);
           value = this.fanDefault?.getAttribute(FanControl.Cluster.id, 'percentCurrent', this.fanDefault.log);
