@@ -397,7 +397,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a switch device ***********************
     this.switch = new MatterbridgeEndpoint([onOffSwitch, bridgedNode, powerSource], { id: 'Switch' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Switch', 'SWI00010', 0xfff1, 'Matterbridge', 'Matterbridge Switch')
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
@@ -418,10 +417,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a mounted onOff switch device ***********************
     this.mountedOnOffSwitch = new MatterbridgeEndpoint([onOffMountedSwitch, onOffOutlet, bridgedNode, powerSource], { id: 'OnOffMountedSwitch' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('OnOff Mounted Switch', 'OMS00011', 0xfff1, 'Matterbridge', 'Matterbridge OnOff Mounted Switch')
       .createDefaultOnOffClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.mountedOnOffSwitch = await this.addDevice(this.mountedOnOffSwitch);
 
@@ -439,7 +438,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a mounted dimmer switch device ***********************
     this.mountedDimmerSwitch = new MatterbridgeEndpoint([dimmableMountedSwitch, dimmableOutlet, bridgedNode, powerSource], { id: 'DimmerMountedSwitch' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Dimmer Mounted Switch', 'DMS00012', 0xfff1, 'Matterbridge', 'Matterbridge Dimmer Mounted Switch')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
@@ -468,10 +466,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a on off light device ***********************
     this.lightOnOff = new MatterbridgeEndpoint([onOffLight, bridgedNode, powerSource], { id: 'Light (on/off)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Light (on/off)', 'LON00013', 0xfff1, 'Matterbridge', 'Matterbridge Light on/off')
       .createDefaultOnOffClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.lightOnOff = await this.addDevice(this.lightOnOff);
 
@@ -489,11 +487,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a dimmer device ***********************
     this.dimmer = new MatterbridgeEndpoint([dimmableLight, bridgedNode, powerSource], { id: 'Dimmer' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Dimmer', 'DMR00014', 0xfff1, 'Matterbridge', 'Matterbridge Dimmer')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.dimmer = await this.addDevice(this.dimmer);
 
@@ -517,12 +515,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a light device with XY, HS and CT color control ***********************
     this.light = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { id: 'Light (XY, HS, CT)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, HS, CT)', 'LXC00015', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createDefaultColorControlClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.light = await this.addDevice(this.light);
 
@@ -561,12 +559,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a light device with HS and CT color control ***********************
     this.lightHS = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { id: 'Light (HS, CT)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Light (HS, CT)', 'LHC00016', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createHsColorControlClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.lightHS = await this.addDevice(this.lightHS);
 
@@ -602,12 +600,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a light device with XY and CT color control ***********************
     this.lightXY = new MatterbridgeEndpoint([extendedColorLight, bridgedNode, powerSource], { id: 'Light (XY, CT)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Light (XY, CT)', 'LXT00017', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createXyColorControlClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.lightXY = await this.addDevice(this.lightXY);
 
@@ -637,12 +635,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a light device with CT color control ***********************
     this.lightCT = new MatterbridgeEndpoint([colorTemperatureLight, bridgedNode, powerSource], { id: 'Light (CT)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Light (CT)', 'LCT00018', 0xfff1, 'Matterbridge', 'Matterbridge Light')
       .createDefaultOnOffClusterServer()
       .createDefaultLevelControlClusterServer()
       .createCtColorControlClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.lightCT = await this.addDevice(this.lightCT);
 
@@ -669,10 +667,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create an outlet device ***********************
     this.outlet = new MatterbridgeEndpoint([onOffOutlet, bridgedNode, powerSource], { id: 'Outlet' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Outlet', 'OUT00019', 0xfff1, 'Matterbridge', 'Matterbridge Outlet')
       .createDefaultOnOffClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.outlet = await this.addDevice(this.outlet);
 
@@ -734,7 +732,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // *********************** Create an smart outlet device with 4 sockets ***********************
-    this.smartOutlet = new MatterbridgeEndpoint([bridgedNode, powerSource, electricalSensor], { id: 'SmartOutlet' }, this.config.debug)
+    this.smartOutlet = new MatterbridgeEndpoint([electricalSensor, bridgedNode, powerSource], { id: 'SmartOutlet' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Smart outlet', 'SOU00063', 0xfff1, 'Matterbridge', 'Matterbridge Smart Outlet')
       .createDefaultPowerSourceWiredClusterServer()
       .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
@@ -772,10 +770,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Matter uses 10000 = fully closed   0 = fully opened
     this.coverLift = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { id: 'CoverLift' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Cover lift', 'COV00020', 0xfff1, 'Matterbridge', 'Matterbridge Cover')
       .createDefaultWindowCoveringClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.coverLift = await this.addDevice(this.coverLift);
 
@@ -808,10 +806,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Matter uses 10000 = fully closed   0 = fully opened
     this.coverLiftTilt = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { id: 'CoverLiftTilt' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Cover lift and tilt', 'CLT00021', 0xfff1, 'Matterbridge', 'Matterbridge Cover')
       .createDefaultLiftTiltWindowCoveringClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.coverLiftTilt = await this.addDevice(this.coverLiftTilt);
 
@@ -851,7 +849,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultIdentifyClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Lock', 'LOC00022', 0xfff1, 'Matterbridge', 'Matterbridge Lock')
       .createDefaultDoorLockClusterServer()
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(30);
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(30)
+      .addRequiredClusterServers();
 
     this.lock = await this.addDevice(this.lock);
 
@@ -881,10 +880,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a thermostat with AutoMode device ***********************
     this.thermoAuto = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (AutoMode)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (Auto)', 'TAU00023', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
       .createDefaultThermostatClusterServer(20, 18, 22)
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 4700);
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 4700)
+      .addRequiredClusterServers();
 
     this.thermoAuto
       .addChildDeviceType('Flow', flowSensor)
@@ -943,10 +942,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a thermostat with AutoMode and Occupancy device ***********************
     this.thermoAutoOccupancy = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (AutoModeOccupancy)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoOccupancy)', 'TAO00058', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat Presets')
       .createDefaultThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5)
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.thermoAutoOccupancy = await this.addDevice(this.thermoAutoOccupancy);
 
@@ -1097,10 +1096,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.thermoAutoPresets = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (AutoModePresets)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoModePresets)', 'TAP00058', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat With Presets')
       .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, undefined, presets_List, presetTypeDefinitions)
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     if (this.thermoAutoPresets) {
       this.thermoAutoPresets
@@ -1192,10 +1191,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a thermostat with Heat device ***********************
     this.thermoHeat = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (Heat)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (Heat)', 'THE00024', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
       .createDefaultHeatingThermostatClusterServer(20, 18, 5, 35)
-      .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 6010, 'AA 1.5V', 4);
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 6010, 'AA 1.5V', 4)
+      .addRequiredClusterServers();
 
     this.thermoHeat
       .addChildDeviceType('TemperatureIN', [temperatureSensor], {
@@ -1247,10 +1246,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a thermostat with Cool device ***********************
     this.thermoCool = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (Cool)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
-      .createDefaultGroupsClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (Cool)', 'TCO00025', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat')
       .createDefaultCoolingThermostatClusterServer(20, 18, 5, 35)
-      .createDefaultPowerSourceReplaceableBatteryClusterServer(40, PowerSource.BatChargeLevel.Ok, 5080, 'AA 1.5V', 4);
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(40, PowerSource.BatChargeLevel.Ok, 5080, 'AA 1.5V', 4)
+      .addRequiredClusterServers();
 
     this.thermoCool = await this.addDevice(this.thermoCool);
 
@@ -1288,7 +1287,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
       .createDefaultPowerSourceWiredClusterServer()
       .createDefaultActivatedCarbonFilterMonitoringClusterServer()
-      .createDefaultHepaFilterMonitoringClusterServer();
+      .createDefaultHepaFilterMonitoringClusterServer()
+      .addRequiredClusterServers();
 
     this.airPurifier = await this.addDevice(this.airPurifier);
 
@@ -1338,7 +1338,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createOnOffClusterServer()
       .createLevelControlClusterServer()
       .createDefaultPumpConfigurationAndControlClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.pump = await this.addDevice(this.pump);
 
@@ -1363,7 +1364,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultBridgedDeviceBasicInformationClusterServer('Water valve', 'WAV00029', 0xfff1, 'Matterbridge', 'Matterbridge Water valve')
       .createDefaultIdentifyClusterServer()
       .createDefaultValveConfigurationAndControlClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
 
     this.valve = await this.addDevice(this.valve);
 
@@ -1619,7 +1621,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultPowerSourceRechargeableBatteryClusterServer()
       .createDefaultIdentifyClusterServer()
       .createDefaultBooleanStateClusterServer(false)
-      .createDefaultBooleanStateConfigurationClusterServer();
+      .createDefaultBooleanStateConfigurationClusterServer()
+      .addRequiredClusterServers();
 
     this.rain = await this.addDevice(this.rain);
 
@@ -1675,7 +1678,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a momentary switch ***********************
     this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Momentary switch composed' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Momentary switch', 'MOS00041', 0xfff1, 'Matterbridge', 'Matterbridge MomentarySwitch')
-      .createDefaultIdentifyClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
 
     this.momentarySwitch
