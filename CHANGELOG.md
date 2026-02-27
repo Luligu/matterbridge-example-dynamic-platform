@@ -26,6 +26,27 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
+## [2.0.12] - 2026-02-27
+
+### Added
+
+- [devContainer]: Add the new [dev container setup](https://matterbridge.io/reflector/MatterbridgeDevContainer.html).
+- [devContainer]: Add the new [reflector dev container setup](https://matterbridge.io/reflector/Reflector.html).
+
+### Changed
+
+- [package]: Update dependencies.
+- [package]: Bump package to `automator` v.3.1.0.
+- [package]: Bump `eslint` to v.10.0.2.
+- [package]: Bump `typescript-eslint` to v.8.56.1.
+- [package]: Replace `eslint-plugin-import` with `eslint-plugin-simple-import-sort`.
+
+### Fixed
+
+- [matter]: Fix a few matter 1.4.2 conformance issues raised by chip tests.
+
+<a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
+
 ## [2.0.11] - 2026-02-18
 
 ### Changed

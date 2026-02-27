@@ -7,7 +7,22 @@ process.argv = ['node', 'platform.test.js', '-novirtual', '-frontend', '0', '-ho
 import path from 'node:path';
 
 import { jest } from '@jest/globals';
-import { MatterbridgeEndpoint, invokeSubscribeHandler } from 'matterbridge';
+import { invokeSubscribeHandler, MatterbridgeEndpoint } from 'matterbridge';
+import {
+  addBridgedEndpointSpy,
+  addMatterbridgePlatform,
+  createMatterbridgeEnvironment,
+  destroyMatterbridgeEnvironment,
+  flushAsync,
+  loggerInfoSpy,
+  loggerLogSpy,
+  matterbridge,
+  removeAllBridgedEndpointsSpy,
+  removeBridgedEndpointSpy,
+  setupTest,
+  startMatterbridgeEnvironment,
+  stopMatterbridgeEnvironment,
+} from 'matterbridge/jestutils';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
 import {
   ColorControlCluster,
@@ -25,21 +40,6 @@ import {
   WindowCovering,
   WindowCoveringCluster,
 } from 'matterbridge/matter/clusters';
-import {
-  loggerLogSpy,
-  setupTest,
-  createMatterbridgeEnvironment,
-  startMatterbridgeEnvironment,
-  stopMatterbridgeEnvironment,
-  destroyMatterbridgeEnvironment,
-  addBridgedEndpointSpy,
-  removeBridgedEndpointSpy,
-  removeAllBridgedEndpointsSpy,
-  matterbridge,
-  addMatterbridgePlatform,
-  loggerInfoSpy,
-  flushAsync,
-} from 'matterbridge/jestutils';
 
 import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
 
