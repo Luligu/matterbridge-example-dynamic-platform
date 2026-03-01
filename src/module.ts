@@ -361,15 +361,15 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.flow = await this.addDevice(this.flow);
 
-    // *********************** Create a climate device ***********************
-    this.climate = new MatterbridgeEndpoint([temperatureSensor, humiditySensor, pressureSensor, bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)
-      .createDefaultIdentifyClusterServer()
+    // *********************** Create a compound climate device ***********************
+    this.climate = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Climate', 'CLI00008', 0xfff1, 'Matterbridge', 'Matterbridge Climate')
-      .createDefaultTemperatureMeasurementClusterServer(1000)
-      .createDefaultRelativeHumidityMeasurementClusterServer(1000)
-      .createDefaultPressureMeasurementClusterServer(9000)
       .createDefaultPowerSourceReplaceableBatteryClusterServer(90, PowerSource.BatChargeLevel.Ok, 2990, '2 x AA', 2, PowerSource.BatReplaceability.UserReplaceable)
       .addRequiredClusterServers();
+    this.climate.addFixedLabel('composed', 'Compound device');
+    this.climate.addChildDeviceType('Temperature', temperatureSensor).createDefaultTemperatureMeasurementClusterServer(2100, -5000, 10000).addRequiredClusterServers();
+    this.climate.addChildDeviceType('Humidity', humiditySensor).createDefaultRelativeHumidityMeasurementClusterServer(5000, 0, 10000).addRequiredClusterServers();
+    this.climate.addChildDeviceType('Pressure', pressureSensor).createDefaultPressureMeasurementClusterServer(9000).addRequiredClusterServers();
 
     this.climate = await this.addDevice(this.climate);
 
@@ -2405,7 +2405,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           if (isValidNumber(value, 0, 0xfffe)) {
             value = value + 100 < 3000 ? value + 100 : 1000;
             await this.temperature?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', value, this.temperature.log);
-            await this.climate?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', value, this.climate.log);
+            await this.climate?.getChildEndpointById('Temperature')?.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', value, this.climate.log);
             this.temperature?.log.info(`Set temperature measuredValue to ${value}`);
           }
 
@@ -2413,7 +2413,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           if (isValidNumber(value, 0, 0xfffe)) {
             value = value + 100 < 10000 ? value + 100 : 100;
             await this.humidity?.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', value, this.humidity.log);
-            await this.climate?.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', value, this.climate.log);
+            await this.climate?.getChildEndpointById('Humidity')?.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', value, this.climate.log);
             this.humidity?.log.info(`Set humidity measuredValue to ${value}`);
           }
 
@@ -2421,7 +2421,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           if (isValidNumber(value, 0, 0xfffe)) {
             value = value + 10 < 9900 ? value + 10 : 8600;
             await this.pressure?.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', value, this.pressure.log);
-            await this.climate?.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', value, this.climate.log);
+            await this.climate?.getChildEndpointById('Pressure')?.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', value, this.climate.log);
             this.pressure?.log.info(`Set pressure measuredValue to ${value}`);
           }
 
