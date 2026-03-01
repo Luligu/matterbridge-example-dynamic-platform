@@ -26,6 +26,31 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
+## [2.0.13] - Dev branch
+
+### Dev Breaking Changes
+
+- [devContainer]: Add the new [dev container setup](https://matterbridge.io/reflector/MatterbridgeDevContainer.html).
+- [devContainer]: Add the new [reflector dev container setup](https://matterbridge.io/reflector/Reflector.html).
+- [devContainer]: Add the guide to [pair Matterbridge with Dev Container](https://matterbridge.io/README-DEV.html#how-to-pair-matterbridge-in-dev-containers)
+
+### Added
+
+### Changed
+
+- [package]: Update dependencies.
+- [package]: Bump package to `automator` v.3.1.1.
+- [package]: Add `@eslint/json`.
+- [package]: Add `@eslint/markdown`.
+- [package]: Add `CONTRIBUTING.md`.
+- [package]: Add `STYLEGUIDE.md`.
+
+### Fixed
+
+- [matter]: Fix a few matter 1.4.2 conformance issues raised by chip tests.
+
+<a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
+
 ## [2.0.12] - 2026-02-27
 
 ### Added
