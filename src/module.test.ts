@@ -142,7 +142,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
-    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(63);
+    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(64);
     expect(loggerLogSpy).toHaveBeenCalled();
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());

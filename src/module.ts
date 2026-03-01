@@ -22,6 +22,7 @@
  */
 
 import {
+  aggregator,
   airPurifier,
   airQualitySensor,
   bridgedNode,
@@ -211,6 +212,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   outletEnergy: MatterbridgeEndpoint | undefined;
   outletEnergyApparent: MatterbridgeEndpoint | undefined;
   smartOutlet: MatterbridgeEndpoint | undefined;
+  smartBridgedOutlet: MatterbridgeEndpoint | undefined;
 
   coverLift: MatterbridgeEndpoint | undefined;
   coverLiftTilt: MatterbridgeEndpoint | undefined;
@@ -765,6 +767,30 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.smartOutlet = await this.addDevice(this.smartOutlet);
 
+    // *********************** Create a bridged smart outlet device with 4 plugs ***********************
+    this.smartBridgedOutlet = new MatterbridgeEndpoint([aggregator, bridgedNode, powerSource], { id: 'BridgedOutlet' }, this.config.debug)
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Bridged outlet', 'SOU00064', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
+    this.smartBridgedOutlet
+      .addChildDeviceTypeWithClusterServer('Plug 1', [onOffOutlet, bridgedNode], [OnOffCluster.id])
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 1', 'SOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .addRequiredClusterServers();
+    this.smartBridgedOutlet
+      .addChildDeviceTypeWithClusterServer('Plug 2', [onOffOutlet, bridgedNode], [OnOffCluster.id])
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 2', 'SOU00064-2', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .addRequiredClusterServers();
+    this.smartBridgedOutlet
+      .addChildDeviceTypeWithClusterServer('Plug 3', [onOffOutlet, bridgedNode], [OnOffCluster.id])
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 3', 'SOU00064-3', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .addRequiredClusterServers();
+    this.smartBridgedOutlet
+      .addChildDeviceTypeWithClusterServer('Plug 4', [onOffOutlet, bridgedNode], [OnOffCluster.id])
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 4', 'SOU00064-4', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .addRequiredClusterServers();
+
+    this.smartBridgedOutlet = await this.addDevice(this.smartBridgedOutlet);
+
     // *********************** Create a window covering device ***********************
     // Matter uses 10000 = fully closed   0 = fully opened
     this.coverLift = new MatterbridgeEndpoint([coverDevice, bridgedNode, powerSource], { id: 'CoverLift' }, this.config.debug)
@@ -1278,15 +1304,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
 
     // *********************** Create a airPurifier device ***********************
-    this.airPurifier = new MatterbridgeEndpoint([airPurifier, temperatureSensor, humiditySensor, bridgedNode, powerSource], { id: 'Air purifier' }, this.config.debug)
+    this.airPurifier = new MatterbridgeEndpoint([airPurifier, bridgedNode, powerSource], { id: 'Air purifier' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Air purifier', 'AIR00026', 0xfff1, 'Matterbridge', 'Matterbridge Air purifier')
       .createDefaultIdentifyClusterServer()
       .createDefaultFanControlClusterServer()
-      .createDefaultTemperatureMeasurementClusterServer(20 * 100)
-      .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
       .createDefaultPowerSourceWiredClusterServer()
       .createDefaultActivatedCarbonFilterMonitoringClusterServer()
       .createDefaultHepaFilterMonitoringClusterServer()
+      .addRequiredClusterServers();
+    this.airPurifier.addFixedLabel('composed', 'Compound device');
+    this.airPurifier.addChildDeviceType('AirQuality', airQualitySensor).createDefaultAirQualityClusterServer(AirQuality.AirQualityEnum.Good).addRequiredClusterServers();
+    this.airPurifier
+      .addChildDeviceType('Temperature', temperatureSensor)
+      .createDefaultTemperatureMeasurementClusterServer(20 * 100)
+      .addRequiredClusterServers();
+    this.airPurifier
+      .addChildDeviceType('Humidity', humiditySensor)
+      .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
       .addRequiredClusterServers();
 
     this.airPurifier = await this.addDevice(this.airPurifier);

@@ -35,6 +35,8 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
+- [BridgedOutlet]: Add a bridged outlet with four individually controllable plugs.
+
 ### Changed
 
 - [matterbridge]: Require `matterbridge` v.3.5.7.
@@ -48,6 +50,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Fixed
 
 - [matter]: Fix Climate to be a compound device (matter 1.4.2 conformance).
+- [matter]: Fix AirPurifier to be a compound device (matter 1.4.2 conformance).
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
