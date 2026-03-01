@@ -37,6 +37,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
+- [matterbridge]: Require `matterbridge` v.3.5.7.
 - [package]: Update dependencies.
 - [package]: Bump package to `automator` v.3.1.1.
 - [package]: Add `@eslint/json`.
