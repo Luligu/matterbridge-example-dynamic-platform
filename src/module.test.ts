@@ -343,7 +343,7 @@ describe('TestPlatform', () => {
     await dynamicPlatform.onConfigure();
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
-    await dynamicPlatform.executeIntervals(30, 10);
+    await dynamicPlatform.executeIntervals(40, 10);
 
     expect(loggerLogSpy).toHaveBeenCalled();
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());

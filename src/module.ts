@@ -114,7 +114,6 @@ import {
   PowerSource,
   PressureMeasurement,
   RadonConcentrationMeasurement,
-  RefrigeratorAndTemperatureControlledCabinetMode,
   RelativeHumidityMeasurement,
   RelativeHumidityMeasurementCluster,
   RvcCleanMode,
@@ -1939,28 +1938,45 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.oven.addCabinet(
       'Upper Cabinet',
       [{ mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label }],
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ['pre-heating', 'pre-heated', 'cooling down'],
+      2, // currentMode
+      [
+        { label: 'Bake', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Bake }] },
+        { label: 'Convection', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
+        { label: 'Grill', mode: 3, modeTags: [{ value: OvenMode.ModeTag.Grill }] },
+        { label: 'Roast', mode: 4, modeTags: [{ value: OvenMode.ModeTag.Roast }] },
+        { label: 'Clean', mode: 5, modeTags: [{ value: OvenMode.ModeTag.Clean }] },
+        { label: 'Convection Bake', mode: 6, modeTags: [{ value: OvenMode.ModeTag.ConvectionBake }] },
+        { label: 'Convection Roast', mode: 7, modeTags: [{ value: OvenMode.ModeTag.ConvectionRoast }] },
+        { label: 'Warming', mode: 8, modeTags: [{ value: OvenMode.ModeTag.Warming }] },
+        { label: 'Proofing', mode: 9, modeTags: [{ value: OvenMode.ModeTag.Proofing }] },
+        { label: 'Steam', mode: 10, modeTags: [{ value: OvenMode.ModeTag.Steam }] },
+      ], // supportedModes
+      180 * 100, // targetTemperature
+      100 * 100, // minTemperature
+      300 * 100, // maxTemperature
+      10 * 100, // stepTemperature
+      20 * 100, // currentTemperature
+      OperationalState.OperationalStateEnum.Stopped, // operationalState
+      2, // currentPhase
+      ['pre-heating', 'pre-heated', 'cooling down'], // phaseList
     );
     this.oven.addCabinet(
       'Lower Cabinet',
       [{ mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label }],
-      3,
+      3, // currentMode
       [
         { label: 'Convection', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
         { label: 'Clean', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Clean }] },
         { label: 'Steam', mode: 3, modeTags: [{ value: OvenMode.ModeTag.Steam }] },
-      ],
-      2,
-      ['180°', '190°', '200°'],
-      OperationalState.OperationalStateEnum.Running,
-      undefined,
-      ['pre-heating', 'pre-heated', 'cooling down'],
+      ], // supportedModes
+      200 * 100, // targetTemperature
+      100 * 100, // minTemperature
+      300 * 100, // maxTemperature
+      10 * 100, // stepTemperature
+      200 * 100, // currentTemperature
+      OperationalState.OperationalStateEnum.Running, // operationalState
+      1, // currentPhase
+      ['pre-heating', 'pre-heated', 'cooling down'], // phaseList
     );
     this.oven = (await this.addDevice(this.oven)) as Oven | undefined;
 
@@ -1987,34 +2003,28 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create an Refrigerator **************************
     const refrigerator = new Refrigerator('Refrigerator', 'REF00056');
     refrigerator.addCabinet(
-      'Refrigerator Top',
+      'Refrigerator Top', // name
       [
         { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: 'Refrigerator Top' },
         { mfgCode: null, namespaceId: RefrigeratorTag.Refrigerator.namespaceId, tag: RefrigeratorTag.Refrigerator.tag, label: RefrigeratorTag.Refrigerator.label },
-      ],
-      1,
-      [
-        { label: 'Auto', mode: 1, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.Auto }] },
-        { label: 'RapidCool', mode: 2, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.RapidCool }] },
-      ],
-      undefined,
-      undefined,
-      1200,
+      ], // tagList
+      12 * 100, // targetTemperature
+      5 * 100, // minTemperature
+      20 * 100, // maxTemperature
+      1 * 100, // stepTemperature
+      1200, // currentTemperature
     );
     refrigerator.addCabinet(
-      'Freezer Bottom',
+      'Freezer Bottom', // name
       [
         { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: 'Freezer Bottom' },
         { mfgCode: null, namespaceId: RefrigeratorTag.Freezer.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label },
-      ],
-      1,
-      [
-        { label: 'Auto', mode: 1, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.Auto }] },
-        { label: 'RapidFreeze', mode: 2, modeTags: [{ value: RefrigeratorAndTemperatureControlledCabinetMode.ModeTag.RapidFreeze }] },
-      ],
-      undefined,
-      undefined,
-      -1000,
+      ], // tagList
+      -18 * 100, // targetTemperature
+      -30 * 100, // minTemperature
+      -10 * 100, // maxTemperature
+      1 * 100, // stepTemperature
+      -1800, // currentTemperature
     );
     this.refrigerator = (await this.addDevice(refrigerator)) as Refrigerator | undefined;
 
@@ -2272,57 +2282,57 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await upperCabinet?.setAttribute('OvenMode', 'currentMode', 3, upperCabinet.log);
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Stopped, upperCabinet.log);
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 2, upperCabinet.log);
-            await upperCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, upperCabinet.log);
+            await upperCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 190 * 100, upperCabinet.log);
             await upperCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 2000, upperCabinet.log);
 
             await lowerCabinet?.setAttribute('OvenMode', 'currentMode', 3, lowerCabinet.log);
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Stopped, lowerCabinet.log);
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 2, lowerCabinet.log);
-            await lowerCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, lowerCabinet.log);
+            await lowerCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 210 * 100, lowerCabinet.log);
             await lowerCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 2000, lowerCabinet.log);
           }
           if (this.phase === 1) {
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Running, upperCabinet.log);
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 0, upperCabinet.log);
-            await upperCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, upperCabinet.log);
+            await upperCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 200 * 100, upperCabinet.log);
             await upperCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 5000, upperCabinet.log);
 
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Running, lowerCabinet.log);
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 0, lowerCabinet.log);
-            await lowerCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, lowerCabinet.log);
+            await lowerCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 220 * 100, lowerCabinet.log);
             await lowerCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 5000, lowerCabinet.log);
           }
           if (this.phase === 2) {
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Running, upperCabinet.log);
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 1, upperCabinet.log);
-            await upperCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, upperCabinet.log);
+            await upperCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 190 * 100, upperCabinet.log);
             await upperCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 19000, upperCabinet.log);
 
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Running, lowerCabinet.log);
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 1, lowerCabinet.log);
-            await lowerCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, lowerCabinet.log);
+            await lowerCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 200 * 100, lowerCabinet.log);
             await lowerCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 20000, lowerCabinet.log);
           }
           if (this.phase === 8) {
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Stopped, upperCabinet.log);
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 2, upperCabinet.log);
-            await upperCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, upperCabinet.log);
+            await upperCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 190 * 100, upperCabinet.log);
             await upperCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 10000, upperCabinet.log);
 
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Stopped, lowerCabinet.log);
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 2, lowerCabinet.log);
-            await lowerCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, lowerCabinet.log);
+            await lowerCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 200 * 100, lowerCabinet.log);
             await lowerCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 10000, lowerCabinet.log);
           }
           if (this.phase === 9) {
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Stopped, upperCabinet.log);
             await upperCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 2, upperCabinet.log);
-            await upperCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, upperCabinet.log);
+            await upperCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 190 * 100, upperCabinet.log);
             await upperCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 5000, upperCabinet.log);
 
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'operationalState', OperationalState.OperationalStateEnum.Stopped, lowerCabinet.log);
             await lowerCabinet?.setAttribute('OvenCavityOperationalState', 'currentPhase', 2, lowerCabinet.log);
-            await lowerCabinet?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, lowerCabinet.log);
+            await lowerCabinet?.setAttribute('TemperatureControl', 'temperatureSetpoint', 200 * 100, lowerCabinet.log);
             await lowerCabinet?.setAttribute('TemperatureMeasurement', 'measuredValue', 5000, lowerCabinet.log);
           }
         }
@@ -2343,32 +2353,32 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           if (this.phase === 0) {
             let mode;
             const refrigerator = this.refrigerator.getChildEndpointByName('RefrigeratorTop');
-            mode = refrigerator?.getAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', refrigerator.log);
+            mode = this.refrigerator.getAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', this.refrigerator.log);
             mode = mode === 1 ? 2 : 1; // 1 Auto 2 RapidCool
-            await refrigerator?.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', mode, refrigerator.log);
-            if (mode === 1) await refrigerator?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, refrigerator.log);
+            await this.refrigerator.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', mode, this.refrigerator.log);
+            if (mode === 1) await refrigerator?.setAttribute('TemperatureControl', 'temperatureSetpoint', 9 * 100, refrigerator.log);
             if (mode === 1) await refrigerator?.setAttribute('TemperatureMeasurement', 'measuredValue', 1200, refrigerator.log);
-            if (mode === 2) await refrigerator?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 0, refrigerator.log);
+            if (mode === 2) await refrigerator?.setAttribute('TemperatureControl', 'temperatureSetpoint', 10 * 100, refrigerator.log);
             if (mode === 2) await refrigerator?.setAttribute('TemperatureMeasurement', 'measuredValue', 1000, refrigerator.log);
 
             const freezer = this.refrigerator.getChildEndpointByName('FreezerBottom');
-            mode = freezer?.getAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', freezer.log);
+            mode = this.refrigerator.getAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', this.refrigerator.log);
             mode = mode === 1 ? 2 : 1; // 1 Auto 2 RapidFreeze
-            await freezer?.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', mode, freezer.log);
-            if (mode === 1) await freezer?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 2, freezer.log);
+            await this.refrigerator.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', mode, this.refrigerator.log);
+            if (mode === 1) await freezer?.setAttribute('TemperatureControl', 'temperatureSetpoint', -18 * 100, freezer.log);
             if (mode === 1) await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1000, freezer.log);
-            if (mode === 2) await freezer?.setAttribute('TemperatureControl', 'selectedTemperatureLevel', 0, freezer.log);
+            if (mode === 2) await freezer?.setAttribute('TemperatureControl', 'temperatureSetpoint', -24 * 100, freezer.log);
             if (mode === 2) await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1500, freezer.log);
           }
-          if (this.phase === 1) await this.refrigerator.setDoorOpenState('RefrigeratorTop', true);
-          if (this.phase === 2) await this.refrigerator.triggerDoorOpenState('RefrigeratorTop', true);
-          if (this.phase === 4) await this.refrigerator.setDoorOpenState('RefrigeratorTop', false);
-          if (this.phase === 4) await this.refrigerator.triggerDoorOpenState('RefrigeratorTop', false);
+          if (this.phase === 1) await this.refrigerator.setDoorOpenState(true);
+          if (this.phase === 2) await this.refrigerator.triggerDoorOpenState(true);
+          if (this.phase === 4) await this.refrigerator.setDoorOpenState(false);
+          if (this.phase === 4) await this.refrigerator.triggerDoorOpenState(false);
 
-          if (this.phase === 6) await this.refrigerator.setDoorOpenState('FreezerBottom', true);
-          if (this.phase === 7) await this.refrigerator.triggerDoorOpenState('FreezerBottom', true);
-          if (this.phase === 9) await this.refrigerator.setDoorOpenState('FreezerBottom', false);
-          if (this.phase === 9) await this.refrigerator.triggerDoorOpenState('FreezerBottom', false);
+          if (this.phase === 6) await this.refrigerator.setDoorOpenState(true);
+          if (this.phase === 7) await this.refrigerator.triggerDoorOpenState(true);
+          if (this.phase === 9) await this.refrigerator.setDoorOpenState(false);
+          if (this.phase === 9) await this.refrigerator.triggerDoorOpenState(false);
         }
         this.phase++;
         this.phase = this.phase >= 10 ? 0 : this.phase;

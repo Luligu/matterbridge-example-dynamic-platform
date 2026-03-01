@@ -28,6 +28,11 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [2.0.13] - Dev branch
 
+### Dev Breaking Changes
+
+- [oven]: Refactor oven class to use TemperatureNumber for TemperatureControlledCabinet device type.
+- [refrigerator]: Refactor refrigerator class to use TemperatureNumber for TemperatureControlledCabinet device type.
+
 ### Added
 
 ### Changed
