@@ -24,13 +24,13 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 64 virtual devices:
+It exposes 66 virtual devices:
 
 - a door contact sensor
 - a motion sensor
 - an illuminance sensor
 - a temperature sensor
-- an humidity sensor
+- a humidity sensor
 - a pressure sensor
 - a flow sensor
 - a climate sensor with temperature, humidity and pressure
@@ -46,7 +46,7 @@ It exposes 64 virtual devices:
 - an outlet (plug) with onOff cluster, energy measurements and power measurements
 - an outlet (plug) with onOff cluster, apparent energy measurements and power measurements
 - a smart outlet with an energy meter and four individually controllable sockets (with tagList 1, 2, 3 and 4)
-- a bridged outlet with four individually controllable plugs
+- a bridged outlet with four individually controllable plugs that expose their names
 - a cover with windowCovering cluster and lift feature
 - a cover with windowCovering cluster and both lift and tilt features
 - a lock with doorLock cluster
@@ -60,22 +60,24 @@ It exposes 64 virtual devices:
 - a fan with Off Low Med High presets
 - a fan with Off Low Med High Auto presets and step
 - a fan with all the features MultiSpeed, Auto, Step, Rock, Wind and AirflowDirection and mode Off Low Med High Auto.
-- a rainSensor device
-- a waterFreezeDetector device
-- a waterLeakDetector device
+- a rain sensor device
+- a water freeze detector device
+- a water leak detector device
 - a smokeCoAlarm (with smoke and co features) sensor (supported by Apple Home)
 - a smokeCoAlarm (with smoke only feature) sensor (supported by Apple Home)
 - a smokeCoAlarm (with co only feature) sensor (supported by Apple Home)
 - an airConditioner device
 - an airPurifier device with temperature and humidity sensor (supported by Apple Home)
-- a pumpDevice device
+- a pump device
 - a waterValve device
 - an airQuality device with all concentration measurements clusters (supported by Apple Home with the concentration measurements from version 18.5)
 - a momentary switch composed by three switches with Single Double Long (tagged with One Two Three and Top Middle Bottom) and three switches with Single only.
 - a latching switch
 - a Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read also <https://github.com/Luligu/matterbridge/discussions/264>.
-- a onOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
+- an onOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
+- a onOff Mounted Switch legacy device (supported by all controllers)
 - a dimmer Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
+- a dimmer Mounted Switch legacy device (supported by all controllers)
 - a laundry Washer device (supported by SmartThings, Alexa and Home Assistant)
 - a laundry Dryer device (supported by SmartThings, Alexa and Home Assistant)
 - a dishwasher device (supported by SmartThings, Alexa and Home Assistant)
@@ -92,9 +94,9 @@ It exposes 64 virtual devices:
 - a basic video player (supported by SmartThings)
 - a speaker device (supported by SmartThings)
 
-All these devices continuously change state and position. The plugin also shows how to use all the command handlers (you can control all the devices), how to subscribe to attributes and how to trigger events.
+All these devices continuously change their state and position. The plugin also shows how to use all the command handlers (so you can control all the devices), how to subscribe to attributes, and how to trigger events.
 
-If you want to write your plugin, the easiest way to start create a new plugin is to clone the [Matterbridge Plugin Template](https://github.com/Luligu/matterbridge-plugin-template) which has **Dev Container support for instant development environment** and all tools and extensions (like Node.js, npm, TypeScript, ESLint, Prettier, Jest and Vitest) already loaded and configured.
+If you want to write your own plugin, the easiest way to get started is to clone the [Matterbridge Plugin Template](https://github.com/Luligu/matterbridge-plugin-template). It has **Dev Container support for an instant development environment**, with all tools and extensions (like Node.js, npm, TypeScript, ESLint, Prettier, Jest, and Vitest) already loaded and configured.
 
 If you like this project and find it useful, please consider giving it a star on [GitHub](https://github.com/Luligu/matterbridge-example-dynamic-platform) and sponsoring it.
 
@@ -108,4 +110,4 @@ See the guidelines on [Matterbridge](https://github.com/Luligu/matterbridge/blob
 
 ## Style guide
 
-See also the [Style Guide](./STYLE_GUIDE.md) for JSDoc, naming and logging conventions used in this repository.
+See also the [Style Guide](./STYLEGUIDE.md) for JSDoc, naming, and logging conventions used in this repository.

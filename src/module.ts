@@ -202,6 +202,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   switch: MatterbridgeEndpoint | undefined;
   mountedOnOffSwitch: MatterbridgeEndpoint | undefined;
   mountedDimmerSwitch: MatterbridgeEndpoint | undefined;
+  mountedOnOffSwitchLegacy: MatterbridgeEndpoint | undefined;
+  mountedDimmerSwitchLegacy: MatterbridgeEndpoint | undefined;
   lightOnOff: MatterbridgeEndpoint | undefined;
   dimmer: MatterbridgeEndpoint | undefined;
   light: MatterbridgeEndpoint | undefined;
@@ -416,7 +418,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
 
     // *********************** Create a mounted onOff switch device ***********************
-    this.mountedOnOffSwitch = new MatterbridgeEndpoint([onOffMountedSwitch, onOffOutlet, bridgedNode, powerSource], { id: 'OnOffMountedSwitch' }, this.config.debug)
+    this.mountedOnOffSwitch = new MatterbridgeEndpoint([onOffMountedSwitch, bridgedNode, powerSource], { id: 'OnOffMountedSwitch' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('OnOff Mounted Switch', 'OMS00011', 0xfff1, 'Matterbridge', 'Matterbridge OnOff Mounted Switch')
       .createDefaultOnOffClusterServer()
@@ -436,8 +438,29 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.mountedOnOffSwitch?.log.info('Command off called');
     });
 
+    // *********************** Create a legacy mounted onOff switch device ***********************
+    this.mountedOnOffSwitchLegacy = new MatterbridgeEndpoint([onOffMountedSwitch, onOffOutlet, bridgedNode, powerSource], { id: 'OnOffMountedSwitchLegacy' }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('OnOff Mounted Switch Legacy', 'OMSL00011', 0xfff1, 'Matterbridge', 'Matterbridge OnOff Mounted Switch Legacy')
+      .createDefaultOnOffClusterServer()
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
+
+    this.mountedOnOffSwitchLegacy = await this.addDevice(this.mountedOnOffSwitchLegacy);
+
+    // The cluster attributes are set by MatterbridgeOnOffServer
+    this.mountedOnOffSwitchLegacy?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.mountedOnOffSwitchLegacy?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.mountedOnOffSwitchLegacy?.addCommandHandler('on', async () => {
+      this.mountedOnOffSwitchLegacy?.log.info('Command on called');
+    });
+    this.mountedOnOffSwitchLegacy?.addCommandHandler('off', async () => {
+      this.mountedOnOffSwitchLegacy?.log.info('Command off called');
+    });
+
     // *********************** Create a mounted dimmer switch device ***********************
-    this.mountedDimmerSwitch = new MatterbridgeEndpoint([dimmableMountedSwitch, dimmableOutlet, bridgedNode, powerSource], { id: 'DimmerMountedSwitch' }, this.config.debug)
+    this.mountedDimmerSwitch = new MatterbridgeEndpoint([dimmableMountedSwitch, bridgedNode, powerSource], { id: 'DimmerMountedSwitch' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Dimmer Mounted Switch', 'DMS00012', 0xfff1, 'Matterbridge', 'Matterbridge Dimmer Mounted Switch')
       .createDefaultOnOffClusterServer()
@@ -462,6 +485,38 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.mountedDimmerSwitch?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
       this.mountedDimmerSwitch?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
+    });
+
+    // *********************** Create a legacy mounted dimmer switch device ***********************
+    this.mountedDimmerSwitchLegacy = new MatterbridgeEndpoint(
+      [dimmableMountedSwitch, dimmableOutlet, bridgedNode, powerSource],
+      { id: 'DimmerMountedSwitchLegacy' },
+      this.config.debug,
+    )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Dimmer Mounted Switch Legacy', 'DMSL00012', 0xfff1, 'Matterbridge', 'Matterbridge Dimmer Mounted Switch Legacy')
+      .createDefaultOnOffClusterServer()
+      .createDefaultLevelControlClusterServer()
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
+
+    this.mountedDimmerSwitchLegacy = await this.addDevice(this.mountedDimmerSwitchLegacy);
+
+    // The cluster attributes are set by MatterbridgeOnOffServer and MatterbridgeLevelControlServer
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+      this.mountedDimmerSwitchLegacy?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('on', async () => {
+      this.mountedDimmerSwitchLegacy?.log.info('Command on called');
+    });
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('off', async () => {
+      this.mountedDimmerSwitchLegacy?.log.info('Command off called');
+    });
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+      this.mountedDimmerSwitchLegacy?.log.debug(`Command moveToLevel called request: ${level}`);
+    });
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+      this.mountedDimmerSwitchLegacy?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
     // *********************** Create a on off light device ***********************
@@ -739,6 +794,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
       .createDefaultElectricalPowerMeasurementClusterServer(220_000, 0, 0, 50_000)
       .addRequiredClusterServers();
+    this.smartOutlet.addFixedLabel('composed', 'Compound device');
 
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 1', onOffOutlet, [OnOffCluster.id], {
@@ -1713,6 +1769,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Momentary switch composed' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Momentary switch', 'MOS00041', 0xfff1, 'Matterbridge', 'Matterbridge Momentary Switch')
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
+    this.momentarySwitch.addFixedLabel('composed', 'Compound device');
 
     this.momentarySwitch
       .addChildDeviceType('Momentary switch 1', [genericSwitch], {
@@ -2490,6 +2547,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Set switch to off
     await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.switch.log);
     await this.mountedOnOffSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.mountedOnOffSwitch.log);
+    await this.mountedOnOffSwitchLegacy?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.mountedOnOffSwitchLegacy.log);
     this.switch?.log.info(`Set switch initial onOff to ${this.intervalOnOff}`);
     if (this.config.useInterval) {
       // Toggle switch onOff every minute
@@ -2497,6 +2555,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         async () => {
           await this.switch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.switch.log);
           await this.mountedOnOffSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.mountedOnOffSwitch.log);
+          await this.mountedOnOffSwitchLegacy?.setAttribute(OnOff.Cluster.id, 'onOff', this.intervalOnOff, this.mountedOnOffSwitchLegacy.log);
           this.log.info(`Set switches onOff to ${this.intervalOnOff}`);
           this.intervalOnOff = !this.intervalOnOff;
         },
@@ -2513,6 +2572,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 1, this.dimmer.log);
     await this.mountedDimmerSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.mountedDimmerSwitch.log);
     await this.mountedDimmerSwitch?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 1, this.mountedDimmerSwitch.log);
+    await this.mountedDimmerSwitchLegacy?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.mountedDimmerSwitchLegacy.log);
+    await this.mountedDimmerSwitchLegacy?.setAttribute(LevelControl.Cluster.id, 'currentLevel', 1, this.mountedDimmerSwitchLegacy.log);
     this.dimmer?.log.info(`Set dimmer initial onOff to false, currentLevel to 1.`);
 
     // Set light to off, level to 0 and hue to 0 and saturation to 50% (pink color)
@@ -2555,6 +2616,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightOnOff.log);
             await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.dimmer.log);
             await this.mountedDimmerSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.mountedDimmerSwitch.log);
+            await this.mountedDimmerSwitchLegacy?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.mountedDimmerSwitchLegacy.log);
             await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.light.log);
             await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightXY.log);
             await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', false, this.lightHS.log);
@@ -2564,6 +2626,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.lightOnOff?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightOnOff?.log);
             await this.dimmer?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.dimmer.log);
             await this.mountedDimmerSwitch?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.mountedDimmerSwitch.log);
+            await this.mountedDimmerSwitchLegacy?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.mountedDimmerSwitchLegacy.log);
             await this.light?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.light.log);
             await this.lightXY?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightXY.log);
             await this.lightHS?.setAttribute(OnOff.Cluster.id, 'onOff', true, this.lightHS.log);
@@ -2571,6 +2634,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             this.log.info('Set lights onOff to true');
             await this.dimmer?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.dimmer.log);
             await this.mountedDimmerSwitch?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.mountedDimmerSwitch.log);
+            await this.mountedDimmerSwitchLegacy?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.mountedDimmerSwitchLegacy.log);
             await this.light?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.light.log);
             await this.lightXY?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.lightXY.log);
             await this.lightHS?.setAttribute(LevelControl.Cluster.id, 'currentLevel', this.intervalLevel, this.lightHS.log);

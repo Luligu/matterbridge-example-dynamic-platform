@@ -35,7 +35,9 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
-- [BridgedOutlet]: Add a bridged outlet with four individually controllable plugs.
+- [BridgedOutlet]: Add a bridged outlet with four individually controllable plugs that expose their names.
+- [onOffMountedLegacy]: Add an onOff Mounted Switch legacy device.
+- [dimmerMountedLegacy]: Add a dimmer Mounted Switch legacy device.
 
 ### Changed
 
