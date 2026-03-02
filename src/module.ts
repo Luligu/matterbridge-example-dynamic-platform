@@ -825,25 +825,25 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a bridged smart outlet device with 4 plugs ***********************
     this.smartBridgedOutlet = new MatterbridgeEndpoint([aggregator, bridgedNode, powerSource], { id: 'BridgedOutlet' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Bridged outlet', 'SOU00064', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Bridged outlet', 'BOU00064', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
     this.smartBridgedOutlet.addFixedLabel('composed', 'Bridged device');
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 1', [onOffOutlet, bridgedNode], [OnOffCluster.id])
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 1', 'SOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 1', 'BOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 2', [onOffOutlet, bridgedNode], [OnOffCluster.id])
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 2', 'SOU00064-2', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 2', 'BOU00064-2', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 3', [onOffOutlet, bridgedNode], [OnOffCluster.id])
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 3', 'SOU00064-3', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 3', 'BOU00064-3', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 4', [onOffOutlet, bridgedNode], [OnOffCluster.id])
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 4', 'SOU00064-4', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 4', 'BOU00064-4', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
 
     this.smartBridgedOutlet = await this.addDevice(this.smartBridgedOutlet);
