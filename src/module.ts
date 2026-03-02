@@ -248,7 +248,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   laundryDryer: MatterbridgeEndpoint | undefined;
   dishwasher: MatterbridgeEndpoint | undefined;
   extractorHood: MatterbridgeEndpoint | undefined;
-  solarPower: MatterbridgeEndpoint | undefined;
+  solarPower: SolarPower | undefined;
   batteryStorage: MatterbridgeEndpoint | undefined;
   heatPump: MatterbridgeEndpoint | undefined;
   microwaveOven: MatterbridgeEndpoint | undefined;
@@ -1977,10 +1977,15 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       10_000, // 10 ampere
       2200_000, // 2200 watt
       2_200_000, // 2.2 kWh
-      -10_000_000, // -10 kWh
+      0, // 0 kWh
       500_000, // 500 Wh
     );
-    this.solarPower = await this.addDevice(this.solarPower);
+    this.solarPower.addPanel('Panel 1', 1);
+    this.solarPower.addPanel('Panel 2', 2);
+    this.solarPower.addPanel('Panel 3', 3);
+    this.solarPower.addPanel('Panel 4', 4);
+
+    this.solarPower = (await this.addDevice(this.solarPower)) as SolarPower | undefined;
 
     // *********************** Create a BatteryStorage **************************
     this.batteryStorage = new BatteryStorage(
