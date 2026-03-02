@@ -772,6 +772,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultBridgedDeviceBasicInformationClusterServer('Bridged outlet', 'SOU00064', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
+    this.smartBridgedOutlet.addFixedLabel('composed', 'Bridged device');
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 1', [onOffOutlet, bridgedNode], [OnOffCluster.id])
       .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 1', 'SOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
