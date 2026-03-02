@@ -276,9 +276,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.5.7')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.6.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.5.7". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.6.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1711,7 +1711,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a momentary switch ***********************
     this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Momentary switch composed' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Momentary switch', 'MOS00041', 0xfff1, 'Matterbridge', 'Matterbridge MomentarySwitch')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Momentary switch', 'MOS00041', 0xfff1, 'Matterbridge', 'Matterbridge Momentary Switch')
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
 
     this.momentarySwitch
@@ -1719,6 +1719,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         tagList: [
           { mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: null },
           { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: null },
+          { mfgCode: null, namespaceId: AreaNamespaceTag.LivingRoom.namespaceId, tag: AreaNamespaceTag.LivingRoom.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -1729,6 +1731,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         tagList: [
           { mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: null },
           { mfgCode: null, namespaceId: PositionTag.Middle.namespaceId, tag: PositionTag.Middle.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: null },
+          { mfgCode: null, namespaceId: AreaNamespaceTag.LivingRoom.namespaceId, tag: AreaNamespaceTag.LivingRoom.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -1739,6 +1743,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         tagList: [
           { mfgCode: null, namespaceId: NumberTag.Three.namespaceId, tag: NumberTag.Three.tag, label: null },
           { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: null },
+          { mfgCode: null, namespaceId: AreaNamespaceTag.LivingRoom.namespaceId, tag: AreaNamespaceTag.LivingRoom.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -1748,9 +1754,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .addChildDeviceType('Momentary switch 4', [genericSwitch], {
         tagList: [
           { mfgCode: null, namespaceId: NumberTag.Four.namespaceId, tag: NumberTag.Four.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: null },
           { mfgCode: null, namespaceId: SwitchesTag.Custom.namespaceId, tag: SwitchesTag.Custom.tag, label: 'Turn on' },
-          { mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null },
           { mfgCode: null, namespaceId: AreaNamespaceTag.Bedroom.namespaceId, tag: AreaNamespaceTag.Bedroom.tag, label: null },
         ],
       })
@@ -1762,8 +1768,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         tagList: [
           { mfgCode: null, namespaceId: NumberTag.Five.namespaceId, tag: NumberTag.Five.tag, label: null },
           { mfgCode: null, namespaceId: PositionTag.Middle.namespaceId, tag: PositionTag.Middle.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: null },
           { mfgCode: null, namespaceId: SwitchesTag.Custom.namespaceId, tag: SwitchesTag.Custom.tag, label: 'Turn off' },
-          { mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null },
           { mfgCode: null, namespaceId: AreaNamespaceTag.Bedroom.namespaceId, tag: AreaNamespaceTag.Bedroom.tag, label: null },
         ],
       })
@@ -1775,8 +1781,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         tagList: [
           { mfgCode: null, namespaceId: NumberTag.Seven.namespaceId, tag: NumberTag.Seven.tag, label: null }, // Intentionally use seven here to show when the controllers use it
           { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: null },
+          { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: null },
           { mfgCode: null, namespaceId: SwitchesTag.Custom.namespaceId, tag: SwitchesTag.Custom.tag, label: 'Toggle' },
-          { mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null },
           { mfgCode: null, namespaceId: AreaNamespaceTag.Bedroom.namespaceId, tag: AreaNamespaceTag.Bedroom.tag, label: null },
         ],
       })

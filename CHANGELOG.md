@@ -30,8 +30,8 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Dev Breaking Changes
 
-- [oven]: Refactor oven class to use TemperatureNumber for TemperatureControlledCabinet device type.
-- [refrigerator]: Refactor refrigerator class to use TemperatureNumber for TemperatureControlledCabinet device type.
+- [oven]: Refactor oven class to use TemperatureNumber for TemperatureControlledCabinet device type (matter 1.4.2 conformance).
+- [refrigerator]: Refactor refrigerator class to use TemperatureNumber for TemperatureControlledCabinet device type (matter 1.4.2 conformance).
 
 ### Added
 
@@ -39,7 +39,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
-- [matterbridge]: Require `matterbridge` v.3.5.7.
+- [matterbridge]: Require `matterbridge` v.3.6.0.
 - [package]: Update dependencies.
 - [package]: Bump package to `automator` v.3.1.1.
 - [package]: Add `@eslint/json`.

@@ -89,9 +89,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     matterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config)).toThrow(
-      'This plugin requires Matterbridge version >= "3.5.7". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.6.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    matterbridge.matterbridgeVersion = '3.5.7';
+    matterbridge.matterbridgeVersion = '3.6.0';
   });
 
   it('should initialize platform with config name and set the default config', () => {
