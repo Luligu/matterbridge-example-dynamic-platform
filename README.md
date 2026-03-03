@@ -24,7 +24,7 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 66 virtual devices:
+It exposes 67 virtual devices:
 
 - a door contact sensor
 - a motion sensor
@@ -33,6 +33,7 @@ It exposes 66 virtual devices:
 - a humidity sensor
 - a pressure sensor
 - a flow sensor
+- a soil sensor
 - a climate sensor with temperature, humidity and pressure
 - a mode select device
 - a switch with onOff cluster

@@ -17,6 +17,7 @@
       "ui:widget": "hidden"
     },
     "whiteList": {
+      "title": "White List",
       "description": "Only the devices in the list will be exposed. If the list is empty, all the devices will be exposed.",
       "type": "array",
       "items": {
@@ -26,6 +27,7 @@
       "selectFrom": "name"
     },
     "blackList": {
+      "title": "Black List",
       "description": "The devices in the list will not be exposed. If the list is empty, no devices will be excluded.",
       "type": "array",
       "items": {
@@ -35,21 +37,25 @@
       "selectFrom": "name"
     },
     "useInterval": {
+      "title": "Use Interval",
       "description": "Use interval to refresh the devices",
       "type": "boolean",
       "default": true
     },
     "enableServerRvc": {
+      "title": "Enable Server RVC",
       "description": "Enable the Robot Vacuum Cleaner in server mode (Apple Home will crash unless you use this mode!)",
       "type": "boolean",
       "default": true
     },
     "debug": {
+      "title": "Debug",
       "description": "Enable the debug for the plugin (development only)",
       "type": "boolean",
       "default": false
     },
     "unregisterOnShutdown": {
+      "title": "Unregister on Shutdown",
       "description": "Unregister all devices on shutdown (development only)",
       "type": "boolean",
       "default": false

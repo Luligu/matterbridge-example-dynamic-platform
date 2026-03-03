@@ -35,10 +35,11 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
-- [BridgedOutlet]: Add a bridged outlet with four individually controllable plugs that expose their names.
+- [BridgedOutlet]: Add a bridged outlet with four individually named plugs.
 - [onOffMountedLegacy]: Add an onOff Mounted Switch legacy device.
 - [dimmerMountedLegacy]: Add a dimmer Mounted Switch legacy device.
-- [solarPower]: Add four panels.
+- [solarPower]: Add four panels to the Solar Power.
+- [soilSensor]: Add a Soil Sensor (Matter 1.5.0).
 
 ### Changed
 

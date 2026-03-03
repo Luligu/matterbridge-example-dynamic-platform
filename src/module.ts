@@ -77,6 +77,7 @@ import {
   Oven,
   Refrigerator,
   RoboticVacuumCleaner,
+  SoilSensor,
   SolarPower,
   Speaker,
   WaterHeater,
@@ -197,6 +198,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   humidity: MatterbridgeEndpoint | undefined;
   pressure: MatterbridgeEndpoint | undefined;
   flow: MatterbridgeEndpoint | undefined;
+  soil: MatterbridgeEndpoint | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
@@ -363,6 +365,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .addRequiredClusterServers();
 
     this.flow = await this.addDevice(this.flow);
+
+    // *********************** Create a SoilSensor device ***********************
+    this.soil = new SoilSensor('Soil Sensor', 'SOI000067', { soilMoistureMeasuredValue: 45 });
+
+    this.soil = await this.addDevice(this.soil);
 
     // *********************** Create a compound climate device ***********************
     this.climate = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)
@@ -1980,10 +1987,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       0, // 0 kWh
       500_000, // 500 Wh
     );
-    this.solarPower.addPanel('Panel 1', 1);
-    this.solarPower.addPanel('Panel 2', 2);
-    this.solarPower.addPanel('Panel 3', 3);
-    this.solarPower.addPanel('Panel 4', 4);
+    this.solarPower.addPanel('Panel 1', NumberTag.One);
+    this.solarPower.addPanel('Panel 2', NumberTag.Two);
+    this.solarPower.addPanel('Panel 3', NumberTag.Three);
+    this.solarPower.addPanel('Panel 4', NumberTag.Four);
 
     this.solarPower = (await this.addDevice(this.solarPower)) as SolarPower | undefined;
 
