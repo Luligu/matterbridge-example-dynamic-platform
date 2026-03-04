@@ -40,7 +40,8 @@ If you like this project and find it useful, please consider giving it a star on
 - [dimmerMountedLegacy]: Add a dimmer Mounted Switch legacy device.
 - [solarPower]: Add four panels to the Solar Power.
 - [soilSensor]: Add a Soil Sensor (Matter 1.5.0).
-- [IrrigationSystem]: Add an Irrigation System (Matter 1.5.0).
+- [IrrigationSystem]: Add a simple Irrigation System (Matter 1.5.0).
+- [IrrigationSystem]: Add an Irrigation System with four zones (Matter 1.5.0).
 
 ### Changed
 

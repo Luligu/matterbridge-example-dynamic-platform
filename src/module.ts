@@ -200,6 +200,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   pressure: MatterbridgeEndpoint | undefined;
   flow: MatterbridgeEndpoint | undefined;
   soil: MatterbridgeEndpoint | undefined;
+  irrigation: IrrigationSystem | undefined;
   irrigationSystem: IrrigationSystem | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
@@ -369,12 +370,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.flow = await this.addDevice(this.flow);
 
     // *********************** Create a SoilSensor device ***********************
-    this.soil = new SoilSensor('Soil Sensor', 'SOI000067', { soilMoistureMeasuredValue: 45 });
+    this.soil = new SoilSensor('Soil Sensor', 'SOI000067', { soilMoistureMeasuredValue: 45, temperatureMeasuredValue: 3500 });
 
     this.soil = await this.addDevice(this.soil);
 
     // *********************** Create a IrrigationSystem device ***********************
-    this.irrigationSystem = new IrrigationSystem('Irrigation System', 'IRR000068').addZone(NumberTag.One).addZone(NumberTag.Two).addZone(NumberTag.Three).addZone(NumberTag.Four);
+    this.irrigation = new IrrigationSystem('Irrigation System', 'IRR000068', { singleZone: true, flowMeasuredValue: 15 });
+
+    this.irrigation = (await this.addDevice(this.irrigation)) as IrrigationSystem | undefined;
+
+    // *********************** Create a IrrigationSystem device with 4 zones ***********************
+    this.irrigationSystem = new IrrigationSystem('Irrigation System 4 zones', 'IRR000069', { flowMeasuredValue: 60 })
+      .addZone(NumberTag.One)
+      .addZone(NumberTag.Two)
+      .addZone(NumberTag.Three)
+      .addZone(NumberTag.Four);
 
     this.irrigationSystem = (await this.addDevice(this.irrigationSystem)) as IrrigationSystem | undefined;
 

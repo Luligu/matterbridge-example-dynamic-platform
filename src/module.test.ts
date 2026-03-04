@@ -16,6 +16,7 @@ import {
   flushAsync,
   loggerInfoSpy,
   loggerLogSpy,
+  logKeepAlives,
   matterbridge,
   removeAllBridgedEndpointsSpy,
   removeBridgedEndpointSpy,
@@ -142,7 +143,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
-    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(68);
+    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(69);
     expect(loggerLogSpy).toHaveBeenCalled();
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
