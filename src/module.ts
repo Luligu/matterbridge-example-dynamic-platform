@@ -71,6 +71,7 @@ import {
   Evse,
   ExtractorHood,
   HeatPump,
+  IrrigationSystem,
   LaundryDryer,
   LaundryWasher,
   MicrowaveOven,
@@ -199,6 +200,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   pressure: MatterbridgeEndpoint | undefined;
   flow: MatterbridgeEndpoint | undefined;
   soil: MatterbridgeEndpoint | undefined;
+  irrigationSystem: IrrigationSystem | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
@@ -370,6 +372,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.soil = new SoilSensor('Soil Sensor', 'SOI000067', { soilMoistureMeasuredValue: 45 });
 
     this.soil = await this.addDevice(this.soil);
+
+    // *********************** Create a IrrigationSystem device ***********************
+    this.irrigationSystem = new IrrigationSystem('Irrigation System', 'IRR000068').addZone(NumberTag.One).addZone(NumberTag.Two).addZone(NumberTag.Three).addZone(NumberTag.Four);
+
+    this.irrigationSystem = (await this.addDevice(this.irrigationSystem)) as IrrigationSystem | undefined;
 
     // *********************** Create a compound climate device ***********************
     this.climate = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)
