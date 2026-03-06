@@ -38,6 +38,7 @@ import {
   fanDevice,
   flowSensor,
   genericSwitch,
+  getSemtag,
   humiditySensor,
   lightSensor,
   MatterbridgeDynamicPlatform,
@@ -370,12 +371,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.flow = await this.addDevice(this.flow);
 
     // *********************** Create a SoilSensor device ***********************
-    this.soil = new SoilSensor('Soil Sensor', 'SOI000067', { soilMoistureMeasuredValue: 45, temperatureMeasuredValue: 3500 });
+    this.soil = new SoilSensor('Soil Sensor', 'SOI000067', { soilMoistureMeasuredValue: 45, temperatureMeasuredValue: 3500, batteryPowered: true });
 
     this.soil = await this.addDevice(this.soil);
 
     // *********************** Create a IrrigationSystem device ***********************
-    this.irrigation = new IrrigationSystem('Irrigation System', 'IRR000068', { singleZone: true, flowMeasuredValue: 15 });
+    this.irrigation = new IrrigationSystem('Irrigation System', 'IRR000068', { singleZone: true, batteryPowered: true, flowMeasuredValue: 15 });
 
     this.irrigation = (await this.addDevice(this.irrigation)) as IrrigationSystem | undefined;
 
@@ -823,25 +824,25 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 1', onOffOutlet, [OnOffCluster.id], {
         id: 'Socket1',
-        tagList: [{ mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: null }],
+        tagList: [getSemtag(NumberTag.One)],
       })
       .addRequiredClusterServers();
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 2', onOffOutlet, [OnOffCluster.id], {
         id: 'Socket2',
-        tagList: [{ mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: null }],
+        tagList: [getSemtag(NumberTag.Two)],
       })
       .addRequiredClusterServers();
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 3', onOffOutlet, [OnOffCluster.id], {
         id: 'Socket3',
-        tagList: [{ mfgCode: null, namespaceId: NumberTag.Three.namespaceId, tag: NumberTag.Three.tag, label: null }],
+        tagList: [getSemtag(NumberTag.Three)],
       })
       .addRequiredClusterServers();
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 4', onOffOutlet, [OnOffCluster.id], {
         id: 'Socket4',
-        tagList: [{ mfgCode: null, namespaceId: NumberTag.Four.namespaceId, tag: NumberTag.Four.tag, label: null }],
+        tagList: [getSemtag(NumberTag.Four)],
       })
       .addRequiredClusterServers();
 
@@ -854,19 +855,31 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .addRequiredClusterServers();
     this.smartBridgedOutlet.addFixedLabel('composed', 'Bridged device');
     this.smartBridgedOutlet
-      .addChildDeviceTypeWithClusterServer('Plug 1', [onOffOutlet, bridgedNode], [OnOffCluster.id])
+      .addChildDeviceTypeWithClusterServer('Plug 1', [onOffOutlet, bridgedNode], [OnOffCluster.id], {
+        id: 'Plug1',
+        tagList: [getSemtag(NumberTag.One)],
+      })
       .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 1', 'BOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
-      .addChildDeviceTypeWithClusterServer('Plug 2', [onOffOutlet, bridgedNode], [OnOffCluster.id])
+      .addChildDeviceTypeWithClusterServer('Plug 2', [onOffOutlet, bridgedNode], [OnOffCluster.id], {
+        id: 'Plug2',
+        tagList: [getSemtag(NumberTag.Two)],
+      })
       .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 2', 'BOU00064-2', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
-      .addChildDeviceTypeWithClusterServer('Plug 3', [onOffOutlet, bridgedNode], [OnOffCluster.id])
+      .addChildDeviceTypeWithClusterServer('Plug 3', [onOffOutlet, bridgedNode], [OnOffCluster.id], {
+        id: 'Plug3',
+        tagList: [getSemtag(NumberTag.Three)],
+      })
       .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 3', 'BOU00064-3', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
-      .addChildDeviceTypeWithClusterServer('Plug 4', [onOffOutlet, bridgedNode], [OnOffCluster.id])
+      .addChildDeviceTypeWithClusterServer('Plug 4', [onOffOutlet, bridgedNode], [OnOffCluster.id], {
+        id: 'Plug4',
+        tagList: [getSemtag(NumberTag.Four)],
+      })
       .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 4', 'BOU00064-4', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
 
