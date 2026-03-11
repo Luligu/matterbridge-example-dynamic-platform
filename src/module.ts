@@ -1252,7 +1252,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       if (resolvedHandle && typeof resolvedHandle.then === 'function') {
         resolvedHandle = await resolvedHandle;
       }
-      const handle = toSafeUint8Array(resolvedHandle);
+      const handle = resolvedHandle instanceof Uint8Array ? resolvedHandle : new Uint8Array(resolvedHandle);
       this.thermoAutoPresets?.log.debug(`[setActivePresetRequest] Converted handle:`, Array.from(handle));
       const preset = presets_List.find((p) => p.presetHandle.length === handle.length && p.presetHandle.every((v, i) => v === handle[i]));
       if (!preset) {
@@ -1264,7 +1264,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'activePresetHandle', handle, this.thermoAutoPresets?.log);
       this.thermoAutoPresets?.log.debug(`[setActivePresetRequest] Attribute set, verifying state...`);
       let currentValue = await this.thermoAutoPresets?.getAttribute(ThermostatCluster.id, 'activePresetHandle');
-      const safeCurrentValue = toSafeUint8Array(currentValue);
+      const safeCurrentValue = currentValue instanceof Uint8Array ? currentValue : new Uint8Array(currentValue);
       const logValue = `[${Array.from(safeCurrentValue).join(',')}]`;
       this.thermoAutoPresets?.log.debug(`[setActivePresetRequest] Current activePresetHandle attribute value:`, logValue);
       // Also update the heating and cooling setpoints from the selected preset
