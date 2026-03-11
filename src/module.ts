@@ -1247,13 +1247,26 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     // Mirror the Matter SetActivePresetRequest command into the activePresetHandle attribute and update setpoints
     this.thermoAutoPresets?.addCommandHandler('setActivePresetRequest', async ({ request: { presetHandle } }) => {
-      const handle = Uint8Array.from(presetHandle);
+      this.thermoAutoPresets?.log.info(`[setActivePresetRequest] Received request with presetHandle:`, presetHandle);
+      let resolvedHandle = presetHandle;
+      if (resolvedHandle && typeof resolvedHandle.then === 'function') {
+        resolvedHandle = await resolvedHandle;
+      }
+      const handle = toSafeUint8Array(resolvedHandle);
+      this.thermoAutoPresets?.log.debug(`[setActivePresetRequest] Converted handle:`, Array.from(handle));
       const preset = presets_List.find((p) => p.presetHandle.length === handle.length && p.presetHandle.every((v, i) => v === handle[i]));
       if (!preset) {
-        this.thermoAutoPresets?.log.error(`Command setActivePresetRequest received unknown presetHandle: ${Array.from(handle).join(',')}`);
+        this.thermoAutoPresets?.log.debug?.(`[setActivePresetRequest] Unknown presetHandle: ${Array.from(handle).join(',')}`);
         return;
       }
+      this.thermoAutoPresets?.log.debug(`[setActivePresetRequest] Found preset:`, preset.name);
+      this.thermoAutoPresets?.log.debug(`[setActivePresetRequest] Setting activePresetHandle attribute to:`, Array.from(handle));
       await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'activePresetHandle', handle, this.thermoAutoPresets?.log);
+      this.thermoAutoPresets?.log.debug(`[setActivePresetRequest] Attribute set, verifying state...`);
+      let currentValue = await this.thermoAutoPresets?.getAttribute(ThermostatCluster.id, 'activePresetHandle');
+      const safeCurrentValue = toSafeUint8Array(currentValue);
+      const logValue = `[${Array.from(safeCurrentValue).join(',')}]`;
+      this.thermoAutoPresets?.log.debug(`[setActivePresetRequest] Current activePresetHandle attribute value:`, logValue);
       // Also update the heating and cooling setpoints from the selected preset
       if (preset.heatingSetpoint !== undefined) {
         await this.thermoAutoPresets?.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', preset.heatingSetpoint, this.thermoAutoPresets?.log);
