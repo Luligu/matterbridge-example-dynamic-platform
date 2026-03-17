@@ -1248,7 +1248,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     // Mirror the Matter SetActivePresetRequest command into the activePresetHandle attribute and update setpoints
     this.thermoAutoPresets?.addCommandHandler('setActivePresetRequest', async ({ request: { presetHandle } }) => {
-      this.thermoAutoPresets?.log.info(`Command setActivePresetRequest called with presetHandle: ${presetHandle ? Array.from(presetHandle).join(',') : 'null'}`);
+      this.thermoAutoPresets?.log.info(`Command setActivePresetRequest called with presetHandle: ${presetHandle ? `0x${Buffer.from(presetHandle).toString('hex')}` : 'null'}`);
     });
     await this.thermoAutoPresets?.subscribeAttribute(
       Thermostat.CompleteInstance,
