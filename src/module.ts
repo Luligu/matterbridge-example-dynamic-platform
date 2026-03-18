@@ -1253,41 +1253,43 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.thermoAutoPresets?.subscribeAttribute(
       Thermostat.CompleteInstance,
       'systemMode',
-      (value) => {
+      (newValue, oldValue) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
-        this.thermoAutoPresets?.log.info('Subscribe systemMode called with:', lookupSystemMode[value]);
+        this.thermoAutoPresets?.log.info(`Subscribe systemMode called with: ${lookupSystemMode[newValue]} (old value: ${lookupSystemMode[oldValue]})`);
       },
       this.thermoAutoPresets.log,
     );
     await this.thermoAutoPresets?.subscribeAttribute(
       Thermostat.Cluster.with(Thermostat.Feature.Heating),
       'occupiedHeatingSetpoint',
-      (value) => {
-        this.thermoAutoPresets?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
+      (newValue, oldValue) => {
+        this.thermoAutoPresets?.log.info(`Subscribe occupiedHeatingSetpoint called with: ${newValue / 100} (old value: ${oldValue / 100})`);
       },
       this.thermoAutoPresets.log,
     );
     await this.thermoAutoPresets?.subscribeAttribute(
       Thermostat.Cluster.with(Thermostat.Feature.Cooling),
       'occupiedCoolingSetpoint',
-      (value) => {
-        this.thermoAutoPresets?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
+      (newValue, oldValue) => {
+        this.thermoAutoPresets?.log.info(`Subscribe occupiedCoolingSetpoint called with: ${newValue / 100} (old value: ${oldValue / 100})`);
       },
       this.thermoAutoPresets.log,
     );
     await this.thermoAutoPresets?.subscribeAttribute(
       Thermostat.Cluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.Presets),
       'activePresetHandle',
-      (value) => {
-        this.thermoAutoPresets?.log.info('Subscribe activePresetHandle called with:', value);
+      (newValue, oldValue) => {
+        this.thermoAutoPresets?.log.info(
+          `Subscribe activePresetHandle called with: ${newValue ? `0x${Buffer.from(newValue).toString('hex')}` : 'null'} (old value: ${oldValue ? `0x${Buffer.from(oldValue).toString('hex')}` : 'null'})`,
+        );
       },
       this.thermoAutoPresets.log,
     );
     await this.thermoAutoPresets?.subscribeAttribute(
       Thermostat.Cluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.Presets),
       'presets',
-      (value) => {
-        this.thermoAutoPresets?.log.info('Subscribe presets called with:', value);
+      (newValue, oldValue) => {
+        this.thermoAutoPresets?.log.info(`Subscribe presets called with: ${debugStringify(newValue)} (old value: ${debugStringify(oldValue)})`);
       },
       this.thermoAutoPresets.log,
     );
