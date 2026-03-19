@@ -40,8 +40,6 @@ import {
   OnOffCluster,
   Thermostat,
   ThermostatCluster,
-  WindowCovering,
-  WindowCoveringCluster,
 } from 'matterbridge/matter/clusters';
 
 import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
@@ -78,9 +76,10 @@ describe('TestPlatform', () => {
 
   afterAll(async () => {
     await stopMatterbridgeEnvironment();
-    await destroyMatterbridgeEnvironment();
+    await destroyMatterbridgeEnvironment(10, 250, false);
     // Restore all mocks
     jest.restoreAllMocks();
+    // logKeepAlives();
   });
 
   it('should return an instance of the platform', async () => {
@@ -92,9 +91,9 @@ describe('TestPlatform', () => {
   it('should throw error in load when version is not valid', () => {
     matterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config)).toThrow(
-      'This plugin requires Matterbridge version >= "3.6.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.7.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    matterbridge.matterbridgeVersion = '3.6.0';
+    matterbridge.matterbridgeVersion = '3.7.0';
   });
 
   it('should initialize platform with config name and set the default config', () => {
@@ -154,6 +153,7 @@ describe('TestPlatform', () => {
 
   it('should execute the commandHandlers', async () => {
     await flushAsync();
+    expect(dynamicPlatform.getDevices()).toHaveLength(69);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
@@ -340,9 +340,10 @@ describe('TestPlatform', () => {
         }
       }
     }
-  });
+  }, 30000);
 
   it('should execute thermostat preset commands and subscriptions', async () => {
+    await flushAsync();
     // Find the Thermostat (AutoModePresets) device which has presets
     const thermoAutoPreset = dynamicPlatform.getDeviceByName('Thermostat (AutoModePresets)');
     expect(thermoAutoPreset).toBeDefined();
@@ -415,9 +416,10 @@ describe('TestPlatform', () => {
     } finally {
       await setDebug(false);
     }
-  });
+  }, 30000);
 
   it('should execute the remaining thermostat, fan base and air conditioner callbacks', async () => {
+    await flushAsync();
     const thermoHeat = dynamicPlatform.getDeviceByName('Thermostat (Heat)');
     const thermoCool = dynamicPlatform.getDeviceByName('Thermostat (Cool)');
     const fanBase = dynamicPlatform.getDeviceByName('Fan base');
@@ -451,9 +453,10 @@ describe('TestPlatform', () => {
     await airConditioner.executeCommandHandler('off', {}, 'onOff', {} as never, airConditioner);
     expect(airConditioner.getAttribute(ThermostatCluster.id, 'localTemperature')).toBeNull();
     expect(airConditioner.getAttribute(FanControlCluster.id, 'percentSetting')).toBeNull();
-  });
+  }, 30000);
 
   it('should execute basic video player commands', async () => {
+    await flushAsync();
     // Find the BasicVideoPlayer device
     const basicVideoPlayer = dynamicPlatform.getDeviceByName('BasicVideoPlayer');
     expect(basicVideoPlayer).toBeDefined();
@@ -478,9 +481,10 @@ describe('TestPlatform', () => {
     // Test KeypadInput commands
     await basicVideoPlayer.invokeBehaviorCommand('keypadInput', 'KeypadInput.sendKey', { keyCode: KeypadInput.CecKeyCode.Down });
     expect(loggerInfoSpy).toHaveBeenCalledWith(`Command sendKey with ${KeypadInput.CecKeyCode.Down} called`);
-  });
+  }, 30000);
 
   it('should call onConfigure', async () => {
+    await flushAsync();
     await dynamicPlatform.onConfigure();
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
@@ -510,6 +514,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
+    await flushAsync();
     await dynamicPlatform.onShutdown('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
     expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(0);

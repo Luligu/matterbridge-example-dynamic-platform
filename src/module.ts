@@ -104,6 +104,7 @@ import {
   FanControl,
   FlowMeasurement,
   FormaldehydeConcentrationMeasurement,
+  Identify,
   IlluminanceMeasurement,
   LevelControl,
   NitrogenDioxideConcentrationMeasurement,
@@ -285,9 +286,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.6.0')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.7.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.6.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.7.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -898,28 +899,54 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.coverLift = await this.addDevice(this.coverLift);
 
     // The cluster attributes are set by MatterbridgeLiftWindowCoveringServer.  The implementation shall handle the movement (i.e. the currentPosition).
-    this.coverLift?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.coverLift?.addCommandHandler('identify', async ({ request: { identifyTime }, attributes }) => {
+      attributes.identifyTime = 0;
+      attributes.identifyType = Identify.IdentifyType.None;
       this.coverLift?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
 
-    this.coverLift?.addCommandHandler('stopMotion', async () => {
-      await this.coverLift?.setWindowCoveringTargetAsCurrentAndStopped();
+    this.coverLift?.addCommandHandler('stopMotion', async ({ attributes }) => {
       this.coverLift?.log.info(`Command stopMotion called`);
+      attributes.targetPositionLiftPercent100ths = attributes.currentPositionLiftPercent100ths;
+      attributes.operationalStatus = {
+        global: WindowCovering.MovementStatus.Stopped,
+        lift: WindowCovering.MovementStatus.Stopped,
+        tilt: WindowCovering.MovementStatus.Stopped,
+      };
+      this.coverLift?.log.info(`Command stopMotion executed`);
     });
 
-    this.coverLift?.addCommandHandler('downOrClose', async () => {
-      await this.coverLift?.setWindowCoveringCurrentTargetStatus(10000, 10000, WindowCovering.MovementStatus.Stopped);
+    this.coverLift?.addCommandHandler('downOrClose', async ({ attributes }) => {
       this.coverLift?.log.info(`Command downOrClose called`);
+      attributes.currentPositionLiftPercent100ths = 10000;
+      attributes.operationalStatus = {
+        global: WindowCovering.MovementStatus.Stopped,
+        lift: WindowCovering.MovementStatus.Stopped,
+        tilt: WindowCovering.MovementStatus.Stopped,
+      };
+      this.coverLift?.log.info(`Command downOrClose executed`);
     });
 
-    this.coverLift?.addCommandHandler('upOrOpen', async () => {
-      await this.coverLift?.setWindowCoveringCurrentTargetStatus(0, 0, WindowCovering.MovementStatus.Stopped);
+    this.coverLift?.addCommandHandler('upOrOpen', async ({ attributes }) => {
       this.coverLift?.log.info(`Command upOrOpen called`);
+      attributes.currentPositionLiftPercent100ths = 0;
+      attributes.operationalStatus = {
+        global: WindowCovering.MovementStatus.Stopped,
+        lift: WindowCovering.MovementStatus.Stopped,
+        tilt: WindowCovering.MovementStatus.Stopped,
+      };
+      this.coverLift?.log.info(`Command upOrOpen executed`);
     });
 
-    this.coverLift?.addCommandHandler('goToLiftPercentage', async ({ request: { liftPercent100thsValue } }) => {
-      await this.coverLift?.setWindowCoveringCurrentTargetStatus(liftPercent100thsValue, liftPercent100thsValue, WindowCovering.MovementStatus.Stopped);
-      this.coverLift?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} called`);
+    this.coverLift?.addCommandHandler('goToLiftPercentage', async ({ request: { liftPercent100thsValue }, attributes }) => {
+      this.coverLift?.log.info(`Command goToLiftPercentage called with liftPercent100thsValue:${liftPercent100thsValue}`);
+      attributes.currentPositionLiftPercent100ths = liftPercent100thsValue;
+      attributes.operationalStatus = {
+        global: WindowCovering.MovementStatus.Stopped,
+        lift: WindowCovering.MovementStatus.Stopped,
+        tilt: WindowCovering.MovementStatus.Stopped,
+      };
+      this.coverLift?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} executed`);
     });
 
     // *********************** Create a tilt window covering device ***********************
@@ -934,34 +961,68 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.coverLiftTilt = await this.addDevice(this.coverLiftTilt);
 
     // The cluster attributes are set by MatterbridgeLiftTiltWindowCoveringServer. The implementation shall handle the movement (i.e. the currentPosition).
-    this.coverLiftTilt?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.coverLiftTilt?.addCommandHandler('identify', async ({ request: { identifyTime }, attributes }) => {
       this.coverLiftTilt?.log.info(`Command identify called identifyTime:${identifyTime}`);
+      attributes.identifyTime = 0;
+      attributes.identifyType = Identify.IdentifyType.None;
     });
 
-    this.coverLiftTilt?.addCommandHandler('stopMotion', async () => {
-      await this.coverLiftTilt?.setWindowCoveringTargetAsCurrentAndStopped();
+    this.coverLiftTilt?.addCommandHandler('stopMotion', async ({ attributes }) => {
       this.coverLiftTilt?.log.info(`Command stopMotion called`);
+      attributes.targetPositionLiftPercent100ths = attributes.currentPositionLiftPercent100ths;
+      attributes.targetPositionTiltPercent100ths = attributes.currentPositionTiltPercent100ths;
+      attributes.operationalStatus = {
+        global: WindowCovering.MovementStatus.Stopped,
+        lift: WindowCovering.MovementStatus.Stopped,
+        tilt: WindowCovering.MovementStatus.Stopped,
+      };
+      this.coverLiftTilt?.log.info(`Command stopMotion executed`);
     });
 
-    this.coverLiftTilt?.addCommandHandler('downOrClose', async () => {
-      await this.coverLiftTilt?.setWindowCoveringCurrentTargetStatus(10000, 10000, WindowCovering.MovementStatus.Stopped);
+    this.coverLiftTilt?.addCommandHandler('downOrClose', async ({ attributes }) => {
       this.coverLiftTilt?.log.info(`Command downOrClose called`);
+      attributes.currentPositionLiftPercent100ths = 10000;
+      attributes.currentPositionTiltPercent100ths = 10000;
+      attributes.operationalStatus = {
+        global: WindowCovering.MovementStatus.Stopped,
+        lift: WindowCovering.MovementStatus.Stopped,
+        tilt: WindowCovering.MovementStatus.Stopped,
+      };
+      this.coverLiftTilt?.log.info(`Command downOrClose executed`);
     });
 
-    this.coverLiftTilt?.addCommandHandler('upOrOpen', async () => {
-      await this.coverLiftTilt?.setWindowCoveringCurrentTargetStatus(0, 0, WindowCovering.MovementStatus.Stopped);
+    this.coverLiftTilt?.addCommandHandler('upOrOpen', async ({ attributes }) => {
       this.coverLiftTilt?.log.info(`Command upOrOpen called`);
+      attributes.currentPositionLiftPercent100ths = 0;
+      attributes.currentPositionTiltPercent100ths = 0;
+      attributes.operationalStatus = {
+        global: WindowCovering.MovementStatus.Stopped,
+        lift: WindowCovering.MovementStatus.Stopped,
+        tilt: WindowCovering.MovementStatus.Stopped,
+      };
+      this.coverLiftTilt?.log.info(`Command upOrOpen executed`);
     });
 
-    this.coverLiftTilt?.addCommandHandler('goToLiftPercentage', async ({ request: { liftPercent100thsValue } }) => {
-      await this.coverLiftTilt?.setWindowCoveringCurrentTargetStatus(liftPercent100thsValue, liftPercent100thsValue, WindowCovering.MovementStatus.Stopped);
-      this.coverLiftTilt?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} called`);
+    this.coverLiftTilt?.addCommandHandler('goToLiftPercentage', async ({ request: { liftPercent100thsValue }, attributes }) => {
+      this.coverLiftTilt?.log.info(`Command goToLiftPercentage called with liftPercent100thsValue:${liftPercent100thsValue}`);
+      attributes.currentPositionLiftPercent100ths = liftPercent100thsValue;
+      attributes.operationalStatus = {
+        global: WindowCovering.MovementStatus.Stopped,
+        lift: WindowCovering.MovementStatus.Stopped,
+        tilt: WindowCovering.MovementStatus.Stopped,
+      };
+      this.coverLiftTilt?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} executed`);
     });
 
-    this.coverLiftTilt?.addCommandHandler('goToTiltPercentage', async ({ request: { tiltPercent100thsValue } }) => {
-      const position = this.coverLiftTilt?.getAttribute(WindowCovering.Cluster.id, 'currentPositionLiftPercent100ths', this.coverLiftTilt?.log);
-      await this.coverLiftTilt?.setWindowCoveringTargetAndCurrentPosition(position, tiltPercent100thsValue);
-      this.coverLiftTilt?.log.info(`Command goToTiltPercentage ${tiltPercent100thsValue} called`);
+    this.coverLiftTilt?.addCommandHandler('goToTiltPercentage', async ({ request: { tiltPercent100thsValue }, attributes }) => {
+      this.coverLiftTilt?.log.info(`Command goToTiltPercentage called with tiltPercent100thsValue:${tiltPercent100thsValue}`);
+      attributes.currentPositionTiltPercent100ths = tiltPercent100thsValue;
+      attributes.operationalStatus = {
+        global: WindowCovering.MovementStatus.Stopped,
+        lift: WindowCovering.MovementStatus.Stopped,
+        tilt: WindowCovering.MovementStatus.Stopped,
+      };
+      this.coverLiftTilt?.log.info(`Command goToTiltPercentage ${tiltPercent100thsValue} executed`);
     });
 
     // *********************** Create a lock device ***********************
