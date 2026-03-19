@@ -946,7 +946,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         lift: WindowCovering.MovementStatus.Stopped,
         tilt: WindowCovering.MovementStatus.Stopped,
       };
-      this.coverLift?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} executed`);
+      this.coverLift?.log.info(`Command goToLiftPercentage with ${liftPercent100thsValue} executed`);
     });
 
     // *********************** Create a tilt window covering device ***********************
@@ -1011,7 +1011,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         lift: WindowCovering.MovementStatus.Stopped,
         tilt: WindowCovering.MovementStatus.Stopped,
       };
-      this.coverLiftTilt?.log.info(`Command goToLiftPercentage ${liftPercent100thsValue} executed`);
+      this.coverLiftTilt?.log.info(`Command goToLiftPercentage with ${liftPercent100thsValue} executed`);
     });
 
     this.coverLiftTilt?.addCommandHandler('goToTiltPercentage', async ({ request: { tiltPercent100thsValue }, attributes }) => {
@@ -1022,7 +1022,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         lift: WindowCovering.MovementStatus.Stopped,
         tilt: WindowCovering.MovementStatus.Stopped,
       };
-      this.coverLiftTilt?.log.info(`Command goToTiltPercentage ${tiltPercent100thsValue} executed`);
+      this.coverLiftTilt?.log.info(`Command goToTiltPercentage with ${tiltPercent100thsValue} executed`);
     });
 
     // *********************** Create a lock device ***********************
