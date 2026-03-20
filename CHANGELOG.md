@@ -26,7 +26,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
-## [2.0.14] - Dev branch
+## [2.0.14] - 2026-03-20
 
 ### Changed
 
@@ -38,6 +38,8 @@ If you like this project and find it useful, please consider giving it a star on
 - [devcontainer]: Add postStartCommand to the `Dev Container` configuration.
 - [package]: Refactor `build.yml` to use matterbridge dev branch for push and main for pull requests.
 - [package]: Add `type checking` script for Jest tests.
+- [package]: Update actions versions in workflows.
+- [package]: Bump `eslint` to v.10.1.0.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
