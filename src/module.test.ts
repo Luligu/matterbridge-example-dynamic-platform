@@ -254,8 +254,8 @@ describe('TestPlatform', () => {
       }
 
       if (device.hasClusterServer(DoorLockCluster)) {
-        await device.invokeBehaviorCommand(DoorLockCluster, 'lockDoor');
-        await device.invokeBehaviorCommand(DoorLockCluster, 'unlockDoor');
+        await device.invokeBehaviorCommand(DoorLockCluster, 'lockDoor', {});
+        await device.invokeBehaviorCommand(DoorLockCluster, 'unlockDoor', {});
         await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.NoRemoteLockUnlock);
         await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.Normal);
       }
