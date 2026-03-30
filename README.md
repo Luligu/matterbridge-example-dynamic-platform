@@ -24,7 +24,7 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 68 virtual devices:
+It exposes 70 virtual devices:
 
 - a door contact sensor
 - a motion sensor
@@ -95,6 +95,7 @@ It exposes 68 virtual devices:
 - a speaker device (supported by SmartThings)
 - a soil sensor (Matter 1.5.0)
 - an irrigation system (Matter 1.5.0)
+- an irrigation system with four zones (Matter 1.5.0)
 
 All these devices continuously change their state and position. The plugin also shows how to use all the command handlers (so you can control all the devices), how to subscribe to attributes, and how to trigger events.
 

@@ -7,7 +7,7 @@ process.argv = ['node', 'platform.test.js', '-novirtual', '-frontend', '0', '-ho
 import path from 'node:path';
 
 import { jest } from '@jest/globals';
-import { featuresFor, invokeSubscribeHandler, MatterbridgeEndpoint } from 'matterbridge';
+import { featuresFor, invokeSubscribeHandler, MatterbridgeDoorLockServer, MatterbridgeEndpoint } from 'matterbridge';
 import {
   addBridgedEndpointSpy,
   addMatterbridgePlatform,
@@ -89,11 +89,12 @@ describe('TestPlatform', () => {
   });
 
   it('should throw error in load when version is not valid', () => {
+    const savedVersion = matterbridge.matterbridgeVersion;
     matterbridge.matterbridgeVersion = '1.5.0';
     expect(() => new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config)).toThrow(
-      'This plugin requires Matterbridge version >= "3.7.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.7.2". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    matterbridge.matterbridgeVersion = '3.7.0';
+    matterbridge.matterbridgeVersion = savedVersion;
   });
 
   it('should initialize platform with config name and set the default config', () => {
@@ -144,7 +145,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
-    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(69);
+    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(70);
     expect(loggerLogSpy).toHaveBeenCalled();
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -153,7 +154,7 @@ describe('TestPlatform', () => {
 
   it('should execute the commandHandlers', async () => {
     await flushAsync();
-    expect(dynamicPlatform.getDevices()).toHaveLength(69);
+    expect(dynamicPlatform.getDevices()).toHaveLength(70);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
@@ -258,6 +259,13 @@ describe('TestPlatform', () => {
         await device.invokeBehaviorCommand(DoorLockCluster, 'unlockDoor', {});
         await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.NoRemoteLockUnlock);
         await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.Normal);
+      }
+      if (device.id === 'UserPinLock') {
+        await device.invokeBehaviorCommand(DoorLockCluster, 'lockDoor', {});
+        await device.invokeBehaviorCommand(DoorLockCluster, 'unlockDoor', {});
+        await device.setAttribute(DoorLock.Cluster, 'operatingMode', DoorLock.OperatingMode.Normal);
+        await device.setAttribute(DoorLock.Complete, 'wrongCodeEntryLimit', 3);
+        await device.setAttribute(DoorLock.Complete, 'userCodeTemporaryDisableTime', 30);
       }
 
       if (device.hasClusterServer(FanControlCluster)) {

@@ -132,7 +132,7 @@ import {
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
-import { isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
+import { getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
 
 /**
  * Convert an illuminance value in lux to the Matter encoded representation used by the
@@ -223,10 +223,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   outletEnergyApparent: MatterbridgeEndpoint | undefined;
   smartOutlet: MatterbridgeEndpoint | undefined;
   smartBridgedOutlet: MatterbridgeEndpoint | undefined;
-
   coverLift: MatterbridgeEndpoint | undefined;
   coverLiftTilt: MatterbridgeEndpoint | undefined;
   lock: MatterbridgeEndpoint | undefined;
+  userPinLock: MatterbridgeEndpoint | undefined;
   thermoAuto: MatterbridgeEndpoint | undefined;
   thermoAutoOccupancy: MatterbridgeEndpoint | undefined;
   thermoAutoPresets: MatterbridgeEndpoint | undefined;
@@ -286,9 +286,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.7.0')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.7.2')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.7.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.7.2". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -1036,26 +1036,72 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lock = await this.addDevice(this.lock);
 
     // The cluster attributes are set by MatterbridgeDoorLockServer
-    this.lock?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.lock?.addCommandHandler('Identify.identify', async ({ request: { identifyTime } }) => {
       this.lock?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.lock?.addCommandHandler('lockDoor', async () => {
+    this.lock?.addCommandHandler('DoorLock.lockDoor', async () => {
       this.lock?.log.info('Command lockDoor called');
     });
-    this.lock?.addCommandHandler('unlockDoor', async () => {
+    this.lock?.addCommandHandler('DoorLock.unlockDoor', async () => {
       this.lock?.log.info('Command unlockDoor called');
     });
     await this.lock?.subscribeAttribute(
       DoorLock.Cluster.id,
       'operatingMode',
       (value) => {
-        const lookupOperatingMode = ['Normal', 'Vacation', 'Privacy', 'NoRemoteLockUnlock', 'Passage'];
-        this.lock?.log.info('Subscribe operatingMode called with:', lookupOperatingMode[value]);
-        const actuatorEnabled = value !== DoorLock.OperatingMode.NoRemoteLockUnlock;
-        this.lock?.setAttribute(DoorLock.Cluster.id, 'actuatorEnabled', actuatorEnabled);
-        this.lock?.log.info(`actuatorEnabled set to ${actuatorEnabled}`);
+        this.lock?.log.info(`Subscribe operatingMode called with: ${getEnumDescription(DoorLock.OperatingMode, value)}`);
       },
       this.lock.log,
+    );
+
+    // *********************** Create a lock device with User and Pin features ***********************
+    this.userPinLock = new MatterbridgeEndpoint([doorLockDevice, bridgedNode, powerSource], { id: 'UserPinLock' }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Lock with User and Pin', 'LUP00070', 0xfff1, 'Matterbridge', 'Matterbridge Lock')
+      .createUserPinDoorLockClusterServer()
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(95)
+      .addRequiredClusterServers();
+
+    this.userPinLock = await this.addDevice(this.userPinLock);
+    await this.userPinLock?.setAttribute(
+      PowerSource.Cluster.with(PowerSource.Feature.Rechargeable, PowerSource.Feature.Battery),
+      'batChargeState',
+      PowerSource.BatChargeState.IsCharging,
+    );
+
+    // The cluster attributes are set by MatterbridgeDoorLockServer
+    this.userPinLock?.addCommandHandler('Identify.identify', async ({ request: { identifyTime } }) => {
+      this.userPinLock?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.userPinLock?.addCommandHandler('DoorLock.lockDoor', async () => {
+      this.userPinLock?.log.info('Command lockDoor called');
+    });
+    this.userPinLock?.addCommandHandler('DoorLock.unlockDoor', async () => {
+      this.userPinLock?.log.info('Command unlockDoor called');
+    });
+    await this.userPinLock?.subscribeAttribute(
+      DoorLock.Cluster,
+      'operatingMode',
+      (value) => {
+        this.userPinLock?.log.info(`Subscribe operatingMode called with: ${getEnumDescription(DoorLock.OperatingMode, value)}`);
+      },
+      this.userPinLock.log,
+    );
+    await this.userPinLock?.subscribeAttribute(
+      DoorLock.Complete,
+      'wrongCodeEntryLimit',
+      (value) => {
+        this.userPinLock?.log.info(`Subscribe wrongCodeEntryLimit called with: ${value}`);
+      },
+      this.userPinLock.log,
+    );
+    await this.userPinLock?.subscribeAttribute(
+      DoorLock.Complete,
+      'userCodeTemporaryDisableTime',
+      (value) => {
+        this.userPinLock?.log.info(`Subscribe userCodeTemporaryDisableTime called with: ${value}`);
+      },
+      this.userPinLock.log,
     );
 
     // *********************** Create a thermostat with AutoMode device ***********************

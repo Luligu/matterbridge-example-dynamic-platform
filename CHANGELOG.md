@@ -26,6 +26,23 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
+## [2.0.15] - 2026-03-30
+
+### Added
+
+- [DoorLock]: Add a doorLock device with User and Pin features (default Pin is "0000").
+
+### Changed
+
+- [package]: Update dependencies.
+- [package]: Bump package to `automator` v.3.1.4.
+- [package]: Bump `typescript` to v.6.0.2.
+- [package]: Bump `typescript-eslint` to v.8.57.2.
+- [package]: Bump `eslint` to v.10.1.0.
+- [package]: Add `CODE_OF_CONDUCT.md`.
+
+<a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
+
 ## [2.0.14] - 2026-03-20
 
 ### Changed
