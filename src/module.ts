@@ -1594,7 +1594,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.valve?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
 
-    // *********************** Create a default off low medium high auto fan device ***********************
+    // *********************** Create a default off low medium high auto fan device with Auto and Step features ***********************
     this.fanDefault = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { id: 'Fan off low medium high auto' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Fan', 'FAN00030', 0xfff1, 'Matterbridge', 'Matterbridge Fan')
       .createDefaultPowerSourceWiredClusterServer()
@@ -1624,10 +1624,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
           this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
         } else if (newValue === FanControl.FanMode.On) {
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanDefault?.log);
           this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
           this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
         } else if (newValue === FanControl.FanMode.Auto) {
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fanDefault?.log);
+          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanDefault?.log);
           this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanDefault?.log);
         }
       },
@@ -1644,7 +1645,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.fanDefault.log,
     );
 
-    // *********************** Create a base fan device ***********************
+    // *********************** Create a off low medium high fan device with no features ***********************
     this.fanBase = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { id: 'Fan off low medium high' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Fan base', 'FBA00031', 0xfff1, 'Matterbridge', 'Matterbridge Fan')
       .createDefaultPowerSourceWiredClusterServer()
@@ -1674,10 +1675,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
           this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
         } else if (newValue === FanControl.FanMode.On) {
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
           this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
           this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
         } else if (newValue === FanControl.FanMode.Auto) {
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fanBase?.log);
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanBase?.log);
           this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanBase?.log);
         }
       },
@@ -1694,7 +1696,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.fanBase.log,
     );
 
-    // *********************** Create a On High fan device ***********************
+    // *********************** Create a off high fan device with no features ***********************
     this.fanOnHigh = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { id: 'Fan off high' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Fan off high', 'FOH00032', 0xfff1, 'Matterbridge', 'Matterbridge Fan')
       .createDefaultPowerSourceWiredClusterServer()
@@ -1717,6 +1719,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         } else if (newValue === FanControl.FanMode.High) {
           this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanOnHigh?.log);
           this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanOnHigh?.log);
+        } else if (newValue === FanControl.FanMode.On) {
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
+          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
         }
       },
       this.fanOnHigh.log,
@@ -1736,7 +1742,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.fanOnHigh.log,
     );
 
-    // ******************** Create a complete fan device ********************
+    // ******************** Create a Off Low Med High Auto fan device with features MultiSpeed, Auto, Step, Rocking, Wind, AirflowDirection ********************
     this.fanComplete = new MatterbridgeEndpoint([fanDevice, bridgedNode, powerSource], { id: 'Fan complete' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Fan complete', 'FCO00033', 0xfff1, 'Matterbridge', 'Matterbridge Fan')
       .createDefaultPowerSourceWiredClusterServer()
@@ -1766,10 +1772,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
           this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
         } else if (newValue === FanControl.FanMode.On) {
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanComplete?.log);
           this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
           this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
         } else if (newValue === FanControl.FanMode.Auto) {
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.fanComplete?.log);
+          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanComplete?.log);
           this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanComplete?.log);
         }
       },
