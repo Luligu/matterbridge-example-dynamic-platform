@@ -1324,7 +1324,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoAutoPresets = new MatterbridgeEndpoint([thermostatDevice, bridgedNode, powerSource], { id: 'Thermostat (AutoModePresets)' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoModePresets)', 'TAP00058', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat With Presets')
-      .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, 10, 30, false, 20.5, undefined, presets_List, presetTypeDefinitions)
+      .createDefaultPresetsThermostatClusterServer(20, 18, 22, 1, 0, 35, 15, 50, undefined, undefined, undefined, 20.5, undefined, presets_List, presetTypeDefinitions)
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
 
