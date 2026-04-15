@@ -1,6 +1,7 @@
 const MATTER_PORT = 6000;
 const NAME = 'Platform';
 const HOMEDIR = path.join('jest', NAME);
+const MATTER_CREATE_ONLY = true;
 
 process.argv = ['node', 'platform.test.js', '-novirtual', '-frontend', '0', '-homedir', HOMEDIR, '-port', MATTER_PORT.toString()];
 
@@ -26,21 +27,7 @@ import {
   stopMatterbridgeEnvironment,
 } from 'matterbridge/jestutils';
 import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
-import {
-  ColorControl,
-  ColorControlCluster,
-  DoorLock,
-  DoorLockCluster,
-  FanControl,
-  FanControlCluster,
-  IdentifyCluster,
-  KeypadInput,
-  LevelControlCluster,
-  ModeSelectCluster,
-  OnOffCluster,
-  Thermostat,
-  ThermostatCluster,
-} from 'matterbridge/matter/clusters';
+import { ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
 
 import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
 
@@ -65,8 +52,8 @@ describe('TestPlatform', () => {
   };
 
   beforeAll(async () => {
-    await createMatterbridgeEnvironment(NAME);
-    await startMatterbridgeEnvironment(MATTER_PORT);
+    await createMatterbridgeEnvironment(NAME, MATTER_CREATE_ONLY);
+    await startMatterbridgeEnvironment(MATTER_PORT, MATTER_CREATE_ONLY);
   });
 
   beforeEach(() => {
@@ -75,8 +62,8 @@ describe('TestPlatform', () => {
   });
 
   afterAll(async () => {
-    await stopMatterbridgeEnvironment();
-    await destroyMatterbridgeEnvironment(10, 250, false);
+    await stopMatterbridgeEnvironment(MATTER_CREATE_ONLY);
+    await destroyMatterbridgeEnvironment(undefined, undefined, MATTER_CREATE_ONLY);
     // Restore all mocks
     jest.restoreAllMocks();
     // logKeepAlives();
@@ -159,36 +146,36 @@ describe('TestPlatform', () => {
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
 
-      if (device.hasClusterServer(IdentifyCluster)) {
+      if (device.hasClusterServer(Identify.Cluster)) {
         jest.clearAllMocks();
-        await device.invokeBehaviorCommand(IdentifyCluster, 'identify', { identifyTime: 5 });
-        await device.invokeBehaviorCommand(IdentifyCluster, 'triggerEffect', { effectIdentifier: 0, effectVariant: 0 });
+        await device.invokeBehaviorCommand(Identify.Cluster, 'identify', { identifyTime: 5 });
+        await device.invokeBehaviorCommand(Identify.Cluster, 'triggerEffect', { effectIdentifier: 0, effectVariant: 0 });
       }
 
-      if (device.hasClusterServer(OnOffCluster)) {
-        const onOffFeatures = featuresFor(device, OnOffCluster);
+      if (device.hasClusterServer(OnOff.Cluster)) {
+        const onOffFeatures = featuresFor(device, OnOff.Cluster);
 
         if (!onOffFeatures.offOnly && !onOffFeatures.deadFrontBehavior) {
-          await device.invokeBehaviorCommand(OnOffCluster, 'on');
-          await device.invokeBehaviorCommand(OnOffCluster, 'toggle');
+          await device.invokeBehaviorCommand(OnOff.Cluster, 'on');
+          await device.invokeBehaviorCommand(OnOff.Cluster, 'toggle');
         }
         if (!onOffFeatures.deadFrontBehavior) {
-          await device.invokeBehaviorCommand(OnOffCluster, 'off');
+          await device.invokeBehaviorCommand(OnOff.Cluster, 'off');
         }
       }
 
-      if (device.hasClusterServer(ModeSelectCluster)) {
-        await device.invokeBehaviorCommand(ModeSelectCluster, 'changeToMode', { newMode: 1 });
+      if (device.hasClusterServer(ModeSelect.Cluster)) {
+        await device.invokeBehaviorCommand(ModeSelect.Cluster, 'changeToMode', { newMode: 1 });
       }
 
-      if (device.hasClusterServer(LevelControlCluster)) {
-        await device.invokeBehaviorCommand(LevelControlCluster, 'moveToLevel', {
+      if (device.hasClusterServer(LevelControl.Cluster)) {
+        await device.invokeBehaviorCommand(LevelControl.Cluster, 'moveToLevel', {
           level: 1,
           transitionTime: 0,
           optionsMask: { executeIfOff: false },
           optionsOverride: { executeIfOff: false },
         });
-        await device.invokeBehaviorCommand(LevelControlCluster, 'moveToLevelWithOnOff', {
+        await device.invokeBehaviorCommand(LevelControl.Cluster, 'moveToLevelWithOnOff', {
           level: 1,
           transitionTime: 0,
           optionsMask: { executeIfOff: false },
@@ -196,11 +183,11 @@ describe('TestPlatform', () => {
         });
       }
 
-      if (device.hasClusterServer(ColorControlCluster)) {
-        const colorControlFeatures = featuresFor(device, ColorControlCluster);
+      if (device.hasClusterServer(ColorControl.Cluster)) {
+        const colorControlFeatures = featuresFor(device, ColorControl.Cluster);
 
         if (colorControlFeatures.xy) {
-          await device.invokeBehaviorCommand(ColorControlCluster.with(ColorControl.Feature.Xy), 'moveToColor', {
+          await device.invokeBehaviorCommand(ColorControl.Cluster.with(ColorControl.Feature.Xy), 'moveToColor', {
             colorX: 50,
             colorY: 100,
             transitionTime: 0,
@@ -209,20 +196,20 @@ describe('TestPlatform', () => {
           });
         }
         if (colorControlFeatures.hueSaturation) {
-          await device.invokeBehaviorCommand(ColorControlCluster.with(ColorControl.Feature.HueSaturation), 'moveToHue', {
+          await device.invokeBehaviorCommand(ColorControl.Cluster.with(ColorControl.Feature.HueSaturation), 'moveToHue', {
             hue: 50,
             direction: ColorControl.Direction.Shortest,
             transitionTime: 0,
             optionsMask: { executeIfOff: false },
             optionsOverride: { executeIfOff: false },
           });
-          await device.invokeBehaviorCommand(ColorControlCluster.with(ColorControl.Feature.HueSaturation), 'moveToSaturation', {
+          await device.invokeBehaviorCommand(ColorControl.Cluster.with(ColorControl.Feature.HueSaturation), 'moveToSaturation', {
             saturation: 100,
             transitionTime: 0,
             optionsMask: { executeIfOff: false },
             optionsOverride: { executeIfOff: false },
           });
-          await device.invokeBehaviorCommand(ColorControlCluster.with(ColorControl.Feature.HueSaturation), 'moveToHueAndSaturation', {
+          await device.invokeBehaviorCommand(ColorControl.Cluster.with(ColorControl.Feature.HueSaturation), 'moveToHueAndSaturation', {
             hue: 50,
             saturation: 100,
             transitionTime: 0,
@@ -231,7 +218,7 @@ describe('TestPlatform', () => {
           });
         }
         if (colorControlFeatures.colorTemperature) {
-          await device.invokeBehaviorCommand(ColorControlCluster.with(ColorControl.Feature.ColorTemperature), 'moveToColorTemperature', {
+          await device.invokeBehaviorCommand(ColorControl.Cluster.with(ColorControl.Feature.ColorTemperature), 'moveToColorTemperature', {
             colorTemperatureMireds: 300,
             transitionTime: 0,
             optionsMask: { executeIfOff: false },
@@ -254,22 +241,22 @@ describe('TestPlatform', () => {
         }
       }
 
-      if (device.hasClusterServer(DoorLockCluster)) {
-        await device.invokeBehaviorCommand(DoorLockCluster, 'lockDoor', {});
-        await device.invokeBehaviorCommand(DoorLockCluster, 'unlockDoor', {});
-        await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.NoRemoteLockUnlock);
-        await device.setAttribute(DoorLockCluster.id, 'operatingMode', DoorLock.OperatingMode.Normal);
+      if (device.hasClusterServer(DoorLock.Cluster)) {
+        await device.invokeBehaviorCommand(DoorLock.Cluster, 'lockDoor', {});
+        await device.invokeBehaviorCommand(DoorLock.Cluster, 'unlockDoor', {});
+        await device.setAttribute(DoorLock.Cluster.id, 'operatingMode', DoorLock.OperatingMode.NoRemoteLockUnlock);
+        await device.setAttribute(DoorLock.Cluster.id, 'operatingMode', DoorLock.OperatingMode.Normal);
       }
       if (device.id === 'UserPinLock') {
-        await device.invokeBehaviorCommand(DoorLockCluster, 'lockDoor', {});
-        await device.invokeBehaviorCommand(DoorLockCluster, 'unlockDoor', {});
+        await device.invokeBehaviorCommand(DoorLock.Cluster, 'lockDoor', {});
+        await device.invokeBehaviorCommand(DoorLock.Cluster, 'unlockDoor', {});
         await device.setAttribute(DoorLock.Cluster, 'operatingMode', DoorLock.OperatingMode.Normal);
         await device.setAttribute(DoorLock.Complete, 'wrongCodeEntryLimit', 3);
         await device.setAttribute(DoorLock.Complete, 'userCodeTemporaryDisableTime', 30);
       }
 
-      if (device.hasClusterServer(FanControlCluster)) {
-        const fanControlFeatures = featuresFor(device, FanControlCluster);
+      if (device.hasClusterServer(FanControl.Cluster)) {
+        const fanControlFeatures = featuresFor(device, FanControl.Cluster);
 
         if (fanControlFeatures.step) {
           await device.invokeBehaviorCommand('fanControl', 'step', {
@@ -278,19 +265,19 @@ describe('TestPlatform', () => {
             lowestOff: false,
           });
         }
-        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Off);
-        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Low);
-        const sequence = device.getAttribute(FanControlCluster.id, 'fanModeSequence');
+        await device.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Off);
+        await device.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Low);
+        const sequence = device.getAttribute(FanControl.Cluster.id, 'fanModeSequence');
         if (sequence === FanControl.FanModeSequence.OffLowMedHigh || sequence === FanControl.FanModeSequence.OffLowMedHighAuto)
-          await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Medium);
-        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.High);
-        await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.On);
+          await device.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Medium);
+        await device.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High);
+        await device.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.On);
         if (fanControlFeatures.auto && device.deviceName === 'Fan auto') {
-          await device.setAttribute(FanControlCluster.id, 'fanMode', FanControl.FanMode.Auto);
+          await device.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.Auto);
         }
 
-        await device.setAttribute(FanControlCluster.id, 'percentSetting', 50);
-        await device.setAttribute(FanControlCluster.id, 'percentSetting', 10);
+        await device.setAttribute(FanControl.Cluster.id, 'percentSetting', 50);
+        await device.setAttribute(FanControl.Cluster.id, 'percentSetting', 10);
 
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Off, FanControl.FanMode.Off);
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Low, FanControl.FanMode.Low);
@@ -318,27 +305,27 @@ describe('TestPlatform', () => {
         if (thermostatFeatures.heating && thermostatFeatures.cooling && thermostatFeatures.autoMode) {
           await device.invokeBehaviorCommand('Thermostat', 'setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 100 });
           if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (AutoOccupancy)') {
-            await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
-            await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Heat);
-            await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Cool);
+            await device.setAttribute(Thermostat.Cluster.id, 'systemMode', Thermostat.SystemMode.Off);
+            await device.setAttribute(Thermostat.Cluster.id, 'systemMode', Thermostat.SystemMode.Heat);
+            await device.setAttribute(Thermostat.Cluster.id, 'systemMode', Thermostat.SystemMode.Cool);
           }
           if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (AutoOccupancy)' || device.deviceName === 'Thermostat (Heat)') {
-            await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
-            await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Heat);
-            await device.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', 2800);
-            await device.setAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint', 2700);
+            await device.setAttribute(Thermostat.Cluster.id, 'systemMode', Thermostat.SystemMode.Off);
+            await device.setAttribute(Thermostat.Cluster.id, 'systemMode', Thermostat.SystemMode.Heat);
+            await device.setAttribute(Thermostat.Cluster.id, 'occupiedHeatingSetpoint', 2800);
+            await device.setAttribute(Thermostat.Cluster.id, 'occupiedHeatingSetpoint', 2700);
           }
           if (device.deviceName === 'Thermostat (AutoMode)' || device.deviceName === 'Thermostat (AutoOccupancy)' || device.deviceName === 'Thermostat (Cool)') {
-            await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Off);
-            await device.setAttribute(ThermostatCluster.id, 'systemMode', Thermostat.SystemMode.Cool);
-            await device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1600);
-            await device.setAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint', 1500);
+            await device.setAttribute(Thermostat.Cluster.id, 'systemMode', Thermostat.SystemMode.Off);
+            await device.setAttribute(Thermostat.Cluster.id, 'systemMode', Thermostat.SystemMode.Cool);
+            await device.setAttribute(Thermostat.Cluster.id, 'occupiedCoolingSetpoint', 1600);
+            await device.setAttribute(Thermostat.Cluster.id, 'occupiedCoolingSetpoint', 1500);
           }
           if (device.deviceName === 'Thermostat (AutoOccupancy)') {
-            await device.setAttribute(ThermostatCluster.id, 'unoccupiedHeatingSetpoint', 2800);
-            await device.setAttribute(ThermostatCluster.id, 'unoccupiedHeatingSetpoint', 2700);
-            await device.setAttribute(ThermostatCluster.id, 'unoccupiedCoolingSetpoint', 1600);
-            await device.setAttribute(ThermostatCluster.id, 'unoccupiedCoolingSetpoint', 1500);
+            await device.setAttribute(Thermostat.Cluster.id, 'unoccupiedHeatingSetpoint', 2800);
+            await device.setAttribute(Thermostat.Cluster.id, 'unoccupiedHeatingSetpoint', 2700);
+            await device.setAttribute(Thermostat.Cluster.id, 'unoccupiedCoolingSetpoint', 1600);
+            await device.setAttribute(Thermostat.Cluster.id, 'unoccupiedCoolingSetpoint', 1500);
           }
           await invokeSubscribeHandler(device, 'Thermostat', 'systemMode', Thermostat.SystemMode.Off, Thermostat.SystemMode.Off);
           await invokeSubscribeHandler(device, 'Thermostat', 'occupiedHeatingSetpoint', 2800, 2700);
@@ -399,11 +386,11 @@ describe('TestPlatform', () => {
       for (const preset of presetSetpointChecks) {
         await thermoAutoPreset.invokeBehaviorCommand('Thermostat', 'setActivePresetRequest', { presetHandle: new Uint8Array([preset.handle]) });
 
-        const occupiedHeat = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'occupiedHeatingSetpoint') as number | undefined;
-        const occupiedCool = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'occupiedCoolingSetpoint') as number | undefined;
-        const unoccupiedHeat = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'unoccupiedHeatingSetpoint') as number | undefined;
-        const unoccupiedCool = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'unoccupiedCoolingSetpoint') as number | undefined;
-        const activePresetHandle = thermoAutoPreset.getAttribute(ThermostatCluster.id, 'activePresetHandle') as Uint8Array | null | undefined;
+        const occupiedHeat = thermoAutoPreset.getAttribute(Thermostat.Cluster.id, 'occupiedHeatingSetpoint') as number | undefined;
+        const occupiedCool = thermoAutoPreset.getAttribute(Thermostat.Cluster.id, 'occupiedCoolingSetpoint') as number | undefined;
+        const unoccupiedHeat = thermoAutoPreset.getAttribute(Thermostat.Cluster.id, 'unoccupiedHeatingSetpoint') as number | undefined;
+        const unoccupiedCool = thermoAutoPreset.getAttribute(Thermostat.Cluster.id, 'unoccupiedCoolingSetpoint') as number | undefined;
+        const activePresetHandle = thermoAutoPreset.getAttribute(Thermostat.Cluster.id, 'activePresetHandle') as Uint8Array | null | undefined;
 
         expect(occupiedHeat).toBe(1800);
         expect(occupiedCool).toBe(2200);
@@ -455,12 +442,12 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Fan mode changed from Off to Auto'));
 
     await airConditioner.executeCommandHandler('on', {}, 'onOff', {} as never, airConditioner);
-    expect(airConditioner.getAttribute(ThermostatCluster.id, 'localTemperature')).toBe(20 * 100);
-    expect(airConditioner.getAttribute(FanControlCluster.id, 'percentSetting')).toBe(50);
+    expect(airConditioner.getAttribute(Thermostat.Cluster.id, 'localTemperature')).toBe(20 * 100);
+    expect(airConditioner.getAttribute(FanControl.Cluster.id, 'percentSetting')).toBe(50);
 
     await airConditioner.executeCommandHandler('off', {}, 'onOff', {} as never, airConditioner);
-    expect(airConditioner.getAttribute(ThermostatCluster.id, 'localTemperature')).toBeNull();
-    expect(airConditioner.getAttribute(FanControlCluster.id, 'percentSetting')).toBeNull();
+    expect(airConditioner.getAttribute(Thermostat.Cluster.id, 'localTemperature')).toBeNull();
+    expect(airConditioner.getAttribute(FanControl.Cluster.id, 'percentSetting')).toBeNull();
   }, 30000);
 
   it('should execute basic video player commands', async () => {
