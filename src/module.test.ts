@@ -10,7 +10,7 @@ import path from 'node:path';
 import { jest } from '@jest/globals';
 import { featuresFor, invokeSubscribeHandler, MatterbridgeDoorLockServer, MatterbridgeEndpoint } from 'matterbridge';
 import {
-  addBridgedEndpointSpy,
+  addBridgedEndpointMatterbridgeSpy,
   addMatterbridgePlatform,
   createMatterbridgeEnvironment,
   destroyMatterbridgeEnvironment,
@@ -19,8 +19,8 @@ import {
   loggerLogSpy,
   logKeepAlives,
   matterbridge,
-  removeAllBridgedEndpointsSpy,
-  removeBridgedEndpointSpy,
+  removeAllBridgedEndpointsMatterbridgeSpy,
+  removeBridgedEndpointMatterbridgeSpy,
   setDebug,
   setupTest,
   startMatterbridgeEnvironment,
@@ -98,8 +98,8 @@ describe('TestPlatform', () => {
     config.unregisterOnShutdown = true;
     await dynamicPlatform.onShutdown('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
-    expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(0);
-    expect(removeAllBridgedEndpointsSpy).toHaveBeenCalledTimes(1);
+    expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
+    expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(1);
     config.unregisterOnShutdown = false;
   });
 
@@ -115,14 +115,14 @@ describe('TestPlatform', () => {
     config.blackList = [];
     await dynamicPlatform.onStart();
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'none');
-    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(0);
+    expect(addBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
   });
 
   it('should call onShutdown with reason and cleanup the interval', async () => {
     await dynamicPlatform.onShutdown('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
-    expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(0);
-    expect(removeAllBridgedEndpointsSpy).toHaveBeenCalledTimes(0);
+    expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
+    expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(0);
   });
 
   it('should call onStart with reason and add all the devices', async () => {
@@ -132,7 +132,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
-    expect(addBridgedEndpointSpy).toHaveBeenCalledTimes(70);
+    expect(addBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(70);
     expect(loggerLogSpy).toHaveBeenCalled();
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -512,7 +512,7 @@ describe('TestPlatform', () => {
     await flushAsync();
     await dynamicPlatform.onShutdown('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
-    expect(removeBridgedEndpointSpy).toHaveBeenCalledTimes(0);
-    expect(removeAllBridgedEndpointsSpy).toHaveBeenCalledTimes(0);
+    expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
+    expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(0);
   });
 });
