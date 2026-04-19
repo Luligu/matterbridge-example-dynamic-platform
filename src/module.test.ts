@@ -3,13 +3,13 @@ const MATTER_PORT = 6000;
 const MATTER_CREATE_ONLY = true;
 
 import { jest } from '@jest/globals';
-import { featuresFor, invokeSubscribeHandler, MatterbridgeEndpoint } from 'matterbridge';
+import { featuresFor, invokeSubscribeHandler } from 'matterbridge';
 import {
   addBridgedEndpointMatterbridgeSpy,
   addMatterbridgePlatform,
   createMatterbridgeEnvironment,
   destroyMatterbridgeEnvironment,
-  flushAsync,
+  log,
   loggerInfoSpy,
   loggerLogSpy,
   matterbridge,
@@ -20,7 +20,7 @@ import {
   startMatterbridgeEnvironment,
   stopMatterbridgeEnvironment,
 } from 'matterbridge/jestutils';
-import { AnsiLogger, LogLevel, TimestampFormat } from 'matterbridge/logger';
+import { LogLevel } from 'matterbridge/logger';
 import { ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
 
 import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
@@ -29,9 +29,7 @@ import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlat
 setupTest(NAME, false);
 
 describe('TestPlatform', () => {
-  let device: MatterbridgeEndpoint;
   let dynamicPlatform: ExampleMatterbridgeDynamicPlatform;
-  const log = new AnsiLogger({ logName: NAME, logTimestampFormat: TimestampFormat.TIME_MILLIS, logLevel: LogLevel.DEBUG });
 
   const config: DynamicPlatformConfig = {
     name: 'matterbridge-example-dynamic-platform',
@@ -96,8 +94,6 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
     expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
     expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(1);
-    expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
-    expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(1);
     config.unregisterOnShutdown = false;
   });
 
@@ -114,14 +110,11 @@ describe('TestPlatform', () => {
     await dynamicPlatform.onStart();
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'none');
     expect(addBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
-    expect(addBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
   });
 
   it('should call onShutdown with reason and cleanup the interval', async () => {
     await dynamicPlatform.onShutdown('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
-    expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
-    expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(0);
     expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
     expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(0);
   });
@@ -134,7 +127,6 @@ describe('TestPlatform', () => {
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(addBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(70);
-    expect(addBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(70);
     expect(loggerLogSpy).toHaveBeenCalled();
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -142,7 +134,6 @@ describe('TestPlatform', () => {
   });
 
   it('should execute the commandHandlers', async () => {
-    await flushAsync();
     expect(dynamicPlatform.getDevices()).toHaveLength(70);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
@@ -340,7 +331,6 @@ describe('TestPlatform', () => {
   }, 30000);
 
   it('should execute thermostat preset commands and subscriptions', async () => {
-    await flushAsync();
     // Find the Thermostat (AutoModePresets) device which has presets
     const thermoAutoPreset = dynamicPlatform.getDeviceByName('Thermostat (AutoModePresets)');
     expect(thermoAutoPreset).toBeDefined();
@@ -416,7 +406,6 @@ describe('TestPlatform', () => {
   }, 30000);
 
   it('should execute the remaining thermostat, fan base and air conditioner callbacks', async () => {
-    await flushAsync();
     const thermoHeat = dynamicPlatform.getDeviceByName('Thermostat (Heat)');
     const thermoCool = dynamicPlatform.getDeviceByName('Thermostat (Cool)');
     const fanBase = dynamicPlatform.getDeviceByName('Fan base');
@@ -453,7 +442,6 @@ describe('TestPlatform', () => {
   }, 30000);
 
   it('should execute basic video player commands', async () => {
-    await flushAsync();
     // Find the BasicVideoPlayer device
     const basicVideoPlayer = dynamicPlatform.getDeviceByName('BasicVideoPlayer');
     expect(basicVideoPlayer).toBeDefined();
@@ -481,7 +469,6 @@ describe('TestPlatform', () => {
   }, 30000);
 
   it('should call onConfigure', async () => {
-    await flushAsync();
     await dynamicPlatform.onConfigure();
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
@@ -511,11 +498,8 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
-    await flushAsync();
     await dynamicPlatform.onShutdown('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
-    expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
-    expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(0);
     expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
     expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(0);
   });

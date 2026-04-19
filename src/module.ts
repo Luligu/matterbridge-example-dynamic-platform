@@ -2383,6 +2383,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.intervals.push({ interval, callback });
     return interval;
   }
+
   async executeIntervals(times: number, pauseTime: number = 100) {
     for (let i = 0; i < times; i++) {
       for (const { callback } of this.intervals) {
@@ -2393,6 +2394,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       }
     }
   }
+
   clearIntervals() {
     this.intervals.forEach(({ interval }) => clearInterval(interval));
     this.intervals = [];
