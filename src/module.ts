@@ -1063,11 +1063,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .addRequiredClusterServers();
 
     this.userPinLock = await this.addDevice(this.userPinLock);
-    await this.userPinLock?.setAttribute(
-      PowerSource.Cluster.with(PowerSource.Feature.Rechargeable, PowerSource.Feature.Battery),
-      'batChargeState',
-      PowerSource.BatChargeState.IsCharging,
-    );
+    await this.userPinLock?.setAttribute(PowerSource.Complete, 'batChargeState', PowerSource.BatChargeState.IsCharging);
 
     // The cluster attributes are set by MatterbridgeDoorLockServer
     this.userPinLock?.addCommandHandler('Identify.identify', async ({ request: { identifyTime } }) => {
@@ -1141,7 +1137,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAuto?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
     });
     await this.thermoAuto?.subscribeAttribute(
-      Thermostat.CompleteInstance,
+      Thermostat.Complete,
       'systemMode',
       (value) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
@@ -1150,7 +1146,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAuto.log,
     );
     await this.thermoAuto?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Heating),
+      Thermostat.Cluster.id,
       'occupiedHeatingSetpoint',
       (value) => {
         this.thermoAuto?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
@@ -1158,7 +1154,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAuto.log,
     );
     await this.thermoAuto?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Cooling),
+      Thermostat.Cluster.id,
       'occupiedCoolingSetpoint',
       (value) => {
         this.thermoAuto?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
@@ -1177,7 +1173,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoAutoOccupancy = await this.addDevice(this.thermoAutoOccupancy);
 
     await this.thermoAutoOccupancy?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Heating),
+      Thermostat.Complete,
       'systemMode',
       (value) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
@@ -1186,7 +1182,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAutoOccupancy.log,
     );
     await this.thermoAutoOccupancy?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Heating),
+      Thermostat.Cluster.id,
       'occupiedHeatingSetpoint',
       (value) => {
         this.thermoAutoOccupancy?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
@@ -1194,7 +1190,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAutoOccupancy.log,
     );
     await this.thermoAutoOccupancy?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Cooling),
+      Thermostat.Cluster.id,
       'occupiedCoolingSetpoint',
       (value) => {
         this.thermoAutoOccupancy?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
@@ -1202,7 +1198,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAutoOccupancy.log,
     );
     await this.thermoAutoOccupancy?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Occupancy),
+      Thermostat.Cluster.id,
       'unoccupiedHeatingSetpoint',
       (value) => {
         this.thermoAutoOccupancy?.log.info('Subscribe unoccupiedHeatingSetpoint called with:', value / 100);
@@ -1210,7 +1206,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAutoOccupancy.log,
     );
     await this.thermoAutoOccupancy?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Cooling, Thermostat.Feature.Occupancy),
+      Thermostat.Cluster.id,
       'unoccupiedCoolingSetpoint',
       (value) => {
         this.thermoAutoOccupancy?.log.info('Subscribe unoccupiedCoolingSetpoint called with:', value / 100);
@@ -1358,7 +1354,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAutoPresets?.log.info(`Command setActivePresetRequest called with presetHandle: ${presetHandle ? `0x${Buffer.from(presetHandle).toString('hex')}` : 'null'}`);
     });
     await this.thermoAutoPresets?.subscribeAttribute(
-      Thermostat.CompleteInstance,
+      Thermostat.Complete,
       'systemMode',
       (newValue, oldValue) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
@@ -1367,7 +1363,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAutoPresets.log,
     );
     await this.thermoAutoPresets?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Heating),
+      Thermostat.Cluster.id,
       'occupiedHeatingSetpoint',
       (newValue, oldValue) => {
         this.thermoAutoPresets?.log.info(`Subscribe occupiedHeatingSetpoint called with: ${newValue / 100} (old value: ${oldValue / 100})`);
@@ -1375,7 +1371,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAutoPresets.log,
     );
     await this.thermoAutoPresets?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Cooling),
+      Thermostat.Cluster.id,
       'occupiedCoolingSetpoint',
       (newValue, oldValue) => {
         this.thermoAutoPresets?.log.info(`Subscribe occupiedCoolingSetpoint called with: ${newValue / 100} (old value: ${oldValue / 100})`);
@@ -1383,7 +1379,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAutoPresets.log,
     );
     await this.thermoAutoPresets?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.Presets),
+      Thermostat.Cluster.id,
       'activePresetHandle',
       (newValue, oldValue) => {
         this.thermoAutoPresets?.log.info(
@@ -1393,7 +1389,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoAutoPresets.log,
     );
     await this.thermoAutoPresets?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Heating, Thermostat.Feature.Cooling, Thermostat.Feature.Presets),
+      Thermostat.Cluster.id,
       'presets',
       (newValue, oldValue) => {
         this.thermoAutoPresets?.log.info(`Subscribe presets called with: ${debugStringify(newValue)} (old value: ${debugStringify(oldValue)})`);
@@ -1439,7 +1435,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoHeat?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
     });
     await this.thermoHeat?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Heating),
+      Thermostat.Complete,
       'systemMode',
       (value) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
@@ -1448,7 +1444,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoHeat.log,
     );
     await this.thermoHeat?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Heating),
+      Thermostat.Cluster.id,
       'occupiedHeatingSetpoint',
       (value) => {
         this.thermoHeat?.log.info('Subscribe occupiedHeatingSetpoint called with:', value / 100);
@@ -1474,7 +1470,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoCool?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
     });
     await this.thermoCool?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Cooling),
+      Thermostat.Complete,
       'systemMode',
       (value) => {
         const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
@@ -1483,7 +1479,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.thermoCool.log,
     );
     await this.thermoCool?.subscribeAttribute(
-      Thermostat.Cluster.with(Thermostat.Feature.Cooling),
+      Thermostat.Cluster.id,
       'occupiedCoolingSetpoint',
       (value) => {
         this.thermoCool?.log.info('Subscribe occupiedCoolingSetpoint called with:', value / 100);
