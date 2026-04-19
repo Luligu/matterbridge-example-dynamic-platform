@@ -1,11 +1,6 @@
 const NAME = 'Platform';
 const MATTER_PORT = 6000;
 const MATTER_CREATE_ONLY = true;
-const HOMEDIR = path.join('jest', NAME);
-
-process.argv = ['node', 'platform.test.js', '-novirtual', '-frontend', '0', '-homedir', HOMEDIR, '-port', MATTER_PORT.toString()];
-
-import path from 'node:path';
 
 import { jest } from '@jest/globals';
 import { featuresFor, invokeSubscribeHandler, MatterbridgeEndpoint } from 'matterbridge';
@@ -17,7 +12,6 @@ import {
   flushAsync,
   loggerInfoSpy,
   loggerLogSpy,
-  logKeepAlives,
   matterbridge,
   removeAllBridgedEndpointsMatterbridgeSpy,
   removeBridgedEndpointMatterbridgeSpy,
@@ -52,6 +46,7 @@ describe('TestPlatform', () => {
   };
 
   beforeAll(async () => {
+    // Create Matterbridge environment
     await createMatterbridgeEnvironment();
     await startMatterbridgeEnvironment(MATTER_PORT, MATTER_CREATE_ONLY);
   });
@@ -62,6 +57,7 @@ describe('TestPlatform', () => {
   });
 
   afterAll(async () => {
+    // Destroy Matterbridge environment
     await stopMatterbridgeEnvironment(MATTER_CREATE_ONLY);
     await destroyMatterbridgeEnvironment(undefined, undefined, !MATTER_CREATE_ONLY);
     // Restore all mocks
