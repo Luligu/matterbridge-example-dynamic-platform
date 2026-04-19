@@ -2,7 +2,6 @@ const NAME = 'Platform';
 const MATTER_PORT = 6000;
 const MATTER_CREATE_ONLY = true;
 const HOMEDIR = path.join('jest', NAME);
-const MATTER_CREATE_ONLY = true;
 
 process.argv = ['node', 'platform.test.js', '-novirtual', '-frontend', '0', '-homedir', HOMEDIR, '-port', MATTER_PORT.toString()];
 
@@ -11,7 +10,6 @@ import path from 'node:path';
 import { jest } from '@jest/globals';
 import { featuresFor, invokeSubscribeHandler, MatterbridgeEndpoint } from 'matterbridge';
 import {
-  addBridgedEndpointMatterbridgeSpy,
   addBridgedEndpointMatterbridgeSpy,
   addMatterbridgePlatform,
   createMatterbridgeEnvironment,
@@ -22,8 +20,6 @@ import {
   logKeepAlives,
   matterbridge,
   removeAllBridgedEndpointsMatterbridgeSpy,
-  removeAllBridgedEndpointsMatterbridgeSpy,
-  removeBridgedEndpointMatterbridgeSpy,
   removeBridgedEndpointMatterbridgeSpy,
   setDebug,
   setupTest,
