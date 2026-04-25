@@ -35,7 +35,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Bump package to `automator` v.3.1.6.
 - [package]: Bump `typescript` to v.6.0.3.
 - [package]: Bump `eslint` to v.10.2.1.
-- [package]: Bump `typescript-eslint` to v.8.58.2.
+- [package]: Bump `typescript-eslint` to v.8.59.0.
 - [package]: Add `.vscode\tasks.json`.
 - [package]: Add `.vscode\settings.json`.
 - [devcontainer]: Add `Claude Code for VS Code extension` to Dev Container.
