@@ -32,7 +32,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [package]: Preliminary compatibility update to `matterbridge 3.8.0`, matter 1.5.1 and matter.js 0.17.0.
 - [package]: Update dependencies.
-- [package]: Bump package to `automator` v.3.1.6.
+- [package]: Bump package to `automator` v.3.1.7.
 - [package]: Bump `typescript` to v.6.0.3.
 - [package]: Bump `eslint` to v.10.2.1.
 - [package]: Bump `typescript-eslint` to v.8.59.0.
@@ -43,6 +43,8 @@ If you like this project and find it useful, please consider giving it a star on
 - [agent]: Add `.claude\CLAUDE.md` for claude.
 - [agent]: Add agent custom instructions (`testing`) for copilot and claude.
 - [agent]: Add agent custom instructions (`matterbridge`) for copilot and claude.
+- [eslint]: Remove `eslint-plugin-promise` (not actively maintained) and add optional @typescript-eslint promise rules.
+- [package]: Remove `overrides` that was necessary for eslint-plugin-promise.
 
 ## [2.0.15] - 2026-04-08
 
