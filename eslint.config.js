@@ -154,16 +154,6 @@ export default defineConfig([
     name: 'Markdown Files',
     files: ['**/*.md'],
     plugins: { markdown },
-    extends: ['markdown/recommended'],
-    rules: {
-      'markdown/no-html': 'off', // Allow HTML in Markdown files
-    },
-  },
-  {
-    name: 'Markdown Files with missing labels',
-    files: ['CHANGELOG.md', '**/unit-tests.instructions.md'],
-    rules: {
-      'markdown/no-missing-label-refs': 'off', // Allow missing label references in specific Markdown files since they may contain instructions or changelog entries that don't need to reference other labels
-    },
+    extends: ['markdown/recommended'], // <!-- eslint-disable markdown/no-missing-label-refs -->
   },
 ]);
