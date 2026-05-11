@@ -1,6 +1,6 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "description": "Matterbridge dynamic plugin",
   "author": "https://github.com/Luligu",
   "license": "Apache-2.0",
@@ -144,6 +144,6 @@
     "shx": "0.4.0",
     "ts-jest": "29.4.9",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.59.2"
+    "typescript-eslint": "8.59.3"
   }
 }

@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   publish-release:
-    name: Publish release to npm and trigger matterbridge docker build latest
+    name: Publish release to npm
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     # env:
@@ -72,7 +72,7 @@ jobs:
         run: npm run lint
 
       - name: Test the plugin
-        run: npm run test -- --forceExit --timeout=30000
+        run: npm run test -- --forceExit --testTimeout=30000
 
       - name: Publish the plugin to npm with trusted publishing / OIDC
         run: npm publish
@@ -168,7 +168,7 @@ jobs:
         run: npm run lint
 
       - name: Test the plugin
-        run: npm run test -- --forceExit --timeout=30000
+        run: npm run test -- --forceExit --testTimeout=30000
 
       - name: Extract base version and date
         id: vars

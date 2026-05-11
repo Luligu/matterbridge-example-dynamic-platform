@@ -1,5 +1,5 @@
 // @ts-check
-// eslint.config.js 2.0.2
+// eslint.config.js 2.0.3
 
 // This ESLint configuration is designed for a TypeScript project using ESM modules.
 
@@ -46,7 +46,6 @@ export default defineConfig([
     name: 'JavaScript & TypeScript Source Files',
     files: sourceFiles,
     plugins: {
-      js,
       n,
       jsdoc,
       'simple-import-sort': importsort,
@@ -171,7 +170,7 @@ export default defineConfig([
     ignores: ['**/devcontainer.json', '**/.vscode/*.json', '**/package-lock.json'],
     plugins: { json, prettier },
     language: 'json/json',
-    extends: ['json/recommended'],
+    extends: [json.configs.recommended],
     rules: {
       'json/no-unsafe-values': 'off',
       'prettier/prettier': 'warn', // Use Prettier for formatting
@@ -182,7 +181,7 @@ export default defineConfig([
     files: ['**/*.jsonc', '**/devcontainer.json', '**/.vscode/*.json'],
     plugins: { json, prettier },
     language: 'json/jsonc',
-    extends: ['json/recommended'],
+    extends: [json.configs.recommended],
     rules: {
       'json/no-unsafe-values': 'off',
       'prettier/prettier': 'warn', // Use Prettier for formatting
@@ -192,7 +191,7 @@ export default defineConfig([
     name: 'Markdown Files',
     files: ['**/*.md'],
     plugins: { markdown, prettier },
-    extends: ['markdown/recommended'],
+    extends: [markdown.configs.recommended],
     rules: {
       'prettier/prettier': 'warn', // Use Prettier for formatting
     },
