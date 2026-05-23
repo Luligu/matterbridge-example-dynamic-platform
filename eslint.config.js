@@ -1,5 +1,5 @@
 // @ts-check
-// eslint.config.js 2.0.3
+// eslint.config.js 2.0.4
 
 // This ESLint configuration is designed for a TypeScript project using ESM modules.
 
@@ -69,6 +69,7 @@ export default defineConfig([
           vars: 'all',
           args: 'after-used',
           ignoreRestSiblings: true,
+          reportUsedIgnorePattern: true, // Error when a _ prefixed variable is actually used
           varsIgnorePattern: '^_', // Ignore unused variables starting with _
           argsIgnorePattern: '^_', // Ignore unused arguments starting with _
           caughtErrorsIgnorePattern: '^_', // Ignore unused caught errors starting with _

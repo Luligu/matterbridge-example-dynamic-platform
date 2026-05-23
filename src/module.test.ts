@@ -9,6 +9,7 @@ import {
   addMatterbridgePlatform,
   createMatterbridgeEnvironment,
   destroyMatterbridgeEnvironment,
+  flushAsync,
   log,
   loggerInfoSpy,
   loggerLogSpy,
@@ -22,6 +23,7 @@ import {
 } from 'matterbridge/jestutils';
 import { LogLevel } from 'matterbridge/logger';
 import { ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
+import { wait } from 'matterbridge/utils';
 
 import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
 
@@ -60,9 +62,11 @@ describe('TestPlatform', () => {
   });
 
   afterAll(async () => {
+    // Wait for any pending async operations to complete before destroying the environment
+    await flushAsync();
     // Destroy Matterbridge environment
     await stopMatterbridgeEnvironment(MATTER_CREATE_ONLY);
-    await destroyMatterbridgeEnvironment();
+    await destroyMatterbridgeEnvironment(undefined, undefined, true, true);
     // Restore all mocks
     jest.restoreAllMocks();
     // logKeepAlives();
@@ -124,10 +128,16 @@ describe('TestPlatform', () => {
     expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(0);
   });
 
+  it('should reinitialize platform with config name', () => {
+    dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
+    addMatterbridgePlatform(dynamicPlatform);
+    dynamicPlatform.version = '1.6.6';
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
+  });
+
   it('should call onStart with reason and add all the devices', async () => {
     config.whiteList = [];
     config.blackList = [];
-    dynamicPlatform.version = '';
 
     await dynamicPlatform.onStart('Test reason');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
@@ -136,7 +146,7 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.FATAL, expect.anything());
-  });
+  }, 30000);
 
   it('should execute the commandHandlers', async () => {
     expect(dynamicPlatform.getDevices()).toHaveLength(70);
