@@ -434,7 +434,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - addRequiredClusters is only in Matterbridge 3.8.0
     // istanbul ignore next line
-    if (this.verifyMatterbridgeVersion('3.8.0')) this.switch.addRequiredClusters();
+    if (this.verifyMatterbridgeVersion('3.8.0', false)) this.switch.addRequiredClusters();
     // istanbul ignore next line
     else this.switch.addRequiredClusterServers();
 

@@ -1,4 +1,4 @@
-# Codecov (plugin) v. 2.0.3
+# Codecov (plugin) v. 2.0.4
 # Path: .github/workflows/codecov.yml
 
 name: Codecov
@@ -67,18 +67,15 @@ jobs:
           npm run test:coverage -- --testTimeout=30000
           test -f ./coverage/jest/lcov.info || { echo "::error::Jest ran but lcov.info missing"; exit 1; }
 
-      - name: Run Vitest tests (if no Jest)
-        if: steps.check_configs.outputs.has_vitest == 'true' && steps.check_configs.outputs.has_jest == 'false'
+      - name: Run Vitest tests
+        if: steps.check_configs.outputs.has_vitest == 'true'
         shell: bash
         run: |
-          npm run test:coverage -- --testTimeout=30000
-          test -f ./coverage/vitest/lcov.info || { echo "::error::Vitest ran but lcov.info missing"; exit 1; }
-
-      - name: Run Vitest tests (alongside Jest)
-        if: steps.check_configs.outputs.has_vitest == 'true' && steps.check_configs.outputs.has_jest == 'true'
-        shell: bash
-        run: |
-          npm run test:vitest:coverage -- --testTimeout=30000
+          if [ "${{ steps.check_configs.outputs.has_jest }}" == "true" ]; then
+            npm run test:vitest:coverage -- --testTimeout=30000
+          else
+            npm run test:coverage -- --testTimeout=30000
+          fi
           test -f ./coverage/vitest/lcov.info || { echo "::error::Vitest ran but lcov.info missing"; exit 1; }
 
       - name: Upload coverage to Codecov
