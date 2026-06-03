@@ -132,7 +132,7 @@ import {
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
-import { getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
+import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
 
 /**
  * Convert an illuminance value in lux to the Matter encoded representation used by the
@@ -396,7 +396,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultBridgedDeviceBasicInformationClusterServer('Climate', 'CLI00008', 0xfff1, 'Matterbridge', 'Matterbridge Climate')
       .createDefaultPowerSourceReplaceableBatteryClusterServer(90, PowerSource.BatChargeLevel.Ok, 2990, '2 x AA', 2, PowerSource.BatReplaceability.UserReplaceable)
       .addRequiredClusterServers();
-    this.climate.addFixedLabel('composed', 'Compound device');
+    fireAndForget(this.climate.addFixedLabel('composed', 'Compound device'), this.log, `Failed to add fixed label`);
     this.climate.addChildDeviceType('Temperature', temperatureSensor).createDefaultTemperatureMeasurementClusterServer(2100, -5000, 10000).addRequiredClusterServers();
     this.climate.addChildDeviceType('Humidity', humiditySensor).createDefaultRelativeHumidityMeasurementClusterServer(5000, 0, 10000).addRequiredClusterServers();
     this.climate.addChildDeviceType('Pressure', pressureSensor).createDefaultPressureMeasurementClusterServer(9000).addRequiredClusterServers();
@@ -420,7 +420,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.select = await this.addDevice(this.select);
 
-    this.select?.addCommandHandler('changeToMode', async ({ request: { newMode } }) => {
+    this.select?.addCommandHandler('changeToMode', ({ request: { newMode } }) => {
       this.log.info(`Command changeToMode called newMode:${newMode}`);
     });
 
@@ -431,16 +431,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultOnOffClusterServer()
       .createDefaultPowerSourceWiredClusterServer();
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - addRequiredClusters is only in Matterbridge 3.8.0
+    // istanbul ignore next line
+    if (this.verifyMatterbridgeVersion('3.8.0')) this.switch.addRequiredClusters();
+    // istanbul ignore next line
+    else this.switch.addRequiredClusterServers();
+
     this.switch = await this.addDevice(this.switch);
 
     // The cluster attributes are set by MatterbridgeOnOffServer
-    this.switch?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.switch?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.switch?.addCommandHandler('on', async () => {
+    this.switch?.addCommandHandler('on', () => {
       this.switch?.log.info('Command on called');
     });
-    this.switch?.addCommandHandler('off', async () => {
+    this.switch?.addCommandHandler('off', () => {
       this.switch?.log.info('Command off called');
     });
 
@@ -455,13 +462,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.mountedOnOffSwitch = await this.addDevice(this.mountedOnOffSwitch);
 
     // The cluster attributes are set by MatterbridgeOnOffServer
-    this.mountedOnOffSwitch?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.mountedOnOffSwitch?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.mountedOnOffSwitch?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.mountedOnOffSwitch?.addCommandHandler('on', async () => {
+    this.mountedOnOffSwitch?.addCommandHandler('on', () => {
       this.mountedOnOffSwitch?.log.info('Command on called');
     });
-    this.mountedOnOffSwitch?.addCommandHandler('off', async () => {
+    this.mountedOnOffSwitch?.addCommandHandler('off', () => {
       this.mountedOnOffSwitch?.log.info('Command off called');
     });
 
@@ -476,13 +483,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.mountedOnOffSwitchLegacy = await this.addDevice(this.mountedOnOffSwitchLegacy);
 
     // The cluster attributes are set by MatterbridgeOnOffServer
-    this.mountedOnOffSwitchLegacy?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.mountedOnOffSwitchLegacy?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.mountedOnOffSwitchLegacy?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.mountedOnOffSwitchLegacy?.addCommandHandler('on', async () => {
+    this.mountedOnOffSwitchLegacy?.addCommandHandler('on', () => {
       this.mountedOnOffSwitchLegacy?.log.info('Command on called');
     });
-    this.mountedOnOffSwitchLegacy?.addCommandHandler('off', async () => {
+    this.mountedOnOffSwitchLegacy?.addCommandHandler('off', () => {
       this.mountedOnOffSwitchLegacy?.log.info('Command off called');
     });
 
@@ -498,19 +505,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.mountedDimmerSwitch = await this.addDevice(this.mountedDimmerSwitch);
 
     // The cluster attributes are set by MatterbridgeOnOffServer and MatterbridgeLevelControlServer
-    this.mountedDimmerSwitch?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.mountedDimmerSwitch?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.mountedDimmerSwitch?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.mountedDimmerSwitch?.addCommandHandler('on', async () => {
+    this.mountedDimmerSwitch?.addCommandHandler('on', () => {
       this.mountedDimmerSwitch?.log.info('Command on called');
     });
-    this.mountedDimmerSwitch?.addCommandHandler('off', async () => {
+    this.mountedDimmerSwitch?.addCommandHandler('off', () => {
       this.mountedDimmerSwitch?.log.info('Command off called');
     });
-    this.mountedDimmerSwitch?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+    this.mountedDimmerSwitch?.addCommandHandler('moveToLevel', ({ request: { level } }) => {
       this.mountedDimmerSwitch?.log.debug(`Command moveToLevel called request: ${level}`);
     });
-    this.mountedDimmerSwitch?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+    this.mountedDimmerSwitch?.addCommandHandler('moveToLevelWithOnOff', ({ request: { level } }) => {
       this.mountedDimmerSwitch?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
@@ -530,19 +537,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.mountedDimmerSwitchLegacy = await this.addDevice(this.mountedDimmerSwitchLegacy);
 
     // The cluster attributes are set by MatterbridgeOnOffServer and MatterbridgeLevelControlServer
-    this.mountedDimmerSwitchLegacy?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.mountedDimmerSwitchLegacy?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.mountedDimmerSwitchLegacy?.addCommandHandler('on', async () => {
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('on', () => {
       this.mountedDimmerSwitchLegacy?.log.info('Command on called');
     });
-    this.mountedDimmerSwitchLegacy?.addCommandHandler('off', async () => {
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('off', () => {
       this.mountedDimmerSwitchLegacy?.log.info('Command off called');
     });
-    this.mountedDimmerSwitchLegacy?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('moveToLevel', ({ request: { level } }) => {
       this.mountedDimmerSwitchLegacy?.log.debug(`Command moveToLevel called request: ${level}`);
     });
-    this.mountedDimmerSwitchLegacy?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+    this.mountedDimmerSwitchLegacy?.addCommandHandler('moveToLevelWithOnOff', ({ request: { level } }) => {
       this.mountedDimmerSwitchLegacy?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
@@ -557,13 +564,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightOnOff = await this.addDevice(this.lightOnOff);
 
     // The cluster attributes are set by MatterbridgeOnOffServer
-    this.lightOnOff?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.lightOnOff?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.lightOnOff?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.lightOnOff?.addCommandHandler('on', async () => {
+    this.lightOnOff?.addCommandHandler('on', () => {
       this.lightOnOff?.log.info('Command on called');
     });
-    this.lightOnOff?.addCommandHandler('off', async () => {
+    this.lightOnOff?.addCommandHandler('off', () => {
       this.lightOnOff?.log.info('Command off called');
     });
 
@@ -579,19 +586,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.dimmer = await this.addDevice(this.dimmer);
 
     // The cluster attributes are set by MatterbridgeOnOffServer and MatterbridgeLevelControlServer
-    this.dimmer?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.dimmer?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.dimmer?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.dimmer?.addCommandHandler('on', async () => {
+    this.dimmer?.addCommandHandler('on', () => {
       this.dimmer?.log.info('Command on called');
     });
-    this.dimmer?.addCommandHandler('off', async () => {
+    this.dimmer?.addCommandHandler('off', () => {
       this.dimmer?.log.info('Command off called');
     });
-    this.dimmer?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+    this.dimmer?.addCommandHandler('moveToLevel', ({ request: { level } }) => {
       this.dimmer?.log.debug(`Command moveToLevel called request: ${level}`);
     });
-    this.dimmer?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+    this.dimmer?.addCommandHandler('moveToLevelWithOnOff', ({ request: { level } }) => {
       this.dimmer?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
@@ -608,34 +615,34 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.light = await this.addDevice(this.light);
 
     // The cluster attributes are set by MatterbridgeOnOffServer, MatterbridgeLevelControlServer and MatterbridgeColorControlServer
-    this.light?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.light?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.light?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.light?.addCommandHandler('on', async () => {
+    this.light?.addCommandHandler('on', () => {
       this.light?.log.info('Command on called');
     });
-    this.light?.addCommandHandler('off', async () => {
+    this.light?.addCommandHandler('off', () => {
       this.light?.log.info('Command off called');
     });
-    this.light?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+    this.light?.addCommandHandler('moveToLevel', ({ request: { level } }) => {
       this.light?.log.debug(`Command moveToLevel called request: ${level}`);
     });
-    this.light?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+    this.light?.addCommandHandler('moveToLevelWithOnOff', ({ request: { level } }) => {
       this.light?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
-    this.light?.addCommandHandler('moveToColor', async ({ request: { colorX, colorY } }) => {
+    this.light?.addCommandHandler('moveToColor', ({ request: { colorX, colorY } }) => {
       this.light?.log.debug(`Command moveToColor called request: X ${colorX / 65536} Y ${colorY / 65536}`);
     });
-    this.light?.addCommandHandler('moveToHueAndSaturation', async ({ request: { hue, saturation } }) => {
+    this.light?.addCommandHandler('moveToHueAndSaturation', ({ request: { hue, saturation } }) => {
       this.light?.log.debug(`Command moveToHueAndSaturation called request: hue ${hue} saturation ${saturation}`);
     });
-    this.light?.addCommandHandler('moveToHue', async ({ request: { hue } }) => {
+    this.light?.addCommandHandler('moveToHue', ({ request: { hue } }) => {
       this.light?.log.debug(`Command moveToHue called request: hue ${hue}`);
     });
-    this.light?.addCommandHandler('moveToSaturation', async ({ request: { saturation } }) => {
+    this.light?.addCommandHandler('moveToSaturation', ({ request: { saturation } }) => {
       this.light?.log.debug(`Command moveToSaturation called request: saturation ${saturation}}`);
     });
-    this.light?.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
+    this.light?.addCommandHandler('moveToColorTemperature', ({ request: { colorTemperatureMireds } }) => {
       this.light?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
@@ -652,31 +659,31 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightHS = await this.addDevice(this.lightHS);
 
     // The cluster attributes are set by MatterbridgeOnOffServer, MatterbridgeLevelControlServer and MatterbridgeColorControlServer
-    this.lightHS?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.lightHS?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.lightHS?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.lightHS?.addCommandHandler('on', async () => {
+    this.lightHS?.addCommandHandler('on', () => {
       this.lightHS?.log.info('Command on called');
     });
-    this.lightHS?.addCommandHandler('off', async () => {
+    this.lightHS?.addCommandHandler('off', () => {
       this.lightHS?.log.info('Command off called');
     });
-    this.lightHS?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+    this.lightHS?.addCommandHandler('moveToLevel', ({ request: { level } }) => {
       this.lightHS?.log.debug(`Command moveToLevel called request: ${level}`);
     });
-    this.lightHS?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+    this.lightHS?.addCommandHandler('moveToLevelWithOnOff', ({ request: { level } }) => {
       this.lightHS?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
-    this.lightHS?.addCommandHandler('moveToHueAndSaturation', async ({ request: { hue, saturation } }) => {
+    this.lightHS?.addCommandHandler('moveToHueAndSaturation', ({ request: { hue, saturation } }) => {
       this.lightHS?.log.debug(`Command moveToHueAndSaturation called request: hue ${hue} saturation ${saturation}}`);
     });
-    this.lightHS?.addCommandHandler('moveToHue', async ({ request: { hue } }) => {
+    this.lightHS?.addCommandHandler('moveToHue', ({ request: { hue } }) => {
       this.lightHS?.log.debug(`Command moveToHue called request: hue ${hue}`);
     });
-    this.lightHS?.addCommandHandler('moveToSaturation', async ({ request: { saturation } }) => {
+    this.lightHS?.addCommandHandler('moveToSaturation', ({ request: { saturation } }) => {
       this.lightHS?.log.debug(`Command moveToSaturation called request: saturation ${saturation}`);
     });
-    this.lightHS?.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
+    this.lightHS?.addCommandHandler('moveToColorTemperature', ({ request: { colorTemperatureMireds } }) => {
       this.lightHS?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
@@ -693,25 +700,25 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightXY = await this.addDevice(this.lightXY);
 
     // The cluster attributes are set by MatterbridgeOnOffServer, MatterbridgeLevelControlServer and MatterbridgeColorControlServer
-    this.lightXY?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.lightXY?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.lightXY?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.lightXY?.addCommandHandler('on', async () => {
+    this.lightXY?.addCommandHandler('on', () => {
       this.lightXY?.log.info('Command on called');
     });
-    this.lightXY?.addCommandHandler('off', async () => {
+    this.lightXY?.addCommandHandler('off', () => {
       this.lightXY?.log.info('Command off called');
     });
-    this.lightXY?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+    this.lightXY?.addCommandHandler('moveToLevel', ({ request: { level } }) => {
       this.lightXY?.log.debug(`Command moveToLevel called request: ${level}`);
     });
-    this.lightXY?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+    this.lightXY?.addCommandHandler('moveToLevelWithOnOff', ({ request: { level } }) => {
       this.lightXY?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
-    this.lightXY?.addCommandHandler('moveToColor', async ({ request: { colorX, colorY } }) => {
+    this.lightXY?.addCommandHandler('moveToColor', ({ request: { colorX, colorY } }) => {
       this.lightXY?.log.debug(`Command moveToColor called request: X ${colorX / 65536} Y ${colorY / 65536}`);
     });
-    this.lightXY?.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
+    this.lightXY?.addCommandHandler('moveToColorTemperature', ({ request: { colorTemperatureMireds } }) => {
       this.lightXY?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
@@ -728,22 +735,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lightCT = await this.addDevice(this.lightCT);
 
     // The cluster attributes are set by MatterbridgeOnOffServer, MatterbridgeLevelControlServer and MatterbridgeColorControlServer
-    this.lightCT?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.lightCT?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.lightCT?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.lightCT?.addCommandHandler('on', async () => {
+    this.lightCT?.addCommandHandler('on', () => {
       this.lightCT?.log.info('Command on called');
     });
-    this.lightCT?.addCommandHandler('off', async () => {
+    this.lightCT?.addCommandHandler('off', () => {
       this.lightCT?.log.info('Command off called');
     });
-    this.lightCT?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+    this.lightCT?.addCommandHandler('moveToLevel', ({ request: { level } }) => {
       this.lightCT?.log.debug(`Command moveToLevel called request: ${level}`);
     });
-    this.lightCT?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+    this.lightCT?.addCommandHandler('moveToLevelWithOnOff', ({ request: { level } }) => {
       this.lightCT?.log.debug(`Command moveToLevelWithOnOff called request: ${level}`);
     });
-    this.lightCT?.addCommandHandler('moveToColorTemperature', async ({ request: { colorTemperatureMireds } }) => {
+    this.lightCT?.addCommandHandler('moveToColorTemperature', ({ request: { colorTemperatureMireds } }) => {
       this.lightCT?.log.debug(`Command moveToColorTemperature called request: ${colorTemperatureMireds}`);
     });
 
@@ -758,13 +765,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.outlet = await this.addDevice(this.outlet);
 
     // The cluster attributes are set by MatterbridgeOnOffServer
-    this.outlet?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.outlet?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.outlet?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.outlet?.addCommandHandler('on', async () => {
+    this.outlet?.addCommandHandler('on', () => {
       this.outlet?.log.info('Command on called');
     });
-    this.outlet?.addCommandHandler('off', async () => {
+    this.outlet?.addCommandHandler('off', () => {
       this.outlet?.log.info('Command off called');
     });
 
@@ -781,13 +788,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.outletEnergy = await this.addDevice(this.outletEnergy);
 
     // The cluster attributes are set by MatterbridgeOnOffServer
-    this.outletEnergy?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.outletEnergy?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.outletEnergy?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.outletEnergy?.addCommandHandler('on', async () => {
+    this.outletEnergy?.addCommandHandler('on', () => {
       this.outletEnergy?.log.info('Command on called');
     });
-    this.outletEnergy?.addCommandHandler('off', async () => {
+    this.outletEnergy?.addCommandHandler('off', () => {
       this.outletEnergy?.log.info('Command off called');
     });
 
@@ -804,13 +811,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.outletEnergyApparent = await this.addDevice(this.outletEnergyApparent);
 
     // The cluster attributes are set by MatterbridgeOnOffServer
-    this.outletEnergyApparent?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.outletEnergyApparent?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.outletEnergyApparent?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.outletEnergyApparent?.addCommandHandler('on', async () => {
+    this.outletEnergyApparent?.addCommandHandler('on', () => {
       this.outletEnergyApparent?.log.info('Command on called');
     });
-    this.outletEnergyApparent?.addCommandHandler('off', async () => {
+    this.outletEnergyApparent?.addCommandHandler('off', () => {
       this.outletEnergyApparent?.log.info('Command off called');
     });
 
@@ -821,7 +828,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
       .createDefaultElectricalPowerMeasurementClusterServer(220_000, 0, 0, 50_000)
       .addRequiredClusterServers();
-    this.smartOutlet.addFixedLabel('composed', 'Compound device');
+    fireAndForget(this.smartOutlet.addFixedLabel('composed', 'Compound device'), this.log, `Failed to add fixed label`);
 
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 1', onOffOutlet, [OnOffCluster.id], {
@@ -855,7 +862,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultBridgedDeviceBasicInformationClusterServer('Bridged outlet', 'BOU00064', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
-    this.smartBridgedOutlet.addFixedLabel('composed', 'Bridged device');
+    fireAndForget(this.smartBridgedOutlet.addFixedLabel('composed', 'Bridged device'), this.log, `Failed to add fixed label`);
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 1', [onOffOutlet, bridgedNode], [OnOffCluster.id], {
         id: 'Plug1',
@@ -899,13 +906,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.coverLift = await this.addDevice(this.coverLift);
 
     // The cluster attributes are set by MatterbridgeLiftWindowCoveringServer.  The implementation shall handle the movement (i.e. the currentPosition).
-    this.coverLift?.addCommandHandler('identify', async ({ request: { identifyTime }, attributes }) => {
+    this.coverLift?.addCommandHandler('identify', ({ request: { identifyTime }, attributes }) => {
       attributes.identifyTime = 0;
       attributes.identifyType = Identify.IdentifyType.None;
       this.coverLift?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
 
-    this.coverLift?.addCommandHandler('stopMotion', async ({ attributes }) => {
+    this.coverLift?.addCommandHandler('stopMotion', ({ attributes }) => {
       this.coverLift?.log.info(`Command stopMotion called`);
       attributes.targetPositionLiftPercent100ths = attributes.currentPositionLiftPercent100ths;
       attributes.operationalStatus = {
@@ -916,7 +923,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLift?.log.info(`Command stopMotion executed`);
     });
 
-    this.coverLift?.addCommandHandler('downOrClose', async ({ attributes }) => {
+    this.coverLift?.addCommandHandler('downOrClose', ({ attributes }) => {
       this.coverLift?.log.info(`Command downOrClose called`);
       attributes.currentPositionLiftPercent100ths = 10000;
       attributes.operationalStatus = {
@@ -927,7 +934,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLift?.log.info(`Command downOrClose executed`);
     });
 
-    this.coverLift?.addCommandHandler('upOrOpen', async ({ attributes }) => {
+    this.coverLift?.addCommandHandler('upOrOpen', ({ attributes }) => {
       this.coverLift?.log.info(`Command upOrOpen called`);
       attributes.currentPositionLiftPercent100ths = 0;
       attributes.operationalStatus = {
@@ -938,7 +945,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLift?.log.info(`Command upOrOpen executed`);
     });
 
-    this.coverLift?.addCommandHandler('goToLiftPercentage', async ({ request: { liftPercent100thsValue }, attributes }) => {
+    this.coverLift?.addCommandHandler('goToLiftPercentage', ({ request: { liftPercent100thsValue }, attributes }) => {
       this.coverLift?.log.info(`Command goToLiftPercentage called with liftPercent100thsValue:${liftPercent100thsValue}`);
       attributes.currentPositionLiftPercent100ths = liftPercent100thsValue;
       attributes.operationalStatus = {
@@ -961,13 +968,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.coverLiftTilt = await this.addDevice(this.coverLiftTilt);
 
     // The cluster attributes are set by MatterbridgeLiftTiltWindowCoveringServer. The implementation shall handle the movement (i.e. the currentPosition).
-    this.coverLiftTilt?.addCommandHandler('identify', async ({ request: { identifyTime }, attributes }) => {
+    this.coverLiftTilt?.addCommandHandler('identify', ({ request: { identifyTime }, attributes }) => {
       this.coverLiftTilt?.log.info(`Command identify called identifyTime:${identifyTime}`);
       attributes.identifyTime = 0;
       attributes.identifyType = Identify.IdentifyType.None;
     });
 
-    this.coverLiftTilt?.addCommandHandler('stopMotion', async ({ attributes }) => {
+    this.coverLiftTilt?.addCommandHandler('stopMotion', ({ attributes }) => {
       this.coverLiftTilt?.log.info(`Command stopMotion called`);
       attributes.targetPositionLiftPercent100ths = attributes.currentPositionLiftPercent100ths;
       attributes.targetPositionTiltPercent100ths = attributes.currentPositionTiltPercent100ths;
@@ -979,7 +986,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLiftTilt?.log.info(`Command stopMotion executed`);
     });
 
-    this.coverLiftTilt?.addCommandHandler('downOrClose', async ({ attributes }) => {
+    this.coverLiftTilt?.addCommandHandler('downOrClose', ({ attributes }) => {
       this.coverLiftTilt?.log.info(`Command downOrClose called`);
       attributes.currentPositionLiftPercent100ths = 10000;
       attributes.currentPositionTiltPercent100ths = 10000;
@@ -991,7 +998,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLiftTilt?.log.info(`Command downOrClose executed`);
     });
 
-    this.coverLiftTilt?.addCommandHandler('upOrOpen', async ({ attributes }) => {
+    this.coverLiftTilt?.addCommandHandler('upOrOpen', ({ attributes }) => {
       this.coverLiftTilt?.log.info(`Command upOrOpen called`);
       attributes.currentPositionLiftPercent100ths = 0;
       attributes.currentPositionTiltPercent100ths = 0;
@@ -1003,7 +1010,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLiftTilt?.log.info(`Command upOrOpen executed`);
     });
 
-    this.coverLiftTilt?.addCommandHandler('goToLiftPercentage', async ({ request: { liftPercent100thsValue }, attributes }) => {
+    this.coverLiftTilt?.addCommandHandler('goToLiftPercentage', ({ request: { liftPercent100thsValue }, attributes }) => {
       this.coverLiftTilt?.log.info(`Command goToLiftPercentage called with liftPercent100thsValue:${liftPercent100thsValue}`);
       attributes.currentPositionLiftPercent100ths = liftPercent100thsValue;
       attributes.operationalStatus = {
@@ -1014,7 +1021,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.coverLiftTilt?.log.info(`Command goToLiftPercentage with ${liftPercent100thsValue} executed`);
     });
 
-    this.coverLiftTilt?.addCommandHandler('goToTiltPercentage', async ({ request: { tiltPercent100thsValue }, attributes }) => {
+    this.coverLiftTilt?.addCommandHandler('goToTiltPercentage', ({ request: { tiltPercent100thsValue }, attributes }) => {
       this.coverLiftTilt?.log.info(`Command goToTiltPercentage called with tiltPercent100thsValue:${tiltPercent100thsValue}`);
       attributes.currentPositionTiltPercent100ths = tiltPercent100thsValue;
       attributes.operationalStatus = {
@@ -1036,13 +1043,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.lock = await this.addDevice(this.lock);
 
     // The cluster attributes are set by MatterbridgeDoorLockServer
-    this.lock?.addCommandHandler('Identify.identify', async ({ request: { identifyTime } }) => {
+    this.lock?.addCommandHandler('Identify.identify', ({ request: { identifyTime } }) => {
       this.lock?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.lock?.addCommandHandler('DoorLock.lockDoor', async () => {
+    this.lock?.addCommandHandler('DoorLock.lockDoor', () => {
       this.lock?.log.info('Command lockDoor called');
     });
-    this.lock?.addCommandHandler('DoorLock.unlockDoor', async () => {
+    this.lock?.addCommandHandler('DoorLock.unlockDoor', () => {
       this.lock?.log.info('Command unlockDoor called');
     });
     await this.lock?.subscribeAttribute(
@@ -1066,13 +1073,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.userPinLock?.setAttribute(PowerSource.Complete, 'batChargeState', PowerSource.BatChargeState.IsCharging);
 
     // The cluster attributes are set by MatterbridgeDoorLockServer
-    this.userPinLock?.addCommandHandler('Identify.identify', async ({ request: { identifyTime } }) => {
+    this.userPinLock?.addCommandHandler('Identify.identify', ({ request: { identifyTime } }) => {
       this.userPinLock?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.userPinLock?.addCommandHandler('DoorLock.lockDoor', async () => {
+    this.userPinLock?.addCommandHandler('DoorLock.lockDoor', () => {
       this.userPinLock?.log.info('Command lockDoor called');
     });
-    this.userPinLock?.addCommandHandler('DoorLock.unlockDoor', async () => {
+    this.userPinLock?.addCommandHandler('DoorLock.unlockDoor', () => {
       this.userPinLock?.log.info('Command unlockDoor called');
     });
     await this.userPinLock?.subscribeAttribute(
@@ -1126,13 +1133,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoAuto = await this.addDevice(this.thermoAuto);
 
     // The cluster attributes are set by MatterbridgeThermostatServer
-    this.thermoAuto?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.thermoAuto?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.thermoAuto?.log.info(`Command identify called identifyTime ${identifyTime}`);
     });
-    this.thermoAuto?.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+    this.thermoAuto?.addCommandHandler('triggerEffect', ({ request: { effectIdentifier, effectVariant } }) => {
       this.thermoAuto?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
     });
-    this.thermoAuto?.addCommandHandler('setpointRaiseLower', async ({ request: { mode, amount } }) => {
+    this.thermoAuto?.addCommandHandler('setpointRaiseLower', ({ request: { mode, amount } }) => {
       const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
       this.thermoAuto?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
     });
@@ -1339,18 +1346,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     }
 
     // The cluster attributes are set by MatterbridgeThermostatServer
-    this.thermoAutoPresets?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.thermoAutoPresets?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.thermoAutoPresets?.log.info(`Command identify called identifyTime ${identifyTime}`);
     });
-    this.thermoAutoPresets?.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+    this.thermoAutoPresets?.addCommandHandler('triggerEffect', ({ request: { effectIdentifier, effectVariant } }) => {
       this.thermoAutoPresets?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
     });
-    this.thermoAutoPresets?.addCommandHandler('setpointRaiseLower', async ({ request: { mode, amount } }) => {
+    this.thermoAutoPresets?.addCommandHandler('setpointRaiseLower', ({ request: { mode, amount } }) => {
       const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
       this.thermoAutoPresets?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
     });
     // Mirror the Matter SetActivePresetRequest command into the activePresetHandle attribute and update setpoints
-    this.thermoAutoPresets?.addCommandHandler('setActivePresetRequest', async ({ request: { presetHandle } }) => {
+    this.thermoAutoPresets?.addCommandHandler('setActivePresetRequest', ({ request: { presetHandle } }) => {
       this.thermoAutoPresets?.log.info(`Command setActivePresetRequest called with presetHandle: ${presetHandle ? `0x${Buffer.from(presetHandle).toString('hex')}` : 'null'}`);
     });
     await this.thermoAutoPresets?.subscribeAttribute(
@@ -1428,10 +1435,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoHeat = await this.addDevice(this.thermoHeat);
 
     // The cluster attributes are set by MatterbridgeThermostatServer
-    this.thermoHeat?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.thermoHeat?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.thermoHeat?.log.info(`Command identify called identifyTime ${identifyTime}`);
     });
-    this.thermoHeat?.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+    this.thermoHeat?.addCommandHandler('triggerEffect', ({ request: { effectIdentifier, effectVariant } }) => {
       this.thermoHeat?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
     });
     await this.thermoHeat?.subscribeAttribute(
@@ -1463,10 +1470,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoCool = await this.addDevice(this.thermoCool);
 
     // The cluster attributes are set by MatterbridgeThermostatServer
-    this.thermoCool?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.thermoCool?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.thermoCool?.log.info(`Command identify called identifyTime ${identifyTime}`);
     });
-    this.thermoCool?.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+    this.thermoCool?.addCommandHandler('triggerEffect', ({ request: { effectIdentifier, effectVariant } }) => {
       this.thermoCool?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
     });
     await this.thermoCool?.subscribeAttribute(
@@ -1496,7 +1503,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultActivatedCarbonFilterMonitoringClusterServer()
       .createDefaultHepaFilterMonitoringClusterServer()
       .addRequiredClusterServers();
-    this.airPurifier.addFixedLabel('composed', 'Compound device');
+    fireAndForget(this.airPurifier.addFixedLabel('composed', 'Compound device'), this.log, `Failed to add fixed label`);
     this.airPurifier.addChildDeviceType('AirQuality', airQualitySensor).createDefaultAirQualityClusterServer(AirQuality.AirQualityEnum.Good).addRequiredClusterServers();
     this.airPurifier
       .addChildDeviceType('Temperature', temperatureSensor)
@@ -1509,42 +1516,44 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.airPurifier = await this.addDevice(this.airPurifier);
 
-    this.airPurifier?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.airPurifier?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.airPurifier?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     // Apple sends Off, High and Auto
     await this.airPurifier?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
-        this.airPurifier?.log.info(
-          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
-        );
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (newValue === FanControl.FanMode.Off) {
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.airPurifier?.log);
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airPurifier?.log);
-        } else if (newValue === FanControl.FanMode.Low) {
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.airPurifier?.log);
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airPurifier?.log);
-        } else if (newValue === FanControl.FanMode.Medium) {
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.airPurifier?.log);
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airPurifier?.log);
-        } else if (newValue === FanControl.FanMode.High || newValue === FanControl.FanMode.On || newValue === FanControl.FanMode.Auto) {
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airPurifier?.log);
-          this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
-        }
-      },
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
+        void (async () => {
+          this.airPurifier?.log.info(
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+          );
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (newValue === FanControl.FanMode.Off) {
+            await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.airPurifier?.log);
+            await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airPurifier?.log);
+          } else if (newValue === FanControl.FanMode.Low) {
+            await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.airPurifier?.log);
+            await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airPurifier?.log);
+          } else if (newValue === FanControl.FanMode.Medium) {
+            await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.airPurifier?.log);
+            await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airPurifier?.log);
+          } else if (newValue === FanControl.FanMode.High || newValue === FanControl.FanMode.On || newValue === FanControl.FanMode.Auto) {
+            await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airPurifier?.log);
+            await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airPurifier?.log);
+          }
+        })(),
       this.airPurifier.log,
     );
     await this.airPurifier?.subscribeAttribute(
       FanControl.Cluster.id,
       'percentSetting',
-      (newValue: number | null, oldValue: number | null, context) => {
-        this.airPurifier?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (isValidNumber(newValue, 0, 100)) this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airPurifier?.log);
-      },
+      (newValue: number | null, oldValue: number | null, context) =>
+        void (async () => {
+          this.airPurifier?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (isValidNumber(newValue, 0, 100)) await this.airPurifier?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airPurifier?.log);
+        })(),
       this.airPurifier.log,
     );
 
@@ -1560,19 +1569,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.pump = await this.addDevice(this.pump);
 
-    this.pump?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.pump?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.pump?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
-    this.pump?.addCommandHandler('on', async () => {
+    this.pump?.addCommandHandler('on', () => {
       this.pump?.log.info('Command on called');
     });
-    this.pump?.addCommandHandler('off', async () => {
+    this.pump?.addCommandHandler('off', () => {
       this.pump?.log.info('Command off called');
     });
-    this.pump?.addCommandHandler('moveToLevel', async ({ request: { level } }) => {
+    this.pump?.addCommandHandler('moveToLevel', ({ request: { level } }) => {
       this.pump?.log.info(`Command moveToLevel called request: ${level}`);
     });
-    this.pump?.addCommandHandler('moveToLevelWithOnOff', async ({ request: { level } }) => {
+    this.pump?.addCommandHandler('moveToLevelWithOnOff', ({ request: { level } }) => {
       this.pump?.log.info(`Command moveToLevelWithOnOff called request: ${level}`);
     });
 
@@ -1586,7 +1595,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.valve = await this.addDevice(this.valve);
 
-    this.valve?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.valve?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.valve?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
 
@@ -1602,42 +1611,44 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.fanDefault?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
-        this.fanDefault?.log.info(
-          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
-        );
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (newValue === FanControl.FanMode.Off) {
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanDefault?.log);
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanDefault?.log);
-        } else if (newValue === FanControl.FanMode.Low) {
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanDefault?.log);
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanDefault?.log);
-        } else if (newValue === FanControl.FanMode.Medium) {
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanDefault?.log);
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanDefault?.log);
-        } else if (newValue === FanControl.FanMode.High) {
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
-        } else if (newValue === FanControl.FanMode.On) {
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanDefault?.log);
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
-        } else if (newValue === FanControl.FanMode.Auto) {
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanDefault?.log);
-          this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanDefault?.log);
-        }
-      },
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
+        void (async () => {
+          this.fanDefault?.log.info(
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+          );
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (newValue === FanControl.FanMode.Off) {
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanDefault?.log);
+          } else if (newValue === FanControl.FanMode.Low) {
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanDefault?.log);
+          } else if (newValue === FanControl.FanMode.Medium) {
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanDefault?.log);
+          } else if (newValue === FanControl.FanMode.High) {
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
+          } else if (newValue === FanControl.FanMode.On) {
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
+          } else if (newValue === FanControl.FanMode.Auto) {
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanDefault?.log);
+          }
+        })(),
       this.fanDefault.log,
     );
     await this.fanDefault?.subscribeAttribute(
       FanControl.Cluster.id,
       'percentSetting',
-      (newValue: number | null, oldValue: number | null, context) => {
-        this.fanDefault?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (isValidNumber(newValue, 0, 100)) this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanDefault?.log);
-      },
+      (newValue: number | null, oldValue: number | null, context) =>
+        void (async () => {
+          this.fanDefault?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (isValidNumber(newValue, 0, 100)) await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanDefault?.log);
+        })(),
       this.fanDefault.log,
     );
 
@@ -1653,42 +1664,44 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.fanBase?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
-        this.fanBase?.log.info(
-          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
-        );
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (newValue === FanControl.FanMode.Off) {
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanBase?.log);
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanBase?.log);
-        } else if (newValue === FanControl.FanMode.Low) {
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanBase?.log);
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanBase?.log);
-        } else if (newValue === FanControl.FanMode.Medium) {
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanBase?.log);
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanBase?.log);
-        } else if (newValue === FanControl.FanMode.High) {
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
-        } else if (newValue === FanControl.FanMode.On) {
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
-        } else if (newValue === FanControl.FanMode.Auto) {
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanBase?.log);
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanBase?.log);
-        }
-      },
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
+        void (async () => {
+          this.fanBase?.log.info(
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+          );
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (newValue === FanControl.FanMode.Off) {
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanBase?.log);
+          } else if (newValue === FanControl.FanMode.Low) {
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanBase?.log);
+          } else if (newValue === FanControl.FanMode.Medium) {
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanBase?.log);
+          } else if (newValue === FanControl.FanMode.High) {
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
+          } else if (newValue === FanControl.FanMode.On) {
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
+          } else if (newValue === FanControl.FanMode.Auto) {
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanBase?.log);
+          }
+        })(),
       this.fanBase.log,
     );
     await this.fanBase?.subscribeAttribute(
       FanControl.Cluster.id,
       'percentSetting',
-      (newValue: number | null, oldValue: number | null, context) => {
-        this.fanBase?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (isValidNumber(newValue, 0, 100)) this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanBase?.log);
-      },
+      (newValue: number | null, oldValue: number | null, context) =>
+        void (async () => {
+          this.fanBase?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (isValidNumber(newValue, 0, 100)) await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanBase?.log);
+        })(),
       this.fanBase.log,
     );
 
@@ -1704,37 +1717,39 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.fanOnHigh?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
-        this.fanOnHigh?.log.info(
-          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
-        );
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (newValue === FanControl.FanMode.Off) {
-          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanOnHigh?.log);
-          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanOnHigh?.log);
-        } else if (newValue === FanControl.FanMode.High) {
-          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanOnHigh?.log);
-          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanOnHigh?.log);
-        } else if (newValue === FanControl.FanMode.On) {
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
-          this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
-        }
-      },
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
+        void (async () => {
+          this.fanOnHigh?.log.info(
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+          );
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (newValue === FanControl.FanMode.Off) {
+            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanOnHigh?.log);
+          } else if (newValue === FanControl.FanMode.High) {
+            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanOnHigh?.log);
+          } else if (newValue === FanControl.FanMode.On) {
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
+          }
+        })(),
       this.fanOnHigh.log,
     );
     await this.fanOnHigh?.subscribeAttribute(
       FanControl.Cluster.id,
       'percentSetting',
-      (newValue: number | null, oldValue: number | null, context) => {
-        this.fanOnHigh?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (isValidNumber(newValue, 0, 100)) {
-          if (newValue > 0) newValue = 100; // OnOff fan control only supports 0 and 100
-          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanOnHigh?.log);
-          this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', newValue, this.fanOnHigh?.log);
-        }
-      },
+      (newValue: number | null, oldValue: number | null, context) =>
+        void (async () => {
+          this.fanOnHigh?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (isValidNumber(newValue, 0, 100)) {
+            if (newValue > 0) newValue = 100; // OnOff fan control only supports 0 and 100
+            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', newValue, this.fanOnHigh?.log);
+          }
+        })(),
       this.fanOnHigh.log,
     );
 
@@ -1750,42 +1765,44 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.fanComplete?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
-        this.fanComplete?.log.info(
-          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
-        );
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (newValue === FanControl.FanMode.Off) {
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanComplete?.log);
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanComplete?.log);
-        } else if (newValue === FanControl.FanMode.Low) {
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanComplete?.log);
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanComplete?.log);
-        } else if (newValue === FanControl.FanMode.Medium) {
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanComplete?.log);
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanComplete?.log);
-        } else if (newValue === FanControl.FanMode.High) {
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
-        } else if (newValue === FanControl.FanMode.On) {
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanComplete?.log);
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
-        } else if (newValue === FanControl.FanMode.Auto) {
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanComplete?.log);
-          this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanComplete?.log);
-        }
-      },
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
+        void (async () => {
+          this.fanComplete?.log.info(
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+          );
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (newValue === FanControl.FanMode.Off) {
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanComplete?.log);
+          } else if (newValue === FanControl.FanMode.Low) {
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanComplete?.log);
+          } else if (newValue === FanControl.FanMode.Medium) {
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanComplete?.log);
+          } else if (newValue === FanControl.FanMode.High) {
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
+          } else if (newValue === FanControl.FanMode.On) {
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
+          } else if (newValue === FanControl.FanMode.Auto) {
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanComplete?.log);
+          }
+        })(),
       this.fanComplete?.log,
     );
     await this.fanComplete?.subscribeAttribute(
       FanControl.Cluster.id,
       'percentSetting',
-      (newValue: number | null, oldValue: number | null, context) => {
-        this.fanComplete?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (isValidNumber(newValue, 0, 100)) this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanComplete?.log);
-      },
+      (newValue: number | null, oldValue: number | null, context) =>
+        void (async () => {
+          this.fanComplete?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (isValidNumber(newValue, 0, 100)) await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanComplete?.log);
+        })(),
       this.fanComplete?.log,
     );
     await this.fanComplete?.subscribeAttribute(
@@ -1903,7 +1920,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Momentary switch composed' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Momentary switch', 'MOS00041', 0xfff1, 'Matterbridge', 'Matterbridge Momentary Switch')
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
-    this.momentarySwitch.addFixedLabel('composed', 'Compound device');
+    fireAndForget(this.momentarySwitch.addFixedLabel('composed', 'Compound device'), this.log, `Failed to add fixed label`);
 
     this.momentarySwitch
       .addChildDeviceType('Momentary switch 1', [genericSwitch], {
@@ -2278,7 +2295,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.airConditioner = await this.addDevice(this.airConditioner);
 
-    this.airConditioner?.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.airConditioner?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.airConditioner?.log.info(`Command identify called identifyTime:${identifyTime}`);
     });
     // Dead front OnOff cluster
@@ -2300,41 +2317,43 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.airConditioner?.subscribeAttribute(
       FanControl.Cluster.id,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
-        this.airConditioner?.log.info(
-          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
-        );
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (newValue === FanControl.FanMode.Off) {
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.airConditioner?.log);
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airConditioner?.log);
-        } else if (newValue === FanControl.FanMode.Low) {
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.airConditioner?.log);
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airConditioner?.log);
-        } else if (newValue === FanControl.FanMode.Medium) {
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.airConditioner?.log);
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airConditioner?.log);
-        } else if (newValue === FanControl.FanMode.High) {
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airConditioner?.log);
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airConditioner?.log);
-        } else if (newValue === FanControl.FanMode.On) {
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airConditioner?.log);
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airConditioner?.log);
-        } else if (newValue === FanControl.FanMode.Auto) {
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.airConditioner?.log);
-          this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.airConditioner?.log);
-        }
-      },
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
+        void (async () => {
+          this.airConditioner?.log.info(
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+          );
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (newValue === FanControl.FanMode.Off) {
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.airConditioner?.log);
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.airConditioner?.log);
+          } else if (newValue === FanControl.FanMode.Low) {
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.airConditioner?.log);
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.airConditioner?.log);
+          } else if (newValue === FanControl.FanMode.Medium) {
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.airConditioner?.log);
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.airConditioner?.log);
+          } else if (newValue === FanControl.FanMode.High) {
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airConditioner?.log);
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airConditioner?.log);
+          } else if (newValue === FanControl.FanMode.On) {
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.airConditioner?.log);
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.airConditioner?.log);
+          } else if (newValue === FanControl.FanMode.Auto) {
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentSetting', 50, this.airConditioner?.log);
+            await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.airConditioner?.log);
+          }
+        })(),
       this.airConditioner?.log,
     );
     await this.airConditioner?.subscribeAttribute(
       FanControl.Cluster.id,
       'percentSetting',
-      (newValue: number | null, oldValue: number | null, context) => {
-        this.airConditioner?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-        if (context.offline === true) return; // Do not set attributes when offline
-        if (isValidNumber(newValue, 0, 100)) this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airConditioner?.log);
-      },
+      (newValue: number | null, oldValue: number | null, context) =>
+        void (async () => {
+          this.airConditioner?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
+          if (context.offline === true) return; // Do not set attributes when offline
+          if (isValidNumber(newValue, 0, 100)) await this.airConditioner?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.airConditioner?.log);
+        })(),
       this.airConditioner?.log,
     );
 
@@ -2342,28 +2361,28 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.basicVideoPlayer = new BasicVideoPlayer('BasicVideoPlayer', 'BVP00062');
     this.basicVideoPlayer = (await this.addDevice(this.basicVideoPlayer)) as BasicVideoPlayer | undefined;
     this.basicVideoPlayer
-      ?.addCommandHandler('MediaPlayback.play', async () => {
+      ?.addCommandHandler('MediaPlayback.play', () => {
         this.basicVideoPlayer?.log.info(`Command play called`);
       })
-      .addCommandHandler('MediaPlayback.pause', async () => {
+      .addCommandHandler('MediaPlayback.pause', () => {
         this.basicVideoPlayer?.log.info(`Command pause called`);
       })
-      .addCommandHandler('MediaPlayback.stop', async () => {
+      .addCommandHandler('MediaPlayback.stop', () => {
         this.basicVideoPlayer?.log.info(`Command stop called`);
       })
-      .addCommandHandler('MediaPlayback.previous', async () => {
+      .addCommandHandler('MediaPlayback.previous', () => {
         this.basicVideoPlayer?.log.info(`Command previous called`);
       })
-      .addCommandHandler('MediaPlayback.next', async () => {
+      .addCommandHandler('MediaPlayback.next', () => {
         this.basicVideoPlayer?.log.info(`Command next called`);
       })
-      .addCommandHandler('MediaPlayback.skipForward', async () => {
+      .addCommandHandler('MediaPlayback.skipForward', () => {
         this.basicVideoPlayer?.log.info(`Command skipForward called`);
       })
-      .addCommandHandler('MediaPlayback.skipBackward', async () => {
+      .addCommandHandler('MediaPlayback.skipBackward', () => {
         this.basicVideoPlayer?.log.info(`Command skipBackward called`);
       })
-      .addCommandHandler('KeypadInput.sendKey', async ({ request: { keyCode } }) => {
+      .addCommandHandler('KeypadInput.sendKey', ({ request: { keyCode } }) => {
         this.basicVideoPlayer?.log.info(`Command sendKey with ${keyCode} called`);
       });
 
@@ -2379,7 +2398,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   // This is just a helper to execute the intervals callbacks immediately without waiting for the interval time, useful for testing
   intervals: { interval: NodeJS.Timeout; callback: () => Promise<void> }[] = [];
   addInterval(callback: () => Promise<void>, intervalTime: number) {
-    const interval = setInterval(callback, intervalTime);
+    const interval = setInterval(() => fireAndForget(callback(), this.log, `Failed to execute interval callback`), intervalTime);
     this.intervals.push({ interval, callback });
     return interval;
   }
@@ -2939,7 +2958,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // istanbul ignore next if cause no runningState attribute before 3.3.3
     if (this.thermoAuto?.hasAttributeServer(ThermostatCluster.id, 'thermostatRunningState')) {
       const runningState = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'thermostatRunningState', this.thermoAuto.log);
-      this.thermoAuto?.setAttribute(ThermostatCluster.id, 'thermostatRunningState', { ...runningState, heat: true }, this.thermoAuto.log);
+      await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'thermostatRunningState', { ...runningState, heat: true }, this.thermoAuto.log);
     }
 
     this.thermoAuto?.log.info('Set thermostat initial localTemperature to 16°C, mode Auto and heat runningState to true');
@@ -3002,7 +3021,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             const runningState = this.thermoAuto?.getAttribute(ThermostatCluster.id, 'thermostatRunningState', this.thermoAuto.log);
             runningState.heat = !runningState?.heat;
             runningState.cool = !runningState?.cool;
-            this.thermoAuto?.setAttribute(ThermostatCluster.id, 'thermostatRunningState', runningState, this.thermoAuto.log);
+            await this.thermoAuto?.setAttribute(ThermostatCluster.id, 'thermostatRunningState', runningState, this.thermoAuto.log);
           }
         },
         60 * 1000 + 600,
