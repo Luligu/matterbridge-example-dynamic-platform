@@ -63,14 +63,14 @@ describe('TestPlatform', () => {
 
   afterAll(async () => {
     // Wait for any pending async operations to complete before destroying the environment
-    await flushAsync();
+    await flushAsync(10, 10, 2000);
     // Destroy Matterbridge environment
     await stopMatterbridgeEnvironment(MATTER_CREATE_ONLY);
-    await destroyMatterbridgeEnvironment(undefined, undefined, true, true);
+    await destroyMatterbridgeEnvironment(1000, 1000, true, true);
     // Restore all mocks
     jest.restoreAllMocks();
     // logKeepAlives();
-  });
+  }, 60000);
 
   it('should return an instance of the platform', async () => {
     dynamicPlatform = initializePlugin(matterbridge, log, config);
@@ -517,5 +517,7 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
     expect(removeBridgedEndpointMatterbridgeSpy).toHaveBeenCalledTimes(0);
     expect(removeAllBridgedEndpointsMatterbridgeSpy).toHaveBeenCalledTimes(0);
+    // Wait for any pending async operations to complete before destroying the environment
+    await flushAsync(10, 10, 2000);
   });
 });
