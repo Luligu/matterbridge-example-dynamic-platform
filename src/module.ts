@@ -286,9 +286,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.7.2')) {
+    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.8.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.7.2". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.8.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -428,15 +428,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.switch = new MatterbridgeEndpoint([onOffSwitch, bridgedNode, powerSource], { id: 'Switch' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Switch', 'SWI00010', 0xfff1, 'Matterbridge', 'Matterbridge Switch')
-      .createDefaultOnOffClusterServer()
-      .createDefaultPowerSourceWiredClusterServer();
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore - addRequiredClusters is only in Matterbridge 3.8.0
-    // istanbul ignore next line
-    if (this.verifyMatterbridgeVersion('3.8.0', false)) this.switch.addRequiredClusters();
-    // istanbul ignore next line
-    else this.switch.addRequiredClusterServers();
+      .createDefaultOnOffClusterServer() // Extraneous cluster added for Apple Home compatibility
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusters();
 
     this.switch = await this.addDevice(this.switch);
 

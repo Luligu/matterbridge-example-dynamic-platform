@@ -25,10 +25,10 @@ import { LogLevel } from 'matterbridge/logger';
 import { ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
 import { wait } from 'matterbridge/utils';
 
-import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from './module.js';
+import initializePlugin, { DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from '../src/module.js';
 
 // Setup the test environment
-setupTest(NAME, false);
+await setupTest(NAME, false);
 
 describe('TestPlatform', () => {
   let dynamicPlatform: ExampleMatterbridgeDynamicPlatform;
@@ -79,12 +79,9 @@ describe('TestPlatform', () => {
   });
 
   it('should throw error in load when version is not valid', () => {
-    const savedVersion = matterbridge.matterbridgeVersion;
-    matterbridge.matterbridgeVersion = '1.5.0';
-    expect(() => new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config)).toThrow(
-      'This plugin requires Matterbridge version >= "3.7.2". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+    expect(() => new ExampleMatterbridgeDynamicPlatform({ ...matterbridge, matterbridgeVersion: '1.5.0' }, log, config)).toThrow(
+      'This plugin requires Matterbridge version >= "3.8.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
-    matterbridge.matterbridgeVersion = savedVersion;
   });
 
   it('should initialize platform with config name and set the default config', () => {
