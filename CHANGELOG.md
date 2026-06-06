@@ -34,6 +34,13 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [fan]: Set FanControl.fanMode on remote FanControl.percentSetting changes. Thanks Ludovic BOUÉ (https://github.com/Luligu/matterbridge-example-dynamic-platform/issues/55).
 
+### Changed
+
+- [package]: Update dependencies.
+- [package]: Bump `@types/node` to v.25.9.2.
+- [package]: Bump `eslint-plugin-jsdoc` to v.63.0.2.
+- [package]: Bump `npm-check-updates` to v.22.2.3.
+
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
 ## [2.0.18] - 2026-06-05
