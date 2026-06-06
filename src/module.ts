@@ -1603,45 +1603,50 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.fanDefault = await this.addDevice(this.fanDefault);
 
     await this.fanDefault?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'fanMode',
       (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
         void (async () => {
           this.fanDefault?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
-          if (context.offline === true) return; // Do not set attributes when offline
+          if (context.fabric === undefined) return; // Do not set attributes when offline
           if (newValue === FanControl.FanMode.Off) {
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 0, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 0, this.fanDefault?.log);
           } else if (newValue === FanControl.FanMode.Low) {
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 33, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 33, this.fanDefault?.log);
           } else if (newValue === FanControl.FanMode.Medium) {
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 66, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 66, this.fanDefault?.log);
           } else if (newValue === FanControl.FanMode.High) {
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 100, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 100, this.fanDefault?.log);
           } else if (newValue === FanControl.FanMode.On) {
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 100, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 100, this.fanDefault?.log);
           } else if (newValue === FanControl.FanMode.Auto) {
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', null, this.fanDefault?.log);
+            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 50, this.fanDefault?.log);
           }
         })(),
       this.fanDefault.log,
     );
     await this.fanDefault?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'percentSetting',
       (newValue: number | null, oldValue: number | null, context) =>
         void (async () => {
-          this.fanDefault?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-          if (context.offline === true) return; // Do not set attributes when offline
-          if (isValidNumber(newValue, 0, 100)) await this.fanDefault?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanDefault?.log);
+          this.fanDefault?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
+          if (context.fabric === undefined) return; // Do not set attributes when offline
+          if (isValidNumber(newValue, 0, 100)) await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', newValue, this.fanDefault?.log);
+          if (isValidNumber(newValue, 0, 0)) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Off, this.fanDefault?.log);
+          if (isValidNumber(newValue, 1, 33)) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Low, this.fanDefault?.log);
+          if (isValidNumber(newValue, 34, 66)) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Medium, this.fanDefault?.log);
+          if (isValidNumber(newValue, 67, 100)) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanDefault?.log);
+          if (newValue === null) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Auto, this.fanDefault?.log);
         })(),
       this.fanDefault.log,
     );
@@ -1656,45 +1661,49 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.fanBase = await this.addDevice(this.fanBase);
 
     await this.fanBase?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'fanMode',
       (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
         void (async () => {
           this.fanBase?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
-          if (context.offline === true) return; // Do not set attributes when offline
+          if (context.fabric === undefined) return; // Do not set attributes when offline
           if (newValue === FanControl.FanMode.Off) {
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 0, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 0, this.fanBase?.log);
           } else if (newValue === FanControl.FanMode.Low) {
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 33, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 33, this.fanBase?.log);
           } else if (newValue === FanControl.FanMode.Medium) {
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 66, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 66, this.fanBase?.log);
           } else if (newValue === FanControl.FanMode.High) {
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 100, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 100, this.fanBase?.log);
           } else if (newValue === FanControl.FanMode.On) {
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 100, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 100, this.fanBase?.log);
           } else if (newValue === FanControl.FanMode.Auto) {
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentSetting', null, this.fanBase?.log);
+            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 50, this.fanBase?.log);
           }
         })(),
       this.fanBase.log,
     );
     await this.fanBase?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'percentSetting',
       (newValue: number | null, oldValue: number | null, context) =>
         void (async () => {
-          this.fanBase?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-          if (context.offline === true) return; // Do not set attributes when offline
-          if (isValidNumber(newValue, 0, 100)) await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanBase?.log);
+          this.fanBase?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
+          if (context.fabric === undefined) return; // Do not set attributes when offline
+          if (isValidNumber(newValue, 0, 100)) await this.fanBase?.setAttribute(FanControl, 'percentCurrent', newValue, this.fanBase?.log);
+          if (isValidNumber(newValue, 0, 0)) await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Off, this.fanBase?.log);
+          if (isValidNumber(newValue, 1, 33)) await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Low, this.fanBase?.log);
+          if (isValidNumber(newValue, 34, 66)) await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Medium, this.fanBase?.log);
+          if (isValidNumber(newValue, 67, 100)) await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
         })(),
       this.fanBase.log,
     );
@@ -1709,39 +1718,40 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.fanOnHigh = await this.addDevice(this.fanOnHigh);
 
     await this.fanOnHigh?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'fanMode',
       (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
         void (async () => {
           this.fanOnHigh?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
-          if (context.offline === true) return; // Do not set attributes when offline
+          if (context.fabric === undefined) return; // Do not set attributes when offline
           if (newValue === FanControl.FanMode.Off) {
-            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanOnHigh?.log);
-            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', 0, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', 0, this.fanOnHigh?.log);
           } else if (newValue === FanControl.FanMode.High) {
-            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanOnHigh?.log);
-            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', 100, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', 100, this.fanOnHigh?.log);
           } else if (newValue === FanControl.FanMode.On) {
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanBase?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', 100, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', 100, this.fanOnHigh?.log);
           }
         })(),
       this.fanOnHigh.log,
     );
     await this.fanOnHigh?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'percentSetting',
       (newValue: number | null, oldValue: number | null, context) =>
         void (async () => {
-          this.fanOnHigh?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-          if (context.offline === true) return; // Do not set attributes when offline
+          this.fanOnHigh?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
+          if (context.fabric === undefined) return; // Do not set attributes when offline
           if (isValidNumber(newValue, 0, 100)) {
             if (newValue > 0) newValue = 100; // OnOff fan control only supports 0 and 100
-            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanOnHigh?.log);
-            await this.fanOnHigh?.setAttribute(FanControl.Cluster.id, 'percentSetting', newValue, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', newValue, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', newValue, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'fanMode', newValue === 0 ? FanControl.FanMode.Off : FanControl.FanMode.High, this.fanOnHigh?.log);
           }
         })(),
       this.fanOnHigh.log,
@@ -1757,74 +1767,79 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.fanComplete = await this.addDevice(this.fanComplete);
 
     await this.fanComplete?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'fanMode',
       (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
         void (async () => {
           this.fanComplete?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
-          if (context.offline === true) return; // Do not set attributes when offline
+          if (context.fabric === undefined) return; // Do not set attributes when offline
           if (newValue === FanControl.FanMode.Off) {
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 0, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 0, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 0, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 0, this.fanComplete?.log);
           } else if (newValue === FanControl.FanMode.Low) {
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 33, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 33, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 33, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 33, this.fanComplete?.log);
           } else if (newValue === FanControl.FanMode.Medium) {
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 66, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 66, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 66, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 66, this.fanComplete?.log);
           } else if (newValue === FanControl.FanMode.High) {
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 100, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 100, this.fanComplete?.log);
           } else if (newValue === FanControl.FanMode.On) {
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'fanMode', FanControl.FanMode.High, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', 100, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 100, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 100, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 100, this.fanComplete?.log);
           } else if (newValue === FanControl.FanMode.Auto) {
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentSetting', null, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', 50, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', null, this.fanComplete?.log);
+            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 50, this.fanComplete?.log);
           }
         })(),
       this.fanComplete?.log,
     );
     await this.fanComplete?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'percentSetting',
       (newValue: number | null, oldValue: number | null, context) =>
         void (async () => {
-          this.fanComplete?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.offline === true ? 'offline' : 'online'}`);
-          if (context.offline === true) return; // Do not set attributes when offline
-          if (isValidNumber(newValue, 0, 100)) await this.fanComplete?.setAttribute(FanControl.Cluster.id, 'percentCurrent', newValue, this.fanComplete?.log);
+          this.fanComplete?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
+          if (context.fabric === undefined) return; // Do not set attributes when offline
+          if (isValidNumber(newValue, 0, 100)) await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', newValue, this.fanComplete?.log);
+          if (isValidNumber(newValue, 0, 0)) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Off, this.fanComplete?.log);
+          if (isValidNumber(newValue, 1, 33)) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Low, this.fanComplete?.log);
+          if (isValidNumber(newValue, 34, 66)) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Medium, this.fanComplete?.log);
+          if (isValidNumber(newValue, 67, 100)) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanComplete?.log);
+          if (newValue === null) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Auto, this.fanComplete?.log);
         })(),
       this.fanComplete?.log,
     );
     await this.fanComplete?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'rockSetting',
       (newValue: object, oldValue: object, context) => {
         this.fanComplete?.log.info(
-          `Rock setting changed from ${debugStringify(oldValue)} to ${debugStringify(newValue)} context: ${context.offline === true ? 'offline' : 'online'}`,
+          `Rock setting changed from ${debugStringify(oldValue)} to ${debugStringify(newValue)} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
         );
       },
       this.fanComplete?.log,
     );
     await this.fanComplete?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'windSetting',
       (newValue: object, oldValue: object, context) => {
         this.fanComplete?.log.info(
-          `Wind setting changed from ${debugStringify(oldValue)} to ${debugStringify(newValue)} context: ${context.offline === true ? 'offline' : 'online'}`,
+          `Wind setting changed from ${debugStringify(oldValue)} to ${debugStringify(newValue)} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
         );
       },
       this.fanComplete?.log,
     );
     await this.fanComplete?.subscribeAttribute(
-      FanControl.Cluster.id,
+      FanControl,
       'airflowDirection',
       (newValue: number, oldValue: number, context) => {
         this.fanComplete?.log.info(
-          `Airflow direction changed from ${this.fanDirectionLookup[oldValue]} to ${this.fanDirectionLookup[newValue]} context: ${context.offline === true ? 'offline' : 'online'}`,
+          `Airflow direction changed from ${this.fanDirectionLookup[oldValue]} to ${this.fanDirectionLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
         );
       },
       this.fanComplete?.log,
