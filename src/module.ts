@@ -21,6 +21,9 @@
  * limitations under the License.
  */
 
+// TODO: Remove when require Matterbridge 3.8.1 or later
+/* eslint-disable @typescript-eslint/await-thenable */
+
 import {
   aggregator,
   airPurifier,
@@ -2037,7 +2040,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     /*
     The RVC is supported correctly by the Home app (all commands work).
 
-    The bad news is that right now the Apple Home app only shows the RVC as a single device (not bridged) or a single device in the bridge. 
+    The bad news is that right now the Apple Home app only shows the RVC as a single device (not bridged) or a single device in the bridge.
 
     If the RVC is in a bridge with other devices, the whole Home app crashes... so don't try it. If your controller is Apple Home use server mode for the RVC.
     */
