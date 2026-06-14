@@ -63,11 +63,11 @@ jobs:
       - name: Install plugin dependencies
         run: npm ci --no-fund --no-audit
 
-      - name: Link matterbridge in the project
+      - name: Link matterbridge in the plugin
         run: npm link matterbridge --no-fund --no-audit
 
       - name: Build the plugin
-        run: npx tsc --build tsconfig.build.json
+        run: npm run build
 
       - name: Lint the plugin
         run: npm run lint
@@ -183,7 +183,7 @@ jobs:
         run: npm link matterbridge --no-fund --no-audit
 
       - name: Build the plugin
-        run: npx tsc --build tsconfig.build.json
+        run: npm run build
 
       - name: Lint the plugin
         run: npm run lint

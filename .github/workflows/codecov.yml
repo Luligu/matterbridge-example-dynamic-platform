@@ -1,4 +1,4 @@
-# Codecov (plugin) v. 2.0.4
+# Codecov (plugin) v. 2.0.5
 # Path: .github/workflows/codecov.yml
 
 name: Codecov
@@ -47,11 +47,14 @@ jobs:
         working-directory: ../matterbridge
         run: npm link --no-fund --no-audit
 
-      - name: Install dependencies
+      - name: Install plugin dependencies
         run: npm ci --no-fund --no-audit
 
-      - name: Link matterbridge in the project
+      - name: Link matterbridge in the plugin
         run: npm link matterbridge --no-fund --no-audit
+
+      - name: Build the plugin
+        run: npm run build
 
       - name: Check config files
         id: check_configs
@@ -79,7 +82,7 @@ jobs:
           test -f ./coverage/vitest/lcov.info || { echo "::error::Vitest ran but lcov.info missing"; exit 1; }
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true

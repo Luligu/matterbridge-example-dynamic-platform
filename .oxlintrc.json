@@ -1,0 +1,200 @@
+// .oxlintrc.json 1.0.8
+
+// This Oxlint configuration is designed for a TypeScript project using ESM modules.
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": [
+    "**/.cache/**",
+    "**/.git/**",
+    "apps/**",
+    "**/build/**",
+    "chip/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/temp/**",
+    "**/jest/**",
+    "**/node_modules/**",
+    "**/scripts/**",
+    "**/screenshots/**",
+    "vendor/**",
+    "**/package-lock.json"
+  ],
+  "env": {
+    "builtin": true,
+    "node": true
+  },
+  "options": {
+    "reportUnusedDisableDirectives": "warn",
+    "respectEslintDisableDirectives": true,
+    "typeAware": true,
+    "typeCheck": true,
+    "maxWarnings": 0
+  },
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "node", "jsdoc", "promise"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "restriction": "warn",
+    "perf": "warn",
+    "style": "off",
+    "pedantic": "off",
+    "nursery": "off"
+  },
+  "rules": {
+    "eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true,
+        "reportUsedIgnorePattern": true
+      }
+    ],
+    "eslint/no-console": "warn",
+    "eslint/no-shadow": "off",
+    "eslint/no-new": "warn",
+    "eslint/no-extend-native": "off",
+    "eslint/no-inline-comments": "off",
+    "eslint/no-underscore-dangle": "off",
+    "eslint/max-lines-per-function": ["warn", { "max": 1000, "skipComments": true, "skipBlankLines": true }],
+    "eslint/max-lines": "off",
+    "eslint/no-eval": "error",
+    "eslint/no-implied-eval": "error",
+    "eslint/no-param-reassign": "warn",
+    "eslint/no-await-in-loop": "off",
+    "eslint/no-undefined": "off",
+    "eslint/no-void": "off",
+    "eslint/no-use-before-define": ["error", { "classes": false }],
+    "eslint/complexity": ["warn", { "max": 100 }],
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/require-post-message-target-origin": "off",
+    "unicorn/prefer-add-event-listener": "off",
+    "unicorn/no-array-for-each": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/no-instanceof-array": "error",
+    "unicorn/no-abusive-eslint-disable": "error",
+    "unicorn/prefer-array-find": "warn",
+    "unicorn/prefer-includes": "warn",
+    "unicorn/no-useless-undefined": "warn",
+    "unicorn/no-negated-condition": "warn",
+    "oxc/no-async-endpoint-handlers": "off",
+    "oxc/no-accumulating-spread": "error",
+    "oxc/no-const-enum": "error",
+    "oxc/no-map-spread": "off",
+    "oxc/no-async-await": "off",
+    "oxc/no-optional-chaining": "off",
+    "oxc/no-rest-spread-properties": "off",
+    "typescript/no-dynamic-delete": "error",
+    "typescript/no-duplicate-enum-values": "off",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/no-explicit-any": "warn",
+    "typescript/no-non-null-assertion": "warn",
+    "typescript/require-await": "warn",
+    "typescript/promise-function-async": "warn",
+    "typescript/consistent-type-imports": ["error", { "prefer": "type-imports", "fixStyle": "inline-type-imports" }],
+    "typescript/only-throw-error": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/prefer-nullish-coalescing": "warn",
+    "typescript/prefer-optional-chain": "warn",
+    "typescript/explicit-member-accessibility": "off",
+    "typescript/no-deprecated": "warn",
+    "jsdoc/check-tag-names": ["error", { "definedTags": ["created", "contributor", "remarks"] }],
+    "jsdoc/require-param": "error",
+    "jsdoc/require-param-type": "error",
+    "jsdoc/require-param-description": "error",
+    "jsdoc/require-returns": "error",
+    "jsdoc/require-returns-type": "error",
+    "jsdoc/require-returns-description": "error",
+    "jsdoc/require-throws-type": "error",
+    "jsdoc/require-throws-description": "error",
+    "jsdoc/require-property": "error",
+    "jsdoc/require-property-name": "error",
+    "jsdoc/require-property-description": "error",
+    "jsdoc/require-property-type": "error",
+    "import/no-default-export": "off", // We allow default exports for Matterbridge plugins
+    "import/newline-after-import": "warn", // Enforce a newline after import statements for better readability
+    "import/no-namespace": "warn", // Disallow namespace imports to encourage more explicit imports
+    "import/first": "warn", // Ensure all import statements are at the top of the file
+    "import/no-duplicates": "warn", // Disallow duplicate imports to avoid confusion and improve readability
+    "promise/no-nesting": "warn", // Avoid nesting promises to improve readability and maintainability
+    "promise/prefer-await-to-callbacks": "warn", // Encourage using async/await instead of callbacks for better readability
+    "promise/prefer-catch": "warn", // Encourage using .catch() for handling promise rejections instead of passing a second argument to .then()
+    "promise/param-names": "warn", // Enforce standard parameter names for Promise constructors
+    "promise/no-return-wrap": "warn" // Avoid wrapping values in Promise.resolve or Promise.reject when not needed
+  },
+  "overrides": [
+    /* Jest */
+    {
+      "files": ["**/src/**/*.{spec,test}.ts", "**/test/**/*.{spec,test}.ts"],
+      "plugins": ["jest"],
+      "env": { "jest": true },
+      "rules": {
+        "eslint/no-unused-vars": "off",
+        "eslint/no-new": "off",
+        "eslint/max-lines-per-function": "off",
+        "eslint/require-await": "off",
+        "eslint/no-empty-function": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "typescript/no-explicit-any": "off",
+        "typescript/unbound-method": "off",
+        "typescript/no-deprecated": ["warn", { "allow": ["invokeBehaviorCommand", "invokeSubscribeHandler"] }],
+        "jest/require-to-throw-message": "off",
+        "jest/no-conditional-in-test": "off",
+        "jest/no-standalone-expect": "off",
+        "jsdoc/require-param": "off",
+        "jsdoc/require-param-type": "off",
+        "jsdoc/require-param-description": "off",
+        "jsdoc/require-returns": "off",
+        "jsdoc/require-returns-type": "off",
+        "jsdoc/require-returns-description": "off",
+        "jsdoc/require-throws-type": "off",
+        "jsdoc/require-throws-description": "off",
+        "jsdoc/require-property": "off",
+        "jsdoc/require-property-name": "off",
+        "jsdoc/require-property-description": "off",
+        "jsdoc/require-property-type": "off",
+        "import/first": "off",
+        "import/no-relative-parent-imports": "off"
+      }
+    },
+    /* Vitest */
+    {
+      "files": ["**/vitest/**/*.{spec,test}.ts"],
+      "plugins": ["vitest"],
+      "env": { "vitest": true },
+      "rules": {
+        "eslint/no-unused-vars": "off",
+        "eslint/no-new": "off",
+        "eslint/max-lines-per-function": "off",
+        "eslint/require-await": "off",
+        "eslint/no-empty-function": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "typescript/no-explicit-any": "off",
+        "typescript/unbound-method": "off",
+        "typescript/no-deprecated": ["warn", { "allow": ["invokeBehaviorCommand", "invokeSubscribeHandler"] }],
+        "vitest/require-to-throw-message": "off",
+        "vitest/no-conditional-tests": "off",
+        "vitest/no-standalone-expect": "off",
+        "vitest/require-test-timeout": "off",
+        "jsdoc/require-param": "off",
+        "jsdoc/require-param-type": "off",
+        "jsdoc/require-param-description": "off",
+        "jsdoc/require-returns": "off",
+        "jsdoc/require-returns-type": "off",
+        "jsdoc/require-returns-description": "off",
+        "jsdoc/require-throws-type": "off",
+        "jsdoc/require-throws-description": "off",
+        "jsdoc/require-property": "off",
+        "jsdoc/require-property-name": "off",
+        "jsdoc/require-property-description": "off",
+        "jsdoc/require-property-type": "off",
+        "import/first": "off",
+        "import/no-relative-parent-imports": "off"
+      }
+    }
+  ]
+}
