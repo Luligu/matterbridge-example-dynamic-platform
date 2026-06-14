@@ -1,4 +1,4 @@
-// VS Code extension v. 1.0.1
+// VS Code extension v. 1.0.2
 {
   "recommendations": [
     "typescriptteam.native-preview",
@@ -9,6 +9,7 @@
     "anthropic.claude-code",
     "github.copilot-chat",
     "github.vscode-github-actions",
-    "github.vscode-pull-request-github"
+    "github.vscode-pull-request-github",
+    "openai.chatgpt"
   ]
 }

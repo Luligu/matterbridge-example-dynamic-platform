@@ -148,8 +148,10 @@ import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isVal
  * @returns {number} Encoded Matter illuminance value (0 .. 0xFFFE)
  */
 function luxToMatter(lux: number): number {
+  // istanbul ignore next: defensive check
   if (!Number.isFinite(lux) || lux <= 0) return 0;
   const encoded = 10000 * Math.log10(lux);
+  // istanbul ignore next: defensive check
   if (!Number.isFinite(encoded) || encoded < 0) return 0; // extra safety
   return Math.round(Math.min(encoded, 0xfffe));
 }
@@ -167,6 +169,7 @@ function luxToMatter(lux: number): number {
  * @returns {number} Illuminance in lux (integer, >= 0)
  */
 function matterToLux(value: number): number {
+  // istanbul ignore next: defensive check
   if (!Number.isFinite(value) || value <= 0) return 0;
   const v = Math.min(value, 0xfffe);
   const lux = Math.pow(10, v / 10000);
@@ -1530,6 +1533,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
+          // istanbul ignore else
           if (newValue === FanControl.FanMode.Off) {
             await this.airPurifier?.setAttribute(FanControl.id, 'percentSetting', 0, this.airPurifier?.log);
             await this.airPurifier?.setAttribute(FanControl.id, 'percentCurrent', 0, this.airPurifier?.log);
@@ -1619,6 +1623,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
+          // istanbul ignore else
           if (newValue === FanControl.FanMode.Off) {
             await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 0, this.fanDefault?.log);
             await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 0, this.fanDefault?.log);
@@ -1678,6 +1683,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
+          // istanbul ignore else
           if (newValue === FanControl.FanMode.Off) {
             await this.fanBase?.setAttribute(FanControl, 'percentSetting', 0, this.fanBase?.log);
             await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 0, this.fanBase?.log);
@@ -1736,6 +1742,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
+          // istanbul ignore else
           if (newValue === FanControl.FanMode.Off) {
             await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', 0, this.fanOnHigh?.log);
             await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', 0, this.fanOnHigh?.log);
@@ -1787,6 +1794,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
+          // istanbul ignore else
           if (newValue === FanControl.FanMode.Off) {
             await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 0, this.fanComplete?.log);
             await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 0, this.fanComplete?.log);
@@ -2642,30 +2650,35 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
         if (this.refrigerator) {
           if (this.phase === 0) {
-            let mode;
             const refrigerator = this.refrigerator.getChildEndpointById('RefrigeratorTop');
-            mode = this.refrigerator.getAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', this.refrigerator.log);
-            mode = mode === 1 ? 2 : 1; // 1 Auto 2 RapidCool
-            await this.refrigerator.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', mode, this.refrigerator.log);
-            if (mode === 1) await refrigerator?.setAttribute('TemperatureControl', 'temperatureSetpoint', 9 * 100, refrigerator.log);
-            if (mode === 1) await refrigerator?.setAttribute('TemperatureMeasurement', 'measuredValue', 1200, refrigerator.log);
-            if (mode === 2) await refrigerator?.setAttribute('TemperatureControl', 'temperatureSetpoint', 10 * 100, refrigerator.log);
-            if (mode === 2) await refrigerator?.setAttribute('TemperatureMeasurement', 'measuredValue', 1000, refrigerator.log);
+            // 1 Auto 2 RapidCool
+            await this.refrigerator.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', 1, this.refrigerator.log);
+            await refrigerator?.setAttribute('TemperatureControl', 'temperatureSetpoint', 9 * 100, refrigerator.log);
+            await refrigerator?.setAttribute('TemperatureMeasurement', 'measuredValue', 1200, refrigerator.log);
 
+            // 1 Auto 2 RapidFreeze
             const freezer = this.refrigerator.getChildEndpointById('FreezerBottom');
-            mode = this.refrigerator.getAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', this.refrigerator.log);
-            mode = mode === 1 ? 2 : 1; // 1 Auto 2 RapidFreeze
-            await this.refrigerator.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', mode, this.refrigerator.log);
-            if (mode === 1) await freezer?.setAttribute('TemperatureControl', 'temperatureSetpoint', -18 * 100, freezer.log);
-            if (mode === 1) await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1000, freezer.log);
-            if (mode === 2) await freezer?.setAttribute('TemperatureControl', 'temperatureSetpoint', -24 * 100, freezer.log);
-            if (mode === 2) await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1500, freezer.log);
+            await this.refrigerator.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', 1, this.refrigerator.log);
+            await freezer?.setAttribute('TemperatureControl', 'temperatureSetpoint', -18 * 100, freezer.log);
+            await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1000, freezer.log);
           }
           if (this.phase === 1) await this.refrigerator.setDoorOpenState(true);
           if (this.phase === 2) await this.refrigerator.triggerDoorOpenState(true);
           if (this.phase === 4) await this.refrigerator.setDoorOpenState(false);
           if (this.phase === 4) await this.refrigerator.triggerDoorOpenState(false);
+          if (this.phase === 5) {
+            const refrigerator = this.refrigerator.getChildEndpointById('RefrigeratorTop');
+            // 1 Auto 2 RapidCool
+            await this.refrigerator.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', 2, this.refrigerator.log);
+            await refrigerator?.setAttribute('TemperatureControl', 'temperatureSetpoint', 10 * 100, refrigerator.log);
+            await refrigerator?.setAttribute('TemperatureMeasurement', 'measuredValue', 1000, refrigerator.log);
 
+            const freezer = this.refrigerator.getChildEndpointById('FreezerBottom');
+            // 1 Auto 2 RapidFreeze
+            await this.refrigerator.setAttribute('RefrigeratorAndTemperatureControlledCabinetMode', 'currentMode', 2, this.refrigerator.log);
+            await freezer?.setAttribute('TemperatureControl', 'temperatureSetpoint', -24 * 100, freezer.log);
+            await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1500, freezer.log);
+          }
           if (this.phase === 6) await this.refrigerator.setDoorOpenState(true);
           if (this.phase === 7) await this.refrigerator.triggerDoorOpenState(true);
           if (this.phase === 9) await this.refrigerator.setDoorOpenState(false);
@@ -3256,6 +3269,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   }
 
   async addDevice(device: MatterbridgeEndpoint): Promise<MatterbridgeEndpoint | undefined> {
+    // istanbul ignore next defensive code, should not happen
     if (!device.serialNumber || !device.deviceName) return undefined;
     this.setSelectDevice(device.serialNumber, device.deviceName, undefined, 'hub');
     if (this.validateDevice(device.deviceName)) {

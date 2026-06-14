@@ -280,7 +280,11 @@ describe('TestPlatform', () => {
         if (fanControlFeatures.auto) {
           await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Auto, FanControl.FanMode.Auto);
         }
+        await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 0, 0);
         await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 30, 30);
+        await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 50, 50);
+        await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 80, 80);
+        await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', null, null);
         if (fanControlFeatures.rocking) {
           await invokeSubscribeHandler(device, 'fanControl', 'rockSetting', {}, {});
         }
