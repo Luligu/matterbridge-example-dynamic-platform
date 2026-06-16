@@ -2437,7 +2437,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
   addInterval(callback: () => Promise<void>, intervalTime: number): NodeJS.Timeout {
     // istanbul ignore next line because we want fireAndForget here to avoid unhandled promise rejections if the callback fails
-    // oxlint-disable-next-line promise/prefer-await-to-callbacks
     const interval = setInterval(() => fireAndForget(callback(), this.log, `Failed to execute interval callback`), intervalTime);
     this.intervals.push({ interval, callback });
     return interval;
@@ -2446,7 +2445,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   async executeIntervals(times: number, pauseTime: number = 100): Promise<void> {
     for (let i = 0; i < times; i += 1) {
       for (const { callback } of this.intervals) {
-        // oxlint-disable-next-line promise/prefer-await-to-callbacks
         await callback();
       }
       if (pauseTime > 0) {
