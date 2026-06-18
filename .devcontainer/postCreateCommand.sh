@@ -45,7 +45,7 @@ echo "6 - Building the plugin..."
 npm run build
 
 echo "7 - Adding the plugin to Matterbridge..."
-npm run matterbridge:add
+npm run add
 
 echo "8 - Checking for outdated packages..."
 npm outdated || true

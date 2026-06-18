@@ -1,11 +1,20 @@
+// VS Code tasks v. 1.0.3
 {
   "version": "2.0.0",
   "tasks": [
+    // --DO NOT EDIT BELOW THIS LINE--
     {
       "label": "Start",
       "detail": "npm run start",
       "type": "npm",
       "script": "start",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build and Start",
+      "detail": "npm run build and start",
+      "dependsOn": ["Build", "Start"],
+      "dependsOrder": "sequence",
       "problemMatcher": []
     },
     {
@@ -51,25 +60,23 @@
     },
     {
       "label": "Lint",
-      "detail": "Run ESLint",
+      "detail": "Run lint",
       "type": "npm",
       "script": "lint",
       "problemMatcher": ["$eslint-stylish"]
     },
     {
       "label": "Format",
-      "detail": "Run Prettier",
+      "detail": "Run format",
       "type": "npm",
       "script": "format",
       "problemMatcher": []
     },
     {
       "label": "Test",
-      "detail": "Run Jest with coverage and verbose",
-      "type": "shell",
-      "command": "node",
-      "args": ["--no-warnings", "--experimental-vm-modules", "node_modules/jest/bin/jest.js", "--verbose", "--coverage", "--maxWorkers=100%"],
-      "group": { "kind": "test", "isDefault": true },
+      "detail": "Run test with coverage",
+      "type": "npm",
+      "script": "test:coverage",
       "problemMatcher": []
     },
     {
@@ -108,6 +115,14 @@
       "problemMatcher": []
     },
     {
+      "label": "Upgrade",
+      "detail": "Upgrade the package with Automator",
+      "type": "shell",
+      "command": "node",
+      "args": ["scripts/run-automator.mjs"],
+      "problemMatcher": []
+    },
+    {
       "label": "Git Status",
       "detail": "Run Git Status Script",
       "type": "shell",
@@ -139,5 +154,6 @@
       "args": ["scripts/remove-workflows.mjs"],
       "problemMatcher": []
     }
+    // --DO NOT EDIT ABOVE THIS LINE--
   ]
 }
