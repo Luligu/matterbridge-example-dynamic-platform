@@ -30,30 +30,28 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
-## Repository setup
-
-> **Note:** This repository uses a new toolchain. It replaces the traditional TypeScript / ESLint / Prettier / Jest stack with a faster, lighter setup.
-
-- **No `typescript` package** — replaced by [TypeScript Native](https://github.com/microsoft/typescript-go). The `typescript` package is kept only as a publish-time dependency while tsgo is still in preview.
-- **No ESLint, no Prettier** — replaced by the [oxc](https://oxc.rs) stack: [oxlint](https://oxc.rs/docs/guide/usage/linter.html) for linting and [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) for formatting.
-- **No Jest** — replaced by [Vitest](https://vitest.dev), which is much faster and natively supports ESM without extra configuration.
-- **Far fewer development dependencies** — the number of installed packages drops from **~600** to **~100**. A clean install is much faster.
-- **Much faster linting and formatting** — oxlint and oxfmt run in a fraction of the time required by the ESLint / Prettier pipeline.
-- **Much faster builds** — tsgo compiles the project in a fraction of the time required by the standard `tsc` build.
-- **Editor support** — use the VS Code extensions for tsgo and oxc to get the same experience in the editor.
-
 ## [3.0.0] - Dev branch
+
+### Breaking changes
+
+- [matterbridge]: Require matterbridge v.3.9.0 with matter v.1.5.1 and matter.js v.0.17.1.
 
 ### Added
 
 - [fan]: Set FanControl.fanMode on remote FanControl.percentSetting changes. Thanks Ludovic BOUÉ (https://github.com/Luligu/matterbridge-example-dynamic-platform/issues/55).
+- [codex]: Add `AGENTS.md` for Codex.
+- [codex]: Add `.codex\config.toml` configuration for Codex.
+- [codex]: Add `.codex\rules\default.rules` rules (sandbox) for Codex.
 
 ### Changed
 
 - [package]: Update dependencies.
-- [package]: Bump `@types/node` to v.25.9.2.
-- [package]: Bump `eslint-plugin-jsdoc` to v.63.0.2.
-- [package]: Bump `npm-check-updates` to v.22.2.3.
+- [package]: Bump package to `automator` v.3.1.12 and the new toolchain.
+- [workflow]: Bump `.github\workflows\build.yml` config to v.2.0.5.
+- [workflow]: Bump `.github\workflows\codecov.yml` config to v.2.0.6.
+- [workflow]: Bump `.github\workflows\publish.yml` config to v.2.0.5.
+- [oxlint]: Bump `oxlint` config to v.1.0.11.
+- [oxfmt]: Bump `oxfmt` config to v.1.0.3.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
