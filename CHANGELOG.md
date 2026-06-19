@@ -30,7 +30,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
-## [3.0.0] - Dev branch
+## [3.0.0] - 2026-06-19
 
 ### Breaking changes
 
@@ -46,11 +46,11 @@ If you like this project and find it useful, please consider giving it a star on
 ### Changed
 
 - [package]: Update dependencies.
-- [package]: Bump package to `automator` v.3.1.12 and the new toolchain.
+- [package]: Bump package to `automator` v.3.1.12 and the [new toolchain](README.md#repository-setup).
 - [workflow]: Bump `.github\workflows\build.yml` config to v.2.0.5.
 - [workflow]: Bump `.github\workflows\codecov.yml` config to v.2.0.6.
 - [workflow]: Bump `.github\workflows\publish.yml` config to v.2.0.5.
-- [oxlint]: Bump `oxlint` config to v.1.0.11.
+- [oxlint]: Bump `oxlint` config to v.1.0.12.
 - [oxfmt]: Bump `oxfmt` config to v.1.0.3.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>

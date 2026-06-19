@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 
-// oxlint-disable complexity max-lines-per-function
+// oxlint-disable complexity max-lines max-lines-per-function
 
 import {
   aggregator,
