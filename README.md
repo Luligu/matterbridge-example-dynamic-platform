@@ -126,3 +126,33 @@ See the guidelines on [Matterbridge](https://github.com/Luligu/matterbridge/blob
 ## Style guide
 
 See also the [Style Guide](./STYLEGUIDE.md) for JSDoc, naming, and logging conventions used in this repository.
+
+## Copilot instructions
+
+| File                                                             | Notes                                                            |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `.github/copilot-instructions.md`                                | Main project instructions — always loaded                        |
+| `.github/instructions/matterbridge/matterbridge.instructions.md` | Matterbridge endpoint guide — dedicated Copilot instruction file |
+| `.github/instructions/testing/unit-tests.instructions.md`        | Testing standards — scoped to `**/*.test.ts`                     |
+
+## Claude instructions
+
+| File                                                      | Notes                                                 |
+| --------------------------------------------------------- | ----------------------------------------------------- |
+| `CLAUDE.md`                                               | Main project instructions — always loaded             |
+| `.claude/rules/matterbridge/matterbridge.instructions.md` | Matterbridge endpoint guide — loaded for all contexts |
+| `.claude/rules/testing/unit-tests.instructions.md`        | Testing standards — scoped to `**/*.test.ts`          |
+
+## Codex/Agents instructions
+
+| File                         | Notes                                             |
+| ---------------------------- | ------------------------------------------------- |
+| `AGENTS.md`                  | Main project instructions                         |
+| `.codex/config.toml`         | Codex project permissions, approvals, and profile |
+| `.codex/rules/default.rules` | Codex command allow, prompt, and deny rules       |
+
+## Documentation
+
+Refer to the Matterbridge [documentation](https://matterbridge.io) for other guidelines.
+
+---
