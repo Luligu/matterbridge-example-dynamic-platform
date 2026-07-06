@@ -28,6 +28,7 @@ import {
   airPurifier,
   airQualitySensor,
   bridgedNode,
+  chime,
   colorTemperatureLight,
   contactSensor,
   windowCovering,
@@ -253,6 +254,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   momentarySwitch: MatterbridgeEndpoint | undefined;
   latchingSwitch: MatterbridgeEndpoint | undefined;
   doorbell: MatterbridgeEndpoint | undefined;
+  chime: MatterbridgeEndpoint | undefined;
   vacuum: MatterbridgeEndpoint | undefined;
   roboticVacuum: MatterbridgeEndpoint | undefined;
   waterHeater: MatterbridgeEndpoint | undefined;
@@ -2057,16 +2059,32 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.latchingSwitch = await this.addDevice(this.latchingSwitch);
 
     // *********************** Create a doorbell *****************************/
-    // The Doorbell device type also requires a Chime client cluster (bound to a separate Chime device to play the sound),
-    // but matterbridge doesn't map a client behavior for the Chime cluster yet, so it is not added here.
+    // The Doorbell device type also requires a Chime client cluster, bound by the controller to a separate Chime device to play the sound.
     this.doorbell = new MatterbridgeEndpoint([doorbell, bridgedNode, powerSource], { id: 'Doorbell' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Doorbell', 'DOB00071', 0xfff1, 'Matterbridge', 'Matterbridge Doorbell')
       .createDefaultIdentifyClusterServer()
       .createDefaultMomentarySwitchClusterServer()
       .createDefaultPowerSourceReplaceableBatteryClusterServer(100, PowerSource.BatChargeLevel.Ok, 3000, 'CR2032', 1)
-      .addRequiredClusterServers();
+      .addRequiredClusters();
 
     this.doorbell = await this.addDevice(this.doorbell);
+
+    // *********************** Create a chime *****************************/
+    this.chime = new MatterbridgeEndpoint([chime, bridgedNode, powerSource], { id: 'Chime' }, this.config.debug)
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Chime', 'CHI00072', 0xfff1, 'Matterbridge', 'Matterbridge Chime')
+      .createDefaultIdentifyClusterServer()
+      .createDefaultChimeClusterServer([
+        { chimeId: 0, name: 'Doorbell' },
+        { chimeId: 1, name: 'Alarm' },
+      ])
+      .createDefaultPowerSourceReplaceableBatteryClusterServer(100, PowerSource.BatChargeLevel.Ok, 3000, 'CR2032', 1)
+      .addRequiredClusterServers();
+
+    this.chime = await this.addDevice(this.chime);
+
+    this.chime?.addCommandHandler('playChimeSound', ({ request: { chimeId } }) => {
+      this.chime?.log.info(`Command playChimeSound called chimeId:${chimeId ?? 'undefined'}`);
+    });
 
     // *********************** Create a vacuum *****************************
     /*
@@ -3241,6 +3259,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.addInterval(
         async () => {
           // console.error('Entering generic switch interval triggered', this.genericSwitchLastEvent);
+          await this.doorbell?.triggerSwitchEvent('Single', this.doorbell?.log);
           if (this.genericSwitchLastEvent === 'Release') {
             this.genericSwitchLastEvent = 'Single';
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch1')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
@@ -3249,7 +3268,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch4')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch5')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch6')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
-            await this.doorbell?.triggerSwitchEvent('Single', this.doorbell?.log);
           } else if (this.genericSwitchLastEvent === 'Single') {
             this.genericSwitchLastEvent = 'Double';
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch1')?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
