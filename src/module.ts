@@ -3259,7 +3259,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.addInterval(
         async () => {
           // console.error('Entering generic switch interval triggered', this.genericSwitchLastEvent);
-          await this.doorbell?.triggerSwitchEvent('Single', this.doorbell?.log);
           if (this.genericSwitchLastEvent === 'Release') {
             this.genericSwitchLastEvent = 'Single';
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch1')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
@@ -3268,6 +3267,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch4')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch5')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch6')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
+            await this.doorbell?.triggerSwitchEvent('Single', this.doorbell?.log);
           } else if (this.genericSwitchLastEvent === 'Single') {
             this.genericSwitchLastEvent = 'Double';
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch1')?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
