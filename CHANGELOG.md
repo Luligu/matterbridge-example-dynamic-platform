@@ -30,6 +30,10 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [3.0.1] - Dev branch
 
+### Added
+
+- [module]: Add example Doorbell device (Identify and MomentarySwitch servers). The Chime client cluster required by the device type is not added yet, since matterbridge doesn't map a client behavior for it.
+
 ### Changed
 
 - [package]: Update dependencies.

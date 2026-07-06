@@ -24,7 +24,7 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 70 virtual devices:
+It exposes 71 virtual devices:
 
 - a door contact sensor
 - a motion sensor
@@ -73,6 +73,7 @@ It exposes 70 virtual devices:
 - an airQuality device with all concentration measurements clusters (supported by Apple Home with the concentration measurements from version 18.5)
 - a momentary switch composed by three switches with Single Double Long (tagged with One Two Three and Top Middle Bottom) and three switches with Single only.
 - a latching switch
+- a doorbell device with a MomentarySwitch cluster (Single press)
 - a Robot Vacuum Cleaner device (supported by SmartThings, Alexa, Home Assistant and partially by Apple Home). Read also <https://github.com/Luligu/matterbridge/discussions/264>.
 - an onOff Mounted Switch device (supported by SmartThings, Alexa, Home Assistant)
 - a onOff Mounted Switch legacy device (supported by all controllers)
