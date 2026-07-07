@@ -1,3 +1,9 @@
+/**
+ * @file vitest/module.test.ts
+ * @description This file contains the tests for the ExampleMatterbridgeDynamicPlatform.
+ * @author Luca Liguori
+ */
+
 const NAME = 'Platform';
 const MATTER_PORT = 8000;
 const MATTER_CREATE_ONLY = true;
@@ -393,13 +399,13 @@ describe('TestPlatform', () => {
         expect(unoccupiedHeat).toBe(preset.unoccupiedHeat);
         expect(unoccupiedCool).toBe(preset.unoccupiedCool);
         if (preset.handle === 0x00) {
-          // eslint-disable-next-line jest/no-conditional-expect
+          // oxlint-disable-next-line jest/no-conditional-expect
           expect(activePresetHandle).toEqual(new Uint8Array([0x00]));
         } else {
-          // eslint-disable-next-line jest/no-conditional-expect
+          // oxlint-disable-next-line jest/no-conditional-expect
           expect(activePresetHandle).toBeNull();
         }
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.log(
           `Matter.js preset ${preset.handle}: activePresetHandle=${JSON.stringify(activePresetHandle ? Array.from(activePresetHandle) : null)} occupiedHeat=${occupiedHeat} occupiedCool=${occupiedCool} unoccupiedHeat=${unoccupiedHeat} unoccupiedCool=${unoccupiedCool}`,
         );

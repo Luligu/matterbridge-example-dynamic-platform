@@ -32,12 +32,18 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
+- [package]: Apply uniform style.
+- [package]: Upgrade package.
 - [package]: Update dependencies.
-- [package]: Bump `@typescript/native-preview` to v.7.0.0-dev.20260622.1.
+- [package]: Bump `@types/node` to v.26.1.0.
+- [package]: Bump `@typescript/native-preview` to v.7.0.0-dev.20260707.2.
+- [package]: Bump `@vitest/coverage-v8` to v.4.1.10.
 - [package]: Bump `node-ansi-logger` to v.3.3.0.
 - [package]: Bump `node-persist-manager` to v.2.1.0.
-- [package]: Bump `oxfmt` to v.0.56.0.
-- [package]: Bump `oxlint` to v.1.71.0.
+- [package]: Bump `oxfmt` to v.0.58.0.
+- [package]: Bump `oxlint` to v.1.73.0.
+- [package]: Bump `oxlint-tsgolint` to v.0.24.0.
+- [package]: Bump `vitest` to v.4.1.10.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 

@@ -1,7 +1,6 @@
 /**
- * This file contains the class ExampleMatterbridgeDynamicPlatform.
- *
- * @file module.ts
+ * @file src/module.ts
+ * @description This file contains the class ExampleMatterbridgeDynamicPlatform.
  * @author Luca Liguori
  * @version 2.0.0
  * @license Apache-2.0
@@ -21,7 +20,9 @@
  * limitations under the License.
  */
 
-// oxlint-disable complexity max-lines max-lines-per-function
+/* oxlint-disable complexity */
+/* oxlint-disable max-lines */
+/* oxlint-disable max-lines-per-function */
 
 import {
   aggregator,
@@ -148,10 +149,10 @@ import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isVal
  * @returns {number} Encoded Matter illuminance value (0 .. 0xFFFE)
  */
 function luxToMatter(lux: number): number {
-  // istanbul ignore next: defensive check
+  /* v8 ignore next: defensive check */
   if (!Number.isFinite(lux) || lux <= 0) return 0;
   const encoded = 10000 * Math.log10(lux);
-  // istanbul ignore next: defensive check
+  /* v8 ignore next: defensive check */
   if (!Number.isFinite(encoded) || encoded < 0) return 0; // extra safety
   return Math.round(Math.min(encoded, 0xfffe));
 }
@@ -169,7 +170,7 @@ function luxToMatter(lux: number): number {
  * @returns {number} Illuminance in lux (integer, >= 0)
  */
 function matterToLux(value: number): number {
-  // istanbul ignore next: defensive check
+  /* v8 ignore next: defensive check */
   if (!Number.isFinite(value) || value <= 0) return 0;
   const v = Math.min(value, 0xfffe);
   const lux = Math.pow(10, v / 10000);
@@ -1334,7 +1335,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
 
-    // istanbul ignore else
+    /* v8 ignore next */
     if (this.thermoAutoPresets) {
       this.thermoAutoPresets
         .addChildDeviceType('Temperature', temperatureSensor)
@@ -1533,7 +1534,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
-          // istanbul ignore else
+          /* v8 ignore next */
           if (newValue === FanControl.FanMode.Off) {
             await this.airPurifier?.setAttribute(FanControl.id, 'percentSetting', 0, this.airPurifier?.log);
             await this.airPurifier?.setAttribute(FanControl.id, 'percentCurrent', 0, this.airPurifier?.log);
@@ -1623,7 +1624,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
-          // istanbul ignore else
+          /* v8 ignore next */
           if (newValue === FanControl.FanMode.Off) {
             await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 0, this.fanDefault?.log);
             await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 0, this.fanDefault?.log);
@@ -1683,7 +1684,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
-          // istanbul ignore else
+          /* v8 ignore next */
           if (newValue === FanControl.FanMode.Off) {
             await this.fanBase?.setAttribute(FanControl, 'percentSetting', 0, this.fanBase?.log);
             await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 0, this.fanBase?.log);
@@ -1742,7 +1743,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
-          // istanbul ignore else
+          /* v8 ignore next */
           if (newValue === FanControl.FanMode.Off) {
             await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', 0, this.fanOnHigh?.log);
             await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', 0, this.fanOnHigh?.log);
@@ -1794,7 +1795,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
           );
           if (context.fabric === undefined) return; // Do not set attributes when offline
-          // istanbul ignore else
+          /* v8 ignore next */
           if (newValue === FanControl.FanMode.Off) {
             await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 0, this.fanComplete?.log);
             await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 0, this.fanComplete?.log);
@@ -2436,7 +2437,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   intervals: { interval: NodeJS.Timeout; callback: () => Promise<void> }[] = [];
 
   addInterval(callback: () => Promise<void>, intervalTime: number): NodeJS.Timeout {
-    // istanbul ignore next line because we want fireAndForget here to avoid unhandled promise rejections if the callback fails
+    /* v8 ignore next line because we want fireAndForget here to avoid unhandled promise rejections if the callback fails */
     const interval = setInterval(() => fireAndForget(callback(), this.log, `Failed to execute interval callback`), intervalTime);
     this.intervals.push({ interval, callback });
     return interval;
@@ -2986,7 +2987,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.thermoAuto?.setAttribute(Thermostat.id, 'localTemperature', 16 * 100, this.thermoAuto.log);
     await this.thermoAuto?.setAttribute(Thermostat.id, 'systemMode', Thermostat.SystemMode.Auto, this.thermoAuto.log);
 
-    // istanbul ignore next if cause no runningState attribute before 3.3.3
+    /* v8 ignore next if cause no runningState attribute before 3.3.3 */
     if (this.thermoAuto?.hasAttributeServer(Thermostat.id, 'thermostatRunningState')) {
       const runningState = this.thermoAuto?.getAttribute(Thermostat.id, 'thermostatRunningState', this.thermoAuto.log);
       await this.thermoAuto?.setAttribute(Thermostat.id, 'thermostatRunningState', { ...runningState, heat: true }, this.thermoAuto.log);
@@ -3047,7 +3048,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             }
           }
 
-          // istanbul ignore next if cause no runningState attribute before 3.3.3
+          /* v8 ignore next if cause no runningState attribute before 3.3.3 */
           if (this.thermoAuto?.hasAttributeServer(Thermostat.id, 'thermostatRunningState')) {
             const runningState = this.thermoAuto?.getAttribute(Thermostat.id, 'thermostatRunningState', this.thermoAuto.log);
             runningState.heat = !runningState?.heat;
@@ -3267,7 +3268,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   }
 
   async addDevice(device: MatterbridgeEndpoint): Promise<MatterbridgeEndpoint | undefined> {
-    // istanbul ignore next defensive code, should not happen
+    /* v8 ignore next defensive code, should not happen */
     if (!device.serialNumber || !device.deviceName) return undefined;
     this.setSelectDevice(device.serialNumber, device.deviceName, undefined, 'hub');
     if (this.validateDevice(device.deviceName)) {
