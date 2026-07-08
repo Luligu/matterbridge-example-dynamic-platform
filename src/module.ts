@@ -2,6 +2,7 @@
  * @file src/module.ts
  * @description This file contains the class ExampleMatterbridgeDynamicPlatform.
  * @author Luca Liguori
+ * @created 2024-02-28
  * @version 2.0.0
  * @license Apache-2.0
  *
