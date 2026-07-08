@@ -20,7 +20,7 @@
 
 ## Testing And Validation
 
-- Prefer the existing npm scripts in `./package.json` and the VS Code tasks in `./.vscode/tasks.json` when validating changes.
+- Prefer the existing npm scripts in [package.json](./package.json) and the VS Code tasks in [tasks.json](./.vscode/tasks.json) when validating changes.
 - Keep tests deterministic and simple. Prefer small data sets and straightforward setup.
 - Some tests are intentionally multi-step flows. State may persist across successive steps within a single test flow, but each test unit must remain isolated from other tests.
 - For validation, run the relevant full test file or the matching suite/task for the touched area rather than assuming arbitrary isolated single-test execution is reliable.
@@ -31,7 +31,7 @@
 
 ## Additional Agent Guidance
 
-For task-specific guidance, read relevant files in `./.agents/`:
+For task-specific guidance, read relevant files in [.agents](./.agents/):
 
 - `.agents/testing.md` for testing and validation expectations;
 - `.agents/matterbridge.md` for instruction about using matterbridge in a plugin.
