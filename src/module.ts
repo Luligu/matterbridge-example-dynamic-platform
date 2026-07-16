@@ -89,7 +89,7 @@ import {
   WaterHeater,
 } from 'matterbridge/devices';
 import { type AnsiLogger, debugStringify } from 'matterbridge/logger';
-import { AreaNamespaceTag, LocationTag, NumberTag, PositionTag, RefrigeratorTag, SwitchesTag, UINT16_MAX, UINT32_MAX } from 'matterbridge/matter';
+import { CommonAreaNamespaceTag, CommonLocationTag, CommonNumberTag, CommonPositionTag, RefrigeratorTag, SwitchesTag, UINT16_MAX, UINT32_MAX } from 'matterbridge/matter';
 // import { ThermostatServer } from 'matterbridge/matter/behaviors';
 import {
   AirQuality,
@@ -390,10 +390,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a IrrigationSystem device with 4 zones ***********************
     this.irrigationSystem = new IrrigationSystem('Irrigation System 4 zones', 'IRR000069', { flowMeasuredValue: 60 })
-      .addZone(NumberTag.One)
-      .addZone(NumberTag.Two)
-      .addZone(NumberTag.Three)
-      .addZone(NumberTag.Four);
+      .addZone(CommonNumberTag.One)
+      .addZone(CommonNumberTag.Two)
+      .addZone(CommonNumberTag.Three)
+      .addZone(CommonNumberTag.Four);
 
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.irrigationSystem = (await this.addDevice(this.irrigationSystem)) as IrrigationSystem | undefined;
@@ -838,25 +838,25 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 1', onOffPlugInUnit, [OnOff.id], {
         id: 'Socket1',
-        tagList: [getSemtag(NumberTag.One)],
+        tagList: [getSemtag(CommonNumberTag.One)],
       })
       .addRequiredClusterServers();
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 2', onOffPlugInUnit, [OnOff.id], {
         id: 'Socket2',
-        tagList: [getSemtag(NumberTag.Two)],
+        tagList: [getSemtag(CommonNumberTag.Two)],
       })
       .addRequiredClusterServers();
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 3', onOffPlugInUnit, [OnOff.id], {
         id: 'Socket3',
-        tagList: [getSemtag(NumberTag.Three)],
+        tagList: [getSemtag(CommonNumberTag.Three)],
       })
       .addRequiredClusterServers();
     this.smartOutlet
       .addChildDeviceTypeWithClusterServer('Socket 4', onOffPlugInUnit, [OnOff.id], {
         id: 'Socket4',
-        tagList: [getSemtag(NumberTag.Four)],
+        tagList: [getSemtag(CommonNumberTag.Four)],
       })
       .addRequiredClusterServers();
 
@@ -871,28 +871,28 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 1', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug1',
-        tagList: [getSemtag(NumberTag.One)],
+        tagList: [getSemtag(CommonNumberTag.One)],
       })
       .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 1', 'BOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 2', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug2',
-        tagList: [getSemtag(NumberTag.Two)],
+        tagList: [getSemtag(CommonNumberTag.Two)],
       })
       .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 2', 'BOU00064-2', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 3', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug3',
-        tagList: [getSemtag(NumberTag.Three)],
+        tagList: [getSemtag(CommonNumberTag.Three)],
       })
       .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 3', 'BOU00064-3', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 4', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug4',
-        tagList: [getSemtag(NumberTag.Four)],
+        tagList: [getSemtag(CommonNumberTag.Four)],
       })
       .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 4', 'BOU00064-4', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
@@ -1421,8 +1421,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoHeat
       .addChildDeviceType('TemperatureIN', [temperatureSensor], {
         tagList: [
-          { mfgCode: null, namespaceId: LocationTag.Indoor.namespaceId, tag: LocationTag.Indoor.tag, label: null },
-          { mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: null },
+          { mfgCode: null, namespaceId: CommonLocationTag.Indoor.namespaceId, tag: CommonLocationTag.Indoor.tag, label: null },
+          { mfgCode: null, namespaceId: CommonNumberTag.One.namespaceId, tag: CommonNumberTag.One.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -1431,8 +1431,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.thermoHeat
       .addChildDeviceType('TemperatureOUT', [temperatureSensor], {
         tagList: [
-          { mfgCode: null, namespaceId: LocationTag.Outdoor.namespaceId, tag: LocationTag.Outdoor.tag, label: null },
-          { mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: null },
+          { mfgCode: null, namespaceId: CommonLocationTag.Outdoor.namespaceId, tag: CommonLocationTag.Outdoor.tag, label: null },
+          { mfgCode: null, namespaceId: CommonNumberTag.Two.namespaceId, tag: CommonNumberTag.Two.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -1957,10 +1957,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.momentarySwitch
       .addChildDeviceType('Momentary switch 1', [genericSwitch], {
         tagList: [
-          { mfgCode: null, namespaceId: NumberTag.One.namespaceId, tag: NumberTag.One.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: null },
-          { mfgCode: null, namespaceId: AreaNamespaceTag.LivingRoom.namespaceId, tag: AreaNamespaceTag.LivingRoom.tag, label: null },
+          { mfgCode: null, namespaceId: CommonNumberTag.One.namespaceId, tag: CommonNumberTag.One.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: null },
+          { mfgCode: null, namespaceId: CommonAreaNamespaceTag.LivingRoom.namespaceId, tag: CommonAreaNamespaceTag.LivingRoom.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -1969,10 +1969,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.momentarySwitch
       .addChildDeviceType('Momentary switch 2', [genericSwitch], {
         tagList: [
-          { mfgCode: null, namespaceId: NumberTag.Two.namespaceId, tag: NumberTag.Two.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Middle.namespaceId, tag: PositionTag.Middle.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: null },
-          { mfgCode: null, namespaceId: AreaNamespaceTag.LivingRoom.namespaceId, tag: AreaNamespaceTag.LivingRoom.tag, label: null },
+          { mfgCode: null, namespaceId: CommonNumberTag.Two.namespaceId, tag: CommonNumberTag.Two.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Middle.namespaceId, tag: CommonPositionTag.Middle.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: null },
+          { mfgCode: null, namespaceId: CommonAreaNamespaceTag.LivingRoom.namespaceId, tag: CommonAreaNamespaceTag.LivingRoom.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -1981,10 +1981,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.momentarySwitch
       .addChildDeviceType('Momentary switch 3', [genericSwitch], {
         tagList: [
-          { mfgCode: null, namespaceId: NumberTag.Three.namespaceId, tag: NumberTag.Three.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: null },
-          { mfgCode: null, namespaceId: AreaNamespaceTag.LivingRoom.namespaceId, tag: AreaNamespaceTag.LivingRoom.tag, label: null },
+          { mfgCode: null, namespaceId: CommonNumberTag.Three.namespaceId, tag: CommonNumberTag.Three.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: null },
+          { mfgCode: null, namespaceId: CommonAreaNamespaceTag.LivingRoom.namespaceId, tag: CommonAreaNamespaceTag.LivingRoom.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -1993,11 +1993,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const switch4 = this.momentarySwitch
       .addChildDeviceType('Momentary switch 4', [genericSwitch], {
         tagList: [
-          { mfgCode: null, namespaceId: NumberTag.Four.namespaceId, tag: NumberTag.Four.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: null },
+          { mfgCode: null, namespaceId: CommonNumberTag.Four.namespaceId, tag: CommonNumberTag.Four.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: null },
           { mfgCode: null, namespaceId: SwitchesTag.Custom.namespaceId, tag: SwitchesTag.Custom.tag, label: 'Turn on' },
-          { mfgCode: null, namespaceId: AreaNamespaceTag.Bedroom.namespaceId, tag: AreaNamespaceTag.Bedroom.tag, label: null },
+          { mfgCode: null, namespaceId: CommonAreaNamespaceTag.Bedroom.namespaceId, tag: CommonAreaNamespaceTag.Bedroom.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -2006,11 +2006,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const switch5 = this.momentarySwitch
       .addChildDeviceType('Momentary switch 5', [genericSwitch], {
         tagList: [
-          { mfgCode: null, namespaceId: NumberTag.Five.namespaceId, tag: NumberTag.Five.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Middle.namespaceId, tag: PositionTag.Middle.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: null },
+          { mfgCode: null, namespaceId: CommonNumberTag.Five.namespaceId, tag: CommonNumberTag.Five.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Middle.namespaceId, tag: CommonPositionTag.Middle.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: null },
           { mfgCode: null, namespaceId: SwitchesTag.Custom.namespaceId, tag: SwitchesTag.Custom.tag, label: 'Turn off' },
-          { mfgCode: null, namespaceId: AreaNamespaceTag.Bedroom.namespaceId, tag: AreaNamespaceTag.Bedroom.tag, label: null },
+          { mfgCode: null, namespaceId: CommonAreaNamespaceTag.Bedroom.namespaceId, tag: CommonAreaNamespaceTag.Bedroom.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -2019,11 +2019,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const switch6 = this.momentarySwitch
       .addChildDeviceType('Momentary switch 6', [genericSwitch], {
         tagList: [
-          { mfgCode: null, namespaceId: NumberTag.Seven.namespaceId, tag: NumberTag.Seven.tag, label: null }, // Intentionally use seven here to show when the controllers use it
-          { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: null },
-          { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: null },
+          { mfgCode: null, namespaceId: CommonNumberTag.Seven.namespaceId, tag: CommonNumberTag.Seven.tag, label: null }, // Intentionally use seven here to show when the controllers use it
+          { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: null },
+          { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: null },
           { mfgCode: null, namespaceId: SwitchesTag.Custom.namespaceId, tag: SwitchesTag.Custom.tag, label: 'Toggle' },
-          { mfgCode: null, namespaceId: AreaNamespaceTag.Bedroom.namespaceId, tag: AreaNamespaceTag.Bedroom.tag, label: null },
+          { mfgCode: null, namespaceId: CommonAreaNamespaceTag.Bedroom.namespaceId, tag: CommonAreaNamespaceTag.Bedroom.tag, label: null },
         ],
       })
       .createDefaultIdentifyClusterServer()
@@ -2089,22 +2089,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         {
           areaId: 1,
           mapId: 1,
-          areaInfo: { locationInfo: { locationName: 'Living', floorNumber: 0, areaType: AreaNamespaceTag.LivingRoom.tag }, landmarkInfo: null },
+          areaInfo: { locationInfo: { locationName: 'Living', floorNumber: 0, areaType: CommonAreaNamespaceTag.LivingRoom.tag }, landmarkInfo: null },
         },
         {
           areaId: 2,
           mapId: 1,
-          areaInfo: { locationInfo: { locationName: 'Kitchen', floorNumber: 0, areaType: AreaNamespaceTag.Kitchen.tag }, landmarkInfo: null },
+          areaInfo: { locationInfo: { locationName: 'Kitchen', floorNumber: 0, areaType: CommonAreaNamespaceTag.Kitchen.tag }, landmarkInfo: null },
         },
         {
           areaId: 3,
           mapId: 2,
-          areaInfo: { locationInfo: { locationName: 'Bedroom', floorNumber: 1, areaType: AreaNamespaceTag.Bedroom.tag }, landmarkInfo: null },
+          areaInfo: { locationInfo: { locationName: 'Bedroom', floorNumber: 1, areaType: CommonAreaNamespaceTag.Bedroom.tag }, landmarkInfo: null },
         },
         {
           areaId: 4,
           mapId: 2,
-          areaInfo: { locationInfo: { locationName: 'Bathroom', floorNumber: 1, areaType: AreaNamespaceTag.Bathroom.tag }, landmarkInfo: null },
+          areaInfo: { locationInfo: { locationName: 'Bathroom', floorNumber: 1, areaType: CommonAreaNamespaceTag.Bathroom.tag }, landmarkInfo: null },
         },
       ], // supportedAreas
       [], // selectedAreas
@@ -2163,10 +2163,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       0, // 0 kWh
       500_000, // 500 Wh
     );
-    this.solarPower.addPanel('Panel 1', NumberTag.One);
-    this.solarPower.addPanel('Panel 2', NumberTag.Two);
-    this.solarPower.addPanel('Panel 3', NumberTag.Three);
-    this.solarPower.addPanel('Panel 4', NumberTag.Four);
+    this.solarPower.addPanel('Panel 1', CommonNumberTag.One);
+    this.solarPower.addPanel('Panel 2', CommonNumberTag.Two);
+    this.solarPower.addPanel('Panel 3', CommonNumberTag.Three);
+    this.solarPower.addPanel('Panel 4', CommonNumberTag.Four);
 
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.solarPower = (await this.addDevice(this.solarPower)) as SolarPower | undefined;
@@ -2224,7 +2224,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.oven = new Oven('Oven', 'OVN00054');
     this.oven.addCabinet(
       'Upper Cabinet',
-      [{ mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label }],
+      [{ mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label }],
       2, // currentMode
       [
         { label: 'Bake', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Bake }] },
@@ -2249,7 +2249,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     );
     this.oven.addCabinet(
       'Lower Cabinet',
-      [{ mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label }],
+      [{ mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label }],
       3, // currentMode
       [
         { label: 'Convection', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
@@ -2271,20 +2271,20 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create an Cooktop **************************
     this.cooktop = new Cooktop('Cooktop', 'CKT00055');
     this.cooktop.addSurface('Surface Top Left', [
-      { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label },
-      { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: PositionTag.Left.label },
+      { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label },
+      { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: CommonPositionTag.Left.label },
     ]);
     this.cooktop.addSurface('Surface Top Right', [
-      { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: PositionTag.Top.label },
-      { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: PositionTag.Right.label },
+      { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label },
+      { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: CommonPositionTag.Right.label },
     ]);
     this.cooktop.addSurface('Surface Bottom Left', [
-      { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label },
-      { mfgCode: null, namespaceId: PositionTag.Left.namespaceId, tag: PositionTag.Left.tag, label: PositionTag.Left.label },
+      { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label },
+      { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: CommonPositionTag.Left.label },
     ]);
     this.cooktop.addSurface('Surface Bottom Right', [
-      { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: PositionTag.Bottom.label },
-      { mfgCode: null, namespaceId: PositionTag.Right.namespaceId, tag: PositionTag.Right.tag, label: PositionTag.Right.label },
+      { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label },
+      { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: CommonPositionTag.Right.label },
     ]);
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.cooktop = (await this.addDevice(this.cooktop)) as Cooktop | undefined;
@@ -2294,7 +2294,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     refrigerator.addCabinet(
       'Refrigerator Top', // name
       [
-        { mfgCode: null, namespaceId: PositionTag.Top.namespaceId, tag: PositionTag.Top.tag, label: 'Refrigerator Top' },
+        { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: 'Refrigerator Top' },
         { mfgCode: null, namespaceId: RefrigeratorTag.Refrigerator.namespaceId, tag: RefrigeratorTag.Refrigerator.tag, label: RefrigeratorTag.Refrigerator.label },
       ], // tagList
       12 * 100, // targetTemperature
@@ -2306,7 +2306,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     refrigerator.addCabinet(
       'Freezer Bottom', // name
       [
-        { mfgCode: null, namespaceId: PositionTag.Bottom.namespaceId, tag: PositionTag.Bottom.tag, label: 'Freezer Bottom' },
+        { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: 'Freezer Bottom' },
         { mfgCode: null, namespaceId: RefrigeratorTag.Freezer.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label },
       ], // tagList
       -18 * 100, // targetTemperature
