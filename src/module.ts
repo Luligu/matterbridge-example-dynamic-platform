@@ -71,6 +71,7 @@ import {
   BasicVideoPlayer,
   BatteryStorage,
   type CastingVideoPlayer,
+  Closure,
   Cooktop,
   Dishwasher,
   Evse,
@@ -89,7 +90,17 @@ import {
   WaterHeater,
 } from 'matterbridge/devices';
 import { type AnsiLogger, debugStringify } from 'matterbridge/logger';
-import { CommonAreaNamespaceTag, CommonLocationTag, CommonNumberTag, CommonPositionTag, RefrigeratorTag, SwitchesTag, UINT16_MAX, UINT32_MAX } from 'matterbridge/matter';
+import {
+  ClosureTag,
+  CommonAreaNamespaceTag,
+  CommonLocationTag,
+  CommonNumberTag,
+  CommonPositionTag,
+  RefrigeratorTag,
+  SwitchesTag,
+  UINT16_MAX,
+  UINT32_MAX,
+} from 'matterbridge/matter';
 // import { ThermostatServer } from 'matterbridge/matter/behaviors';
 import {
   AirQuality,
@@ -97,6 +108,7 @@ import {
   BridgedDeviceBasicInformation,
   CarbonDioxideConcentrationMeasurement,
   CarbonMonoxideConcentrationMeasurement,
+  ClosureControl,
   ColorControl,
   Descriptor,
   DeviceEnergyManagement,
@@ -210,6 +222,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   soil: MatterbridgeEndpoint | undefined;
   irrigation: IrrigationSystem | undefined;
   irrigationSystem: IrrigationSystem | undefined;
+  garageDoor: Closure | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
@@ -397,6 +410,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.irrigationSystem = (await this.addDevice(this.irrigationSystem)) as IrrigationSystem | undefined;
+
+    // *********************** Create a garage door Closure device ***********************
+    this.garageDoor = new Closure('Garage Door', 'GAR000071', {
+      mainState: ClosureControl.MainState.Stopped,
+      tagList: [getSemtag(ClosureTag.GarageDoor)],
+    });
+
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    this.garageDoor = (await this.addDevice(this.garageDoor)) as Closure | undefined;
+
+    // The mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer
+    this.garageDoor?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
+      this.garageDoor?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+    });
+    this.garageDoor?.addCommandHandler('ClosureControl.stop', () => {
+      this.garageDoor?.log.info('Command stop called');
+    });
 
     // *********************** Create a compound climate device ***********************
     this.climate = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)
