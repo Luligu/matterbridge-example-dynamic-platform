@@ -36,6 +36,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [platform]: Add `closureGarageDoor` device.
+- [platform]: Add `closureVenetianBlind` device with Lift and Tilt panels.
 
 ### Changed
 

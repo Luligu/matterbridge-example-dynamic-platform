@@ -96,6 +96,7 @@ It exposes 71 virtual devices:
 - an irrigation system (Matter 1.5.0)
 - an irrigation system with four zones (Matter 1.5.0)
 - a closure device (Matter 1.5.0, supported by SmartThings)
+- a closure device with Lift and Tilt panels (Matter 1.5.0, supported by SmartThings)
 
 All these devices continuously change their state and position. The plugin also shows how to use all the command handlers (so you can control all the devices), how to subscribe to attributes, and how to trigger events.
 
