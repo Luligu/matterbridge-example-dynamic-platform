@@ -33,10 +33,7 @@ jobs:
         run: npm -v
 
       - name: Clone matterbridge repo
-        # Temporarily forced to 'dev': this example depends on the tagList support for the
-        # Closure device (Luligu/matterbridge#585), merged into matterbridge dev but not yet in main.
-        # TODO: revert to the default branch (drop `-b dev`) once that change lands in matterbridge main/next release.
-        run: git clone --depth 1 --single-branch --no-tags -b dev https://github.com/Luligu/matterbridge.git ../matterbridge
+        run: git clone --depth 1 --single-branch --no-tags https://github.com/Luligu/matterbridge.git ../matterbridge
 
       - name: Install matterbridge dependencies
         working-directory: ../matterbridge

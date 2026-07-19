@@ -222,7 +222,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   soil: MatterbridgeEndpoint | undefined;
   irrigation: IrrigationSystem | undefined;
   irrigationSystem: IrrigationSystem | undefined;
-  garageDoor: Closure | undefined;
+  closureGarageDoor: Closure | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
@@ -412,20 +412,43 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.irrigationSystem = (await this.addDevice(this.irrigationSystem)) as IrrigationSystem | undefined;
 
     // *********************** Create a garage door Closure device ***********************
-    this.garageDoor = new Closure('Garage Door', 'GAR000071', {
+    this.closureGarageDoor = new Closure('Garage Door', 'GAR000071', {
       mainState: ClosureControl.MainState.Stopped,
-      tagList: [getSemtag(ClosureTag.GarageDoor)],
+      // TODO: Remove when Matterbridge version > 3.10.0 is required
+      // oxlint-disable-next-line typescript/ban-ts-comment
+      // @ts-ignore-next-line typescript/no-unsafe-assignment
+      tagList: this.matterbridge.matterbridgeVersion === '3.10.0' ? undefined : [getSemtag(ClosureTag.GarageDoor)],
     });
 
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.garageDoor = (await this.addDevice(this.garageDoor)) as Closure | undefined;
+    this.closureGarageDoor = (await this.addDevice(this.closureGarageDoor)) as Closure | undefined;
 
     // The mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer
-    this.garageDoor?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
-      this.garageDoor?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+    this.closureGarageDoor?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
+      this.closureGarageDoor?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+      /* v8 ignore start -- Demo timer simulates closure movement completion. */
+      const currentStateTimeout = setTimeout(() => {
+        const targetState = this.closureGarageDoor?.getAttribute(ClosureControl.id, 'overallTargetState');
+        const currentState = this.closureGarageDoor?.getAttribute(ClosureControl.id, 'overallCurrentState');
+        if (targetState === undefined || targetState === null) return;
+        void this.closureGarageDoor?.setAttribute(ClosureControl.id, 'mainState', ClosureControl.MainState.Stopped, this.closureGarageDoor.log);
+        void this.closureGarageDoor?.setAttribute(
+          ClosureControl.id,
+          'overallCurrentState',
+          {
+            position: targetState.position,
+            latch: targetState.latch,
+            speed: targetState.speed,
+            secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed ? true : (currentState?.secureState ?? false),
+          },
+          this.closureGarageDoor.log,
+        );
+      }, 1000);
+      currentStateTimeout.unref();
+      /* v8 ignore stop */
     });
-    this.garageDoor?.addCommandHandler('ClosureControl.stop', () => {
-      this.garageDoor?.log.info('Command stop called');
+    this.closureGarageDoor?.addCommandHandler('ClosureControl.stop', () => {
+      this.closureGarageDoor?.log.info('Command stop called');
     });
 
     // *********************** Create a compound climate device ***********************
