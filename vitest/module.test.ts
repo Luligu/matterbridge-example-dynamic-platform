@@ -10,7 +10,7 @@ const MATTER_CREATE_ONLY = true;
 
 import { featuresFor, invokeSubscribeHandler, type PlatformMatterbridge } from 'matterbridge';
 import { LogLevel } from 'matterbridge/logger';
-import { ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
+import { ClosureControl, ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
 import { log, loggerInfoSpy, loggerLogSpy, setDebug, setupTest } from 'matterbridge/vitest-utils';
 import {
   addMatterbridge,
@@ -130,7 +130,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(70);
+    expect(dynamicPlatform.getDevices()).toHaveLength(71);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -138,7 +138,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(70);
+    expect(dynamicPlatform.getDevices()).toHaveLength(71);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
@@ -236,6 +236,11 @@ describe('TestPlatform', () => {
             await device.invokeBehaviorCommand('windowCovering', 'goToTiltPercentage', { tiltPercent100thsValue: 5000 });
           }
         }
+      }
+
+      if (device.hasClusterServer(ClosureControl)) {
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen, latch: false });
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
       }
 
       if (device.hasClusterServer(DoorLock)) {
@@ -480,7 +485,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(70);
+    expect(dynamicPlatform.getDevices()).toHaveLength(71);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
     await dynamicPlatform.executeIntervals(26, 10);
