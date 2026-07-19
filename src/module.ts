@@ -91,6 +91,8 @@ import {
 } from 'matterbridge/devices';
 import { type AnsiLogger, debugStringify } from 'matterbridge/logger';
 import {
+  ClosureCoveringTag,
+  ClosurePanelTag,
   ClosureTag,
   CommonAreaNamespaceTag,
   CommonLocationTag,
@@ -109,6 +111,7 @@ import {
   CarbonDioxideConcentrationMeasurement,
   CarbonMonoxideConcentrationMeasurement,
   ClosureControl,
+  ClosureDimension,
   ColorControl,
   Descriptor,
   DeviceEnergyManagement,
@@ -223,6 +226,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   irrigation: IrrigationSystem | undefined;
   irrigationSystem: IrrigationSystem | undefined;
   closureGarageDoor: Closure | undefined;
+  closureVenetianBlind: Closure | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
@@ -446,6 +450,55 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.closureGarageDoor?.addCommandHandler('ClosureControl.stop', () => {
       this.closureGarageDoor?.log.info('Command stop called');
     });
+
+    // *********************** Create a venetian blind Closure device with Lift and Tilt panels ***********************
+    this.closureVenetianBlind = new Closure('Venetian Blind', 'VEN000072', {
+      tagList: [getSemtag(ClosureTag.Covering), getSemtag(ClosureCoveringTag.Venetian)],
+    });
+    const closureVenetianBlindLift = this.closureVenetianBlind.addPanel('Lift', [getSemtag(ClosurePanelTag.Lift)]);
+    const closureVenetianBlindTilt = this.closureVenetianBlind.addPanel('Tilt', [getSemtag(ClosurePanelTag.Tilt)]);
+
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    this.closureVenetianBlind = (await this.addDevice(this.closureVenetianBlind)) as Closure | undefined;
+
+    // The mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer
+    this.closureVenetianBlind?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
+      this.closureVenetianBlind?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+      /* v8 ignore start -- Demo timer simulates closure movement completion. */
+      const currentStateTimeout = setTimeout(() => {
+        const targetState = this.closureVenetianBlind?.getAttribute(ClosureControl.id, 'overallTargetState');
+        if (targetState === undefined || targetState === null) return;
+        void this.closureVenetianBlind?.setAttribute(ClosureControl.id, 'mainState', ClosureControl.MainState.Stopped, this.closureVenetianBlind.log);
+        void this.closureVenetianBlind?.setAttribute(
+          ClosureControl.id,
+          'overallCurrentState',
+          { position: targetState.position, latch: targetState.latch, speed: targetState.speed },
+          this.closureVenetianBlind.log,
+        );
+      }, 1000);
+      currentStateTimeout.unref();
+      /* v8 ignore stop */
+    });
+    this.closureVenetianBlind?.addCommandHandler('ClosureControl.stop', () => {
+      this.closureVenetianBlind?.log.info('Command stop called');
+    });
+
+    // The targetState attribute is set by MatterbridgeClosureDimensionServer; simulate each panel reaching its target.
+    const addClosurePanelSetTargetSimulation = (panel: MatterbridgeEndpoint): void => {
+      panel.addCommandHandler('ClosureDimension.setTarget', ({ request: { position, latch, speed } }) => {
+        panel.log.info(`Command setTarget called position:${position} latch:${latch} speed:${speed}`);
+        /* v8 ignore start -- Demo timer simulates panel movement completion. */
+        const currentStateTimeout = setTimeout(() => {
+          const targetState = panel.getAttribute(ClosureDimension.id, 'targetState');
+          if (targetState === undefined || targetState === null) return;
+          void panel.setAttribute(ClosureDimension.id, 'currentState', targetState, panel.log);
+        }, 1000);
+        currentStateTimeout.unref();
+        /* v8 ignore stop */
+      });
+    };
+    addClosurePanelSetTargetSimulation(closureVenetianBlindLift);
+    addClosurePanelSetTargetSimulation(closureVenetianBlindTilt);
 
     // *********************** Create a compound climate device ***********************
     this.climate = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)
