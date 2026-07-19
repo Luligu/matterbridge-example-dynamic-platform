@@ -10,7 +10,7 @@ const MATTER_CREATE_ONLY = true;
 
 import { featuresFor, invokeSubscribeHandler, type PlatformMatterbridge } from 'matterbridge';
 import { LogLevel } from 'matterbridge/logger';
-import { ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
+import { ClosureControl, ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
 import { log, loggerInfoSpy, loggerLogSpy, setDebug, setupTest } from 'matterbridge/vitest-utils';
 import {
   addMatterbridge,
@@ -236,6 +236,11 @@ describe('TestPlatform', () => {
             await device.invokeBehaviorCommand('windowCovering', 'goToTiltPercentage', { tiltPercent100thsValue: 5000 });
           }
         }
+      }
+
+      if (device.hasClusterServer(ClosureControl)) {
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen, latch: false });
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
       }
 
       if (device.hasClusterServer(DoorLock)) {
