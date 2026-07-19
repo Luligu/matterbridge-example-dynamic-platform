@@ -304,9 +304,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.0')) {
+    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.1')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.10.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.10.1". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -413,11 +413,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a garage door Closure device ***********************
     this.closureGarageDoor = new Closure('Garage Door', 'GAR000071', {
-      mainState: ClosureControl.MainState.Stopped,
-      // TODO: Remove when Matterbridge version > 3.10.0 is required
-      // oxlint-disable-next-line typescript/ban-ts-comment
-      // @ts-ignore-next-line typescript/no-unsafe-assignment
-      tagList: this.matterbridge.matterbridgeVersion === '3.10.0' ? undefined : [getSemtag(ClosureTag.GarageDoor)],
+      tagList: [getSemtag(ClosureTag.GarageDoor)],
     });
 
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
