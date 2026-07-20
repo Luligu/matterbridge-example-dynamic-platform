@@ -10,7 +10,7 @@ const MATTER_CREATE_ONLY = true;
 
 import { featuresFor, invokeSubscribeHandler, type PlatformMatterbridge } from 'matterbridge';
 import { LogLevel } from 'matterbridge/logger';
-import { ClosureControl, ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
+import { ClosureControl, ClosureDimension, ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
 import { log, loggerInfoSpy, loggerLogSpy, setDebug, setupTest } from 'matterbridge/vitest-utils';
 import {
   addMatterbridge,
@@ -241,6 +241,11 @@ describe('TestPlatform', () => {
       if (device.hasClusterServer(ClosureControl)) {
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen, latch: false });
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
+        for (const panel of device.getChildEndpoints()) {
+          if (panel.hasClusterServer(ClosureDimension)) {
+            await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.setTarget', { position: 5000, latch: false });
+          }
+        }
       }
 
       if (device.hasClusterServer(DoorLock)) {
