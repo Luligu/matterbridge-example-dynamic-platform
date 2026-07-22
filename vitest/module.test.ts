@@ -252,7 +252,7 @@ describe('TestPlatform', () => {
 
       if (device.hasClusterServer(ClosureControl)) {
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true });
-        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToPedestrianPosition, latch: false });
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToSignaturePosition, latch: false });
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen, latch: false });
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
         for (const panel of device.getChildEndpoints()) {
