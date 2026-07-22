@@ -461,40 +461,89 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.closureVenetianBlind = (await this.addDevice(this.closureVenetianBlind)) as Closure | undefined;
 
+    // Per the Matter spec (§5.4.4 / §5.5.4), a Closure's overall state and its ClosureDimension panels' state are
+    // associated: a MoveTo on the parent must drive every panel to a matching target, and the parent's overall
+    // state must reflect once all panels have reached their own target. These helpers keep the parent and the
+    // Lift/Tilt panels of the venetian blind in sync in both directions.
+    const closurePanelTargetPercent = (position: ClosureControl.TargetPosition): number => {
+      if (position === ClosureControl.TargetPosition.MoveToFullyOpen) return 0;
+      if (position === ClosureControl.TargetPosition.MoveToFullyClosed) return 10000;
+      return 5000; // Pedestrian/Ventilation/Signature positions: demo mid-travel value.
+    };
+
+    // Rolls the Lift/Tilt panels' reached position back up into the parent's overall ClosureControl state, once
+    // both panels are no longer moving. Uses the Lift panel's position as the representative overall open/closed amount.
+    const syncClosureVenetianBlindFromPanels = (): void => {
+      const liftTarget = closureVenetianBlindLift.getAttribute(ClosureDimension.id, 'targetState');
+      const liftCurrent = closureVenetianBlindLift.getAttribute(ClosureDimension.id, 'currentState');
+      const tiltTarget = closureVenetianBlindTilt.getAttribute(ClosureDimension.id, 'targetState');
+      const tiltCurrent = closureVenetianBlindTilt.getAttribute(ClosureDimension.id, 'currentState');
+      if (!liftTarget || !liftCurrent || !tiltTarget || !tiltCurrent) return;
+      if (liftCurrent.position !== liftTarget.position || tiltCurrent.position !== tiltTarget.position) return; // still moving
+
+      const overallPosition =
+        liftCurrent.position === 0
+          ? ClosureControl.CurrentPosition.FullyOpened
+          : liftCurrent.position === 10000
+            ? ClosureControl.CurrentPosition.FullyClosed
+            : ClosureControl.CurrentPosition.PartiallyOpened;
+
+      void this.closureVenetianBlind?.setAttribute(ClosureControl.id, 'mainState', ClosureControl.MainState.Stopped, this.closureVenetianBlind.log);
+      void this.closureVenetianBlind?.setAttribute(
+        ClosureControl.id,
+        'overallCurrentState',
+        { position: overallPosition, latch: liftCurrent.latch ?? true, speed: liftCurrent.speed },
+        this.closureVenetianBlind?.log,
+      );
+    };
+
+    // Simulates a panel physically reaching its ClosureDimension.targetState, then re-syncs the parent Closure.
+    const simulateClosurePanelReachingTarget = (panel: MatterbridgeEndpoint): void => {
+      /* v8 ignore start -- Demo timer simulates panel movement completion. */
+      const currentStateTimeout = setTimeout(() => {
+        const targetState = panel.getAttribute(ClosureDimension.id, 'targetState');
+        if (targetState === undefined || targetState === null) return;
+        void panel.setAttribute(ClosureDimension.id, 'currentState', targetState, panel.log);
+        syncClosureVenetianBlindFromPanels();
+      }, 1000);
+      currentStateTimeout.unref();
+      /* v8 ignore stop */
+    };
+
+    const moveClosurePanelTo = (
+      panel: MatterbridgeEndpoint,
+      position: number,
+      latch: ClosureControl.OverallTargetState['latch'],
+      speed: ClosureControl.OverallTargetState['speed'],
+    ): void => {
+      void panel.setAttribute(ClosureDimension.id, 'targetState', { position, latch: latch ?? true, speed }, panel.log);
+      simulateClosurePanelReachingTarget(panel);
+    };
+
     // The mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer
     this.closureVenetianBlind?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
       this.closureVenetianBlind?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
-      /* v8 ignore start -- Demo timer simulates closure movement completion. */
-      const currentStateTimeout = setTimeout(() => {
+      /* v8 ignore start -- Demo timer waits for MatterbridgeClosureControlServer to commit the resolved overallTargetState. */
+      const targetStateTimeout = setTimeout(() => {
         const targetState = this.closureVenetianBlind?.getAttribute(ClosureControl.id, 'overallTargetState');
-        if (targetState === undefined || targetState === null) return;
-        void this.closureVenetianBlind?.setAttribute(ClosureControl.id, 'mainState', ClosureControl.MainState.Stopped, this.closureVenetianBlind.log);
-        void this.closureVenetianBlind?.setAttribute(
-          ClosureControl.id,
-          'overallCurrentState',
-          { position: targetState.position, latch: targetState.latch, speed: targetState.speed },
-          this.closureVenetianBlind.log,
-        );
+        if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
+        const panelPercent = closurePanelTargetPercent(targetState.position);
+        moveClosurePanelTo(closureVenetianBlindLift, panelPercent, targetState.latch, targetState.speed);
+        moveClosurePanelTo(closureVenetianBlindTilt, panelPercent, targetState.latch, targetState.speed);
       }, 1000);
-      currentStateTimeout.unref();
+      targetStateTimeout.unref();
       /* v8 ignore stop */
     });
     this.closureVenetianBlind?.addCommandHandler('ClosureControl.stop', () => {
       this.closureVenetianBlind?.log.info('Command stop called');
     });
 
-    // The targetState attribute is set by MatterbridgeClosureDimensionServer; simulate each panel reaching its target.
+    // The targetState attribute is set by MatterbridgeClosureDimensionServer; simulate each panel reaching its
+    // target and roll the result back up into the parent Closure's overall state (see syncClosureVenetianBlindFromPanels above).
     const addClosurePanelSetTargetSimulation = (panel: MatterbridgeEndpoint): void => {
       panel.addCommandHandler('ClosureDimension.setTarget', ({ request: { position, latch, speed } }) => {
         panel.log.info(`Command setTarget called position:${position} latch:${latch} speed:${speed}`);
-        /* v8 ignore start -- Demo timer simulates panel movement completion. */
-        const currentStateTimeout = setTimeout(() => {
-          const targetState = panel.getAttribute(ClosureDimension.id, 'targetState');
-          if (targetState === undefined || targetState === null) return;
-          void panel.setAttribute(ClosureDimension.id, 'currentState', targetState, panel.log);
-        }, 1000);
-        currentStateTimeout.unref();
-        /* v8 ignore stop */
+        simulateClosurePanelReachingTarget(panel);
       });
     };
     addClosurePanelSetTargetSimulation(closureVenetianBlindLift);
