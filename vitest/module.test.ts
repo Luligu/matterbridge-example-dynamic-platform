@@ -375,7 +375,7 @@ describe('TestPlatform', () => {
     const liftPanel = venetianBlind.getChildEndpointById('Lift');
     expect(liftPanel).toBeDefined();
     if (!liftPanel) return;
-  
+
     const moveToAndWait = async (position: ClosureControl.TargetPosition): Promise<void> => {
       await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position, latch: false });
       // Wait past the parent's targetStateTimeout (1000ms): sets targetState on both Lift and Tilt.
@@ -384,7 +384,7 @@ describe('TestPlatform', () => {
       // syncClosureVenetianBlindFromPanels(), which is what actually resolves overallCurrentState.
       await new Promise((resolve) => setTimeout(resolve, 1100));
     };
-  
+
     await moveToAndWait(ClosureControl.TargetPosition.MoveToFullyOpen);
     expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 0 });
     expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.FullyOpened });
