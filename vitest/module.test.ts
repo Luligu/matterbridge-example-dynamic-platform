@@ -376,6 +376,11 @@ describe('TestPlatform', () => {
     expect(liftPanel).toBeDefined();
     if (!liftPanel) return;
 
+    // Let any moveTo/setTarget cascade left pending by the generic ClosureControl loop above fully settle
+    // (parent targetStateTimeout + panel currentStateTimeout, 1000ms each) before driving our own sequence,
+    // so a late-firing leftover timer can't race with and corrupt the assertions below.
+    await new Promise((resolve) => setTimeout(resolve, 2200));
+
     const moveToAndWait = async (position: ClosureControl.TargetPosition): Promise<void> => {
       await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position, latch: false });
       // Wait past the parent's targetStateTimeout (1000ms): sets targetState on both Lift and Tilt.
@@ -388,11 +393,11 @@ describe('TestPlatform', () => {
     await moveToAndWait(ClosureControl.TargetPosition.MoveToFullyOpen);
     expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 0 });
     expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.FullyOpened });
-  
+
     await moveToAndWait(ClosureControl.TargetPosition.MoveToFullyClosed);
     expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 10000 });
     expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.FullyClosed });
-  
+
     await moveToAndWait(ClosureControl.TargetPosition.MoveToSignaturePosition);
     expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 5000 });
     expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.PartiallyOpened });

@@ -471,6 +471,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       return 5000; // Pedestrian/Ventilation/Signature positions: demo mid-travel value.
     };
 
+    // Tracks the pending "reach target" timer per panel and the pending parent-to-panel sync timer, so a new
+    // moveTo/setTarget command cancels any stale timer instead of letting it fire later with an outdated target.
+    const closurePanelReachTimeouts = new Map<MatterbridgeEndpoint, NodeJS.Timeout>();
+    let closureVenetianBlindMoveTimeout: NodeJS.Timeout | undefined;
+
     // Rolls the Lift/Tilt panels' reached position back up into the parent's overall ClosureControl state, once
     // both panels are no longer moving. Uses the Lift panel's position as the representative overall open/closed amount.
     const syncClosureVenetianBlindFromPanels = (): void => {
@@ -499,14 +504,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Simulates a panel physically reaching its ClosureDimension.targetState, then re-syncs the parent Closure.
     const simulateClosurePanelReachingTarget = (panel: MatterbridgeEndpoint): void => {
+      const pending = closurePanelReachTimeouts.get(panel);
+      if (pending) clearTimeout(pending);
       /* v8 ignore start -- Demo timer simulates panel movement completion. */
       const currentStateTimeout = setTimeout(() => {
-        const targetState = panel.getAttribute(ClosureDimension.id, 'targetState');
-        if (targetState === undefined || targetState === null) return;
-        void panel.setAttribute(ClosureDimension.id, 'currentState', targetState, panel.log);
-        syncClosureVenetianBlindFromPanels();
+        void (async (): Promise<void> => {
+          closurePanelReachTimeouts.delete(panel);
+          const targetState = panel.getAttribute(ClosureDimension.id, 'targetState');
+          if (targetState === undefined || targetState === null) return;
+          // Await the write so the parent sync below reads the panel's just-committed currentState, not a stale value.
+          await panel.setAttribute(ClosureDimension.id, 'currentState', targetState, panel.log);
+          syncClosureVenetianBlindFromPanels();
+        })();
       }, 1000);
       currentStateTimeout.unref();
+      closurePanelReachTimeouts.set(panel, currentStateTimeout);
       /* v8 ignore stop */
     };
 
@@ -523,15 +535,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // The mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer
     this.closureVenetianBlind?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
       this.closureVenetianBlind?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+      if (closureVenetianBlindMoveTimeout) clearTimeout(closureVenetianBlindMoveTimeout);
       /* v8 ignore start -- Demo timer waits for MatterbridgeClosureControlServer to commit the resolved overallTargetState. */
-      const targetStateTimeout = setTimeout(() => {
+      closureVenetianBlindMoveTimeout = setTimeout(() => {
+        closureVenetianBlindMoveTimeout = undefined;
         const targetState = this.closureVenetianBlind?.getAttribute(ClosureControl.id, 'overallTargetState');
         if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
         const panelPercent = closurePanelTargetPercent(targetState.position);
         moveClosurePanelTo(closureVenetianBlindLift, panelPercent, targetState.latch, targetState.speed);
         moveClosurePanelTo(closureVenetianBlindTilt, panelPercent, targetState.latch, targetState.speed);
       }, 1000);
-      targetStateTimeout.unref();
+      closureVenetianBlindMoveTimeout.unref();
       /* v8 ignore stop */
     });
     this.closureVenetianBlind?.addCommandHandler('ClosureControl.stop', () => {
