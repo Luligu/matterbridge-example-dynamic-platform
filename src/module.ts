@@ -2370,8 +2370,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a airConditioner device ***********************
     this.airConditioner = new AirConditioner('Air Conditioner', 'ACO00027', {
       localTemperature: 20,
-      occupiedCoolingSetpoint: 18,
-      occupiedHeatingSetpoint: 22,
+      occupiedCoolingSetpoint: 22,
+      occupiedHeatingSetpoint: 18,
+      maxHeatSetpointLimit: 49,
+      minCoolSetpointLimit: 1,
       fanMode: FanControl.FanMode.Auto,
     })
       .createDefaultTemperatureMeasurementClusterServer(20 * 100)
