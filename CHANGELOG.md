@@ -31,7 +31,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Breaking changes
 
-- [matterbridge]: Require matterbridge v.3.10.1 with matter v.1.6.0 and matter.js v.0.17.6.
+- [matterbridge]: Require matterbridge v.3.10.3 with matter v.1.6.0.
 
 ### Added
 
