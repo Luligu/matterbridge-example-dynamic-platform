@@ -1468,6 +1468,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         name: 'Weekdays',
         transitions: [
           { dayOfWeek: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true }, transitionTime: 360, heatingSetpoint: 2000, coolingSetpoint: 2400 },
+          { dayOfWeek: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true }, transitionTime: 750, heatingSetpoint: 1900, coolingSetpoint: 2500 },
+          { dayOfWeek: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true }, transitionTime: 810, heatingSetpoint: 2000, coolingSetpoint: 2400 },
           { dayOfWeek: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true }, transitionTime: 1320, heatingSetpoint: 1800, coolingSetpoint: 2600 },
         ],
         builtIn: true,
