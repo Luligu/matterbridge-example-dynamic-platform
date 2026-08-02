@@ -305,9 +305,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.1')) {
+    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.3')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.10.1". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.10.3". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -2504,8 +2504,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a airConditioner device ***********************
     this.airConditioner = new AirConditioner('Air Conditioner', 'ACO00027', {
       localTemperature: 20,
-      occupiedCoolingSetpoint: 18,
-      occupiedHeatingSetpoint: 22,
+      occupiedCoolingSetpoint: 22,
+      occupiedHeatingSetpoint: 18,
+      maxHeatSetpointLimit: 49,
+      minCoolSetpointLimit: 1,
       fanMode: FanControl.FanMode.Auto,
     })
       .createDefaultTemperatureMeasurementClusterServer(20 * 100)
