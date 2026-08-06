@@ -44,8 +44,8 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Upgrade package.
 - [package]: Update dependencies.
 - [package]: Bump `@types/node` to v.26.1.2.
-- [package]: Bump `oxfmt` to v.0.61.0.
-- [package]: Bump `oxlint` to v.1.76.0.
+- [package]: Bump `oxfmt` to v.0.62.0.
+- [package]: Bump `oxlint` to v.1.77.0.
 - [package]: Bump `oxlint-tsgolint` to v.7.0.2001.
 - [package]: Update agents configs.
 
