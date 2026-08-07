@@ -54,6 +54,7 @@ It exposes 71 virtual devices:
 - a thermostat with auto mode (i.e. with Auto Heat and Cool features), occupancy and outdoorTemperature
 - a thermostat auto mode with presets (Home, Away, Sleep, Wake, Vacation and GoingToSleep modes) including 3 sub endpoints with flow, temperature and humidity sensors
 - a thermostat auto mode with schedules (Weekdays and Weekend schedules) including 2 sub endpoints with temperature and humidity sensors
+- a thermostat auto mode with thermostat suggestions (Comfort and Eco presets with a pre-seeded suggestion) including 2 sub endpoints with temperature and humidity sensors
 - a thermostat heat only with two external temperature sensors (tagged like Indoor and Outdoor)
 - a thermostat cool only
 - a fan with Off High presets
