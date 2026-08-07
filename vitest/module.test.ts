@@ -130,7 +130,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(71);
+    expect(dynamicPlatform.getDevices()).toHaveLength(73);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -138,7 +138,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(71);
+    expect(dynamicPlatform.getDevices()).toHaveLength(73);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
@@ -420,6 +420,83 @@ describe('TestPlatform', () => {
     }
   }, 60000);
 
+  it('should execute thermostat suggestion commands and subscriptions', async () => {
+    // Find the Thermostat (AutoModeSuggestions) device which has thermostat suggestions
+    const thermoAutoSuggestions = dynamicPlatform.getDeviceByName('Thermostat (AutoModeSuggestions)');
+    expect(thermoAutoSuggestions).toBeDefined();
+    if (!thermoAutoSuggestions) return;
+    expect(thermoAutoSuggestions.hasClusterServer(Thermostat.id)).toBe(true);
+    expect(thermoAutoSuggestions.getAttribute(Thermostat.id, 'thermostatSuggestions')).toHaveLength(1);
+
+    // Test addThermostatSuggestion command with a valid preset
+    const addRequest = { presetHandle: new Uint8Array([0x00]), effectiveTime: null, expirationInMinutes: 45 };
+    await thermoAutoSuggestions.invokeBehaviorCommand('Thermostat', 'addThermostatSuggestion', addRequest);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command addThermostatSuggestion called'));
+    expect(thermoAutoSuggestions.getAttribute(Thermostat.id, 'thermostatSuggestions')).toHaveLength(2);
+
+    // Test addThermostatSuggestion command with an unknown preset
+    const invalidAddRequest = { presetHandle: new Uint8Array([0xff]), effectiveTime: null, expirationInMinutes: 45 };
+    await expect(thermoAutoSuggestions.invokeBehaviorCommand('Thermostat', 'addThermostatSuggestion', invalidAddRequest)).rejects.toThrow('Requested PresetHandle not found');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command addThermostatSuggestion called'));
+
+    // Test removeThermostatSuggestion command with a valid uniqueId
+    await thermoAutoSuggestions.invokeBehaviorCommand('Thermostat', 'removeThermostatSuggestion', { uniqueId: 0 });
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command removeThermostatSuggestion called'));
+    expect(thermoAutoSuggestions.getAttribute(Thermostat.id, 'thermostatSuggestions')).toHaveLength(1);
+
+    // Test removeThermostatSuggestion command with an unknown uniqueId
+    await expect(thermoAutoSuggestions.invokeBehaviorCommand('Thermostat', 'removeThermostatSuggestion', { uniqueId: 99 })).rejects.toThrow('Requested UniqueID not found');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command removeThermostatSuggestion called'));
+
+    // Test subscriptions
+    await invokeSubscribeHandler(thermoAutoSuggestions, 'Thermostat', 'systemMode', Thermostat.SystemMode.Off, Thermostat.SystemMode.Auto);
+    await invokeSubscribeHandler(thermoAutoSuggestions, 'Thermostat', 'occupiedHeatingSetpoint', 2700, 2800);
+    await invokeSubscribeHandler(thermoAutoSuggestions, 'Thermostat', 'occupiedCoolingSetpoint', 1400, 1500);
+    await invokeSubscribeHandler(thermoAutoSuggestions, 'Thermostat', 'thermostatSuggestions', [], []);
+    await invokeSubscribeHandler(thermoAutoSuggestions, 'Thermostat', 'currentThermostatSuggestion', null, null);
+  }, 60000);
+
+  it('should execute thermostat schedule commands and subscriptions', async () => {
+    // Find the Thermostat (AutoModeSchedules) device which has schedules
+    const thermoAutoSchedule = dynamicPlatform.getDeviceByName('Thermostat (AutoModeSchedules)');
+    expect(thermoAutoSchedule).toBeDefined();
+    if (!thermoAutoSchedule) return;
+    expect(thermoAutoSchedule.hasClusterServer(Thermostat.id)).toBe(true);
+
+    // Test setpointRaiseLower command
+    await thermoAutoSchedule.invokeBehaviorCommand('Thermostat', 'setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Heat, amount: 100 });
+    await thermoAutoSchedule.invokeBehaviorCommand('Thermostat', 'setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Cool, amount: 100 });
+    await thermoAutoSchedule.invokeBehaviorCommand('Thermostat', 'setpointRaiseLower', { mode: Thermostat.SetpointRaiseLowerMode.Both, amount: 100 });
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command setpointRaiseLower called'));
+
+    // Test setActiveScheduleRequest command with a valid schedule
+    const scheduleHandle = new Uint8Array([0x00]);
+    await thermoAutoSchedule.invokeBehaviorCommand('Thermostat', 'setActiveScheduleRequest', { scheduleHandle });
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command setActiveScheduleRequest called'));
+    expect(thermoAutoSchedule.getAttribute(Thermostat.id, 'activeScheduleHandle')).toEqual(scheduleHandle);
+
+    // Switch to the other valid schedule
+    const otherScheduleHandle = new Uint8Array([0x01]);
+    await thermoAutoSchedule.invokeBehaviorCommand('Thermostat', 'setActiveScheduleRequest', { scheduleHandle: otherScheduleHandle });
+    expect(thermoAutoSchedule.getAttribute(Thermostat.id, 'activeScheduleHandle')).toEqual(otherScheduleHandle);
+
+    // Test setActiveScheduleRequest command with an unknown schedule
+    const invalidScheduleHandle = new Uint8Array([0xff]);
+    await expect(thermoAutoSchedule.invokeBehaviorCommand('Thermostat', 'setActiveScheduleRequest', { scheduleHandle: invalidScheduleHandle })).rejects.toThrow(
+      'Requested ScheduleHandle not found',
+    );
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command setActiveScheduleRequest called'));
+    // The unknown schedule request must not corrupt the previously active schedule handle
+    expect(thermoAutoSchedule.getAttribute(Thermostat.id, 'activeScheduleHandle')).toEqual(otherScheduleHandle);
+
+    // Test subscriptions
+    await invokeSubscribeHandler(thermoAutoSchedule, 'Thermostat', 'systemMode', Thermostat.SystemMode.Off, Thermostat.SystemMode.Auto);
+    await invokeSubscribeHandler(thermoAutoSchedule, 'Thermostat', 'occupiedHeatingSetpoint', 2700, 2800);
+    await invokeSubscribeHandler(thermoAutoSchedule, 'Thermostat', 'occupiedCoolingSetpoint', 1400, 1500);
+    await invokeSubscribeHandler(thermoAutoSchedule, 'Thermostat', 'activeScheduleHandle', scheduleHandle, otherScheduleHandle);
+    await invokeSubscribeHandler(thermoAutoSchedule, 'Thermostat', 'schedules', [], []);
+  }, 60000);
+
   it('should execute the remaining thermostat, fan base and air conditioner callbacks', async () => {
     const thermoHeat = dynamicPlatform.getDeviceByName('Thermostat (Heat)');
     const thermoCool = dynamicPlatform.getDeviceByName('Thermostat (Cool)');
@@ -485,7 +562,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(71);
+    expect(dynamicPlatform.getDevices()).toHaveLength(73);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
     await dynamicPlatform.executeIntervals(26, 10);

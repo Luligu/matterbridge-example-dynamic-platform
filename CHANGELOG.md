@@ -36,6 +36,8 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [platform]: Add `closureGarageDoor` device.
+- [thermostat]: Added a thermostat auto mode with schedules (Weekdays and Weekend schedules) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultSchedulesThermostatClusterServer()`.
+- [thermostat]: Added a thermostat auto mode with thermostat suggestions (Comfort and Eco presets with a pre-seeded suggestion) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultThermostatSuggestionsClusterServer()`.
 - [chip]: Add chip-test toolchain agents instruction and chip-test runner.
 - [frontend]: Add plugin-frontend agents instructions.
 
