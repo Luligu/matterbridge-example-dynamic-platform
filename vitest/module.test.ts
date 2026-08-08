@@ -364,6 +364,24 @@ describe('TestPlatform', () => {
     }
   }, 60000);
 
+  it('should set the garage door current position from each supported target position', async () => {
+    const garageDoor = dynamicPlatform.getDeviceByName('Garage Door');
+    expect(garageDoor).toBeDefined();
+    if (!garageDoor) return;
+
+    const positions = [
+      [ClosureControl.TargetPosition.MoveToFullyClosed, ClosureControl.CurrentPosition.FullyClosed],
+      [ClosureControl.TargetPosition.MoveToFullyOpen, ClosureControl.CurrentPosition.FullyOpened],
+      [ClosureControl.TargetPosition.MoveToSignaturePosition, ClosureControl.CurrentPosition.OpenedAtSignature],
+    ] as const;
+
+    for (const [targetPosition, currentPosition] of positions) {
+      await garageDoor.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: targetPosition, latch: false });
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      expect(garageDoor.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: currentPosition });
+    }
+  }, 10000);
+
   it('should resolve the venetian blind panel target percent for every moveTo position', async () => {
     // The generic ClosureControl loop above invokes moveTo, but the parent-to-panel sync runs inside a
     // real (un-awaited) setTimeout, so it never actually fires during that loop. Drive it explicitly here,
@@ -402,6 +420,26 @@ describe('TestPlatform', () => {
     expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 5000 });
     expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.PartiallyOpened });
   }, 15000);
+
+  it('should stop the venetian blind without completing pending panel movement', async () => {
+    const venetianBlind = dynamicPlatform.getDeviceByName('Venetian Blind');
+    expect(venetianBlind).toBeDefined();
+    if (!venetianBlind) return;
+    const liftPanel = venetianBlind.getChildEndpointById('Lift');
+    expect(liftPanel).toBeDefined();
+    if (!liftPanel) return;
+
+    await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: false });
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 10000 });
+    expect(liftPanel.getAttribute(ClosureDimension.id, 'currentState')).toMatchObject({ position: 5000 });
+
+    await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+
+    expect(liftPanel.getAttribute(ClosureDimension.id, 'currentState')).toMatchObject({ position: 5000 });
+    expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.PartiallyOpened });
+  }, 5000);
 
   it('should execute thermostat preset commands and subscriptions', async () => {
     // Find the Thermostat (AutoModePresets) device which has presets

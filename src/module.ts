@@ -422,33 +422,54 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.closureGarageDoor = (await this.addDevice(this.closureGarageDoor)) as Closure | undefined;
+    let closureGarageDoorMoveTimeout: NodeJS.Timeout | undefined;
 
-    // The mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer
-    this.closureGarageDoor?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
+    /**
+     * Convert a ClosureControl target position to its corresponding current position.
+     *
+     * @param {ClosureControl.TargetPosition} position Requested closure target position.
+     * @returns {ClosureControl.CurrentPosition} Matching reached position.
+     */
+    function closureTargetToCurrentPosition(position: ClosureControl.TargetPosition): ClosureControl.CurrentPosition {
+      if (position === ClosureControl.TargetPosition.MoveToFullyClosed) return ClosureControl.CurrentPosition.FullyClosed;
+      if (position === ClosureControl.TargetPosition.MoveToFullyOpen) return ClosureControl.CurrentPosition.FullyOpened;
+      if (position === ClosureControl.TargetPosition.MoveToPedestrianPosition) return ClosureControl.CurrentPosition.OpenedForPedestrian;
+      if (position === ClosureControl.TargetPosition.MoveToVentilationPosition) return ClosureControl.CurrentPosition.OpenedForVentilation;
+      return ClosureControl.CurrentPosition.OpenedAtSignature;
+    }
+
+    // MoveTo is a parent ClosureControl command
+    this.closureGarageDoor?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
+      // The mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer after this call
       this.closureGarageDoor?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+      attributes.countdownTime = 1;
       /* v8 ignore start -- Demo timer simulates closure movement completion. */
-      const currentStateTimeout = setTimeout(() => {
-        const targetState = this.closureGarageDoor?.getAttribute(ClosureControl.id, 'overallTargetState');
-        const currentState = this.closureGarageDoor?.getAttribute(ClosureControl.id, 'overallCurrentState');
-        if (targetState === undefined || targetState === null) return;
-        void this.closureGarageDoor?.setAttribute(ClosureControl.id, 'mainState', ClosureControl.MainState.Stopped, this.closureGarageDoor.log);
+      closureGarageDoorMoveTimeout = setTimeout(() => {
+        const targetState = this.closureGarageDoor?.getAttribute(ClosureControl, 'overallTargetState');
+        if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
+        void this.closureGarageDoor?.setAttribute(ClosureControl, 'mainState', ClosureControl.MainState.Stopped, this.closureGarageDoor.log);
+        void this.closureGarageDoor?.setAttribute(ClosureControl, 'countdownTime', 0, this.closureGarageDoor.log);
         void this.closureGarageDoor?.setAttribute(
-          ClosureControl.id,
+          ClosureControl,
           'overallCurrentState',
           {
-            position: targetState.position,
+            position: closureTargetToCurrentPosition(targetState.position),
             latch: targetState.latch,
             speed: targetState.speed,
-            secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed ? true : (currentState?.secureState ?? false),
+            secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
           },
           this.closureGarageDoor.log,
         );
-      }, 1000);
-      currentStateTimeout.unref();
+      }, 1000).unref();
       /* v8 ignore stop */
     });
+
+    // Stop is a parent ClosureControl command
     this.closureGarageDoor?.addCommandHandler('ClosureControl.stop', () => {
+      // The mainState is set to Stopped by MatterbridgeClosureControlServer after this call
       this.closureGarageDoor?.log.info('Command stop called');
+      clearTimeout(closureGarageDoorMoveTimeout);
+      closureGarageDoorMoveTimeout = undefined;
     });
 
     // *********************** Create a venetian blind Closure device with Lift and Tilt panels ***********************
@@ -476,13 +497,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const closurePanelReachTimeouts = new Map<MatterbridgeEndpoint, NodeJS.Timeout>();
     let closureVenetianBlindMoveTimeout: NodeJS.Timeout | undefined;
 
+    // Used by both MoveTo and Stop so superseded or stopped simulated movement cannot complete later.
+    const clearClosureVenetianBlindTimeouts = (): void => {
+      clearTimeout(closureVenetianBlindMoveTimeout);
+      closureVenetianBlindMoveTimeout = undefined;
+      for (const pending of closurePanelReachTimeouts.values()) clearTimeout(pending);
+      closurePanelReachTimeouts.clear();
+    };
+
     // Rolls the Lift/Tilt panels' reached position back up into the parent's overall ClosureControl state, once
     // both panels are no longer moving. Uses the Lift panel's position as the representative overall open/closed amount.
     const syncClosureVenetianBlindFromPanels = (): void => {
-      const liftTarget = closureVenetianBlindLift.getAttribute(ClosureDimension.id, 'targetState');
-      const liftCurrent = closureVenetianBlindLift.getAttribute(ClosureDimension.id, 'currentState');
-      const tiltTarget = closureVenetianBlindTilt.getAttribute(ClosureDimension.id, 'targetState');
-      const tiltCurrent = closureVenetianBlindTilt.getAttribute(ClosureDimension.id, 'currentState');
+      const liftTarget = closureVenetianBlindLift.getAttribute(ClosureDimension, 'targetState');
+      const liftCurrent = closureVenetianBlindLift.getAttribute(ClosureDimension, 'currentState');
+      const tiltTarget = closureVenetianBlindTilt.getAttribute(ClosureDimension, 'targetState');
+      const tiltCurrent = closureVenetianBlindTilt.getAttribute(ClosureDimension, 'currentState');
       if (!liftTarget || !liftCurrent || !tiltTarget || !tiltCurrent) return;
       if (liftCurrent.position !== liftTarget.position || tiltCurrent.position !== tiltTarget.position) return; // still moving
 
@@ -493,11 +522,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             ? ClosureControl.CurrentPosition.FullyClosed
             : ClosureControl.CurrentPosition.PartiallyOpened;
 
-      void this.closureVenetianBlind?.setAttribute(ClosureControl.id, 'mainState', ClosureControl.MainState.Stopped, this.closureVenetianBlind.log);
+      void this.closureVenetianBlind?.setAttribute(ClosureControl, 'mainState', ClosureControl.MainState.Stopped, this.closureVenetianBlind.log);
       void this.closureVenetianBlind?.setAttribute(
-        ClosureControl.id,
+        ClosureControl,
         'overallCurrentState',
-        { position: overallPosition, latch: liftCurrent.latch ?? true, speed: liftCurrent.speed },
+        { position: overallPosition, latch: liftCurrent.latch ?? true, speed: liftCurrent.speed, secureState: liftCurrent.position === 10000 && liftCurrent.latch === true },
         this.closureVenetianBlind?.log,
       );
     };
@@ -510,10 +539,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       const currentStateTimeout = setTimeout(() => {
         void (async (): Promise<void> => {
           closurePanelReachTimeouts.delete(panel);
-          const targetState = panel.getAttribute(ClosureDimension.id, 'targetState');
+          const targetState = panel.getAttribute(ClosureDimension, 'targetState');
           if (targetState === undefined || targetState === null) return;
           // Await the write so the parent sync below reads the panel's just-committed currentState, not a stale value.
-          await panel.setAttribute(ClosureDimension.id, 'currentState', targetState, panel.log);
+          await panel.setAttribute(ClosureDimension, 'currentState', targetState, panel.log);
           syncClosureVenetianBlindFromPanels();
         })();
       }, 1000);
@@ -522,34 +551,40 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       /* v8 ignore stop */
     };
 
+    // Parent MoveTo drives the child panels by mirroring the resolved overall target into each panel's targetState.
+    // Direct controller commands to a panel still arrive through ClosureDimension.setTarget below.
     const moveClosurePanelTo = (
       panel: MatterbridgeEndpoint,
       position: number,
       latch: ClosureControl.OverallTargetState['latch'],
       speed: ClosureControl.OverallTargetState['speed'],
     ): void => {
-      void panel.setAttribute(ClosureDimension.id, 'targetState', { position, latch: latch ?? true, speed }, panel.log);
+      void panel.setAttribute(ClosureDimension, 'targetState', { position, latch: latch ?? true, speed }, panel.log);
       simulateClosurePanelReachingTarget(panel);
     };
 
-    // The mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer
-    this.closureVenetianBlind?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
+    // MoveTo is a parent ClosureControl command; the mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer
+    this.closureVenetianBlind?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
       this.closureVenetianBlind?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
-      if (closureVenetianBlindMoveTimeout) clearTimeout(closureVenetianBlindMoveTimeout);
+      attributes.countdownTime = 1;
+      clearClosureVenetianBlindTimeouts();
       /* v8 ignore start -- Demo timer waits for MatterbridgeClosureControlServer to commit the resolved overallTargetState. */
       closureVenetianBlindMoveTimeout = setTimeout(() => {
+        void this.closureVenetianBlind?.setAttribute(ClosureControl, 'countdownTime', 0, this.closureVenetianBlind.log);
         closureVenetianBlindMoveTimeout = undefined;
-        const targetState = this.closureVenetianBlind?.getAttribute(ClosureControl.id, 'overallTargetState');
+        const targetState = this.closureVenetianBlind?.getAttribute(ClosureControl, 'overallTargetState');
         if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
         const panelPercent = closurePanelTargetPercent(targetState.position);
         moveClosurePanelTo(closureVenetianBlindLift, panelPercent, targetState.latch, targetState.speed);
         moveClosurePanelTo(closureVenetianBlindTilt, panelPercent, targetState.latch, targetState.speed);
-      }, 1000);
-      closureVenetianBlindMoveTimeout.unref();
+      }, 1000).unref();
       /* v8 ignore stop */
     });
+
+    // Stop is a parent ClosureControl command; cancel the simulated child panel movement it started.
     this.closureVenetianBlind?.addCommandHandler('ClosureControl.stop', () => {
       this.closureVenetianBlind?.log.info('Command stop called');
+      clearClosureVenetianBlindTimeouts();
     });
 
     // The targetState attribute is set by MatterbridgeClosureDimensionServer; simulate each panel reaching its
