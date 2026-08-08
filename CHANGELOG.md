@@ -35,9 +35,10 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
-- [platform]: Add `closureGarageDoor` device.
 - [chip]: Add chip-test toolchain agents instruction and chip-test runner.
 - [frontend]: Add plugin-frontend agents instructions.
+- [platform]: Add `closureGarageDoor` device.
+- [platform]: Add `closureVenetianBlind` device with Lift and Tilt panels.
 
 ### Changed
 

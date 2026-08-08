@@ -10,7 +10,19 @@ const MATTER_CREATE_ONLY = true;
 
 import { featuresFor, invokeSubscribeHandler, type PlatformMatterbridge } from 'matterbridge';
 import { LogLevel } from 'matterbridge/logger';
-import { ClosureControl, ColorControl, DoorLock, FanControl, Identify, KeypadInput, LevelControl, ModeSelect, OnOff, Thermostat } from 'matterbridge/matter/clusters';
+import {
+  ClosureControl,
+  ClosureDimension,
+  ColorControl,
+  DoorLock,
+  FanControl,
+  Identify,
+  KeypadInput,
+  LevelControl,
+  ModeSelect,
+  OnOff,
+  Thermostat,
+} from 'matterbridge/matter/clusters';
 import { log, loggerInfoSpy, loggerLogSpy, setDebug, setupTest } from 'matterbridge/vitest-utils';
 import {
   addMatterbridge,
@@ -130,7 +142,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(71);
+    expect(dynamicPlatform.getDevices()).toHaveLength(72);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -138,7 +150,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(71);
+    expect(dynamicPlatform.getDevices()).toHaveLength(72);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
@@ -239,8 +251,15 @@ describe('TestPlatform', () => {
       }
 
       if (device.hasClusterServer(ClosureControl)) {
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true });
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToSignaturePosition, latch: false });
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen, latch: false });
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
+        for (const panel of device.getChildEndpoints()) {
+          if (panel.hasClusterServer(ClosureDimension)) {
+            await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.setTarget', { position: 5000, latch: false });
+          }
+        }
       }
 
       if (device.hasClusterServer(DoorLock)) {
@@ -344,6 +363,83 @@ describe('TestPlatform', () => {
       }
     }
   }, 60000);
+
+  it('should set the garage door current position from each supported target position', async () => {
+    const garageDoor = dynamicPlatform.getDeviceByName('Garage Door');
+    expect(garageDoor).toBeDefined();
+    if (!garageDoor) return;
+
+    const positions = [
+      [ClosureControl.TargetPosition.MoveToFullyClosed, ClosureControl.CurrentPosition.FullyClosed],
+      [ClosureControl.TargetPosition.MoveToFullyOpen, ClosureControl.CurrentPosition.FullyOpened],
+      [ClosureControl.TargetPosition.MoveToSignaturePosition, ClosureControl.CurrentPosition.OpenedAtSignature],
+    ] as const;
+
+    for (const [targetPosition, currentPosition] of positions) {
+      await garageDoor.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: targetPosition, latch: false });
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      expect(garageDoor.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: currentPosition });
+    }
+  }, 10000);
+
+  it('should resolve the venetian blind panel target percent for every moveTo position', async () => {
+    // The generic ClosureControl loop above invokes moveTo, but the parent-to-panel sync runs inside a
+    // real (un-awaited) setTimeout, so it never actually fires during that loop. Drive it explicitly here,
+    // waiting past both the parent's targetStateTimeout and each panel's own currentStateTimeout, to
+    // exercise every branch of closurePanelTargetPercent and syncClosureVenetianBlindFromPanels.
+    const venetianBlind = dynamicPlatform.getDeviceByName('Venetian Blind');
+    expect(venetianBlind).toBeDefined();
+    if (!venetianBlind) return;
+    const liftPanel = venetianBlind.getChildEndpointById('Lift');
+    expect(liftPanel).toBeDefined();
+    if (!liftPanel) return;
+
+    // Let any moveTo/setTarget cascade left pending by the generic ClosureControl loop above fully settle
+    // (parent targetStateTimeout + panel currentStateTimeout, 1000ms each) before driving our own sequence,
+    // so a late-firing leftover timer can't race with and corrupt the assertions below.
+    await new Promise((resolve) => setTimeout(resolve, 2200));
+
+    const moveToAndWait = async (position: ClosureControl.TargetPosition): Promise<void> => {
+      await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position, latch: false });
+      // Wait past the parent's targetStateTimeout (1000ms): sets targetState on both Lift and Tilt.
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      // Wait past each panel's own currentStateTimeout (1000ms): sets currentState and re-runs
+      // syncClosureVenetianBlindFromPanels(), which is what actually resolves overallCurrentState.
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+    };
+
+    await moveToAndWait(ClosureControl.TargetPosition.MoveToFullyOpen);
+    expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 0 });
+    expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.FullyOpened });
+
+    await moveToAndWait(ClosureControl.TargetPosition.MoveToFullyClosed);
+    expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 10000 });
+    expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.FullyClosed });
+
+    await moveToAndWait(ClosureControl.TargetPosition.MoveToSignaturePosition);
+    expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 5000 });
+    expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.PartiallyOpened });
+  }, 15000);
+
+  it('should stop the venetian blind without completing pending panel movement', async () => {
+    const venetianBlind = dynamicPlatform.getDeviceByName('Venetian Blind');
+    expect(venetianBlind).toBeDefined();
+    if (!venetianBlind) return;
+    const liftPanel = venetianBlind.getChildEndpointById('Lift');
+    expect(liftPanel).toBeDefined();
+    if (!liftPanel) return;
+
+    await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: false });
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 10000 });
+    expect(liftPanel.getAttribute(ClosureDimension.id, 'currentState')).toMatchObject({ position: 5000 });
+
+    await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+
+    expect(liftPanel.getAttribute(ClosureDimension.id, 'currentState')).toMatchObject({ position: 5000 });
+    expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.PartiallyOpened });
+  }, 5000);
 
   it('should execute thermostat preset commands and subscriptions', async () => {
     // Find the Thermostat (AutoModePresets) device which has presets
@@ -485,7 +581,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(71);
+    expect(dynamicPlatform.getDevices()).toHaveLength(72);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
     await dynamicPlatform.executeIntervals(26, 10);
