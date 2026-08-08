@@ -31,11 +31,12 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Breaking changes
 
-- [matterbridge]: Require matterbridge v.3.10.3 with matter v.1.6.0.
+- [matterbridge]: Require matterbridge v.3.10.5 with matter v.1.6.0.
 
 ### Added
 
 - [chip]: Add chip-test toolchain agents instruction and chip-test runner.
+- [chip]: Add `chipTests.json`/`chipTests.md` with the generic device basic composition, conformance and default warnings tests, and document known CHIP test suite gaps.
 - [frontend]: Add plugin-frontend agents instructions.
 - [platform]: Add `closureGarageDoor` device.
 - [platform]: Add `closureVenetianBlind` device with Lift and Tilt panels.

@@ -76,6 +76,7 @@
     "git": false,
     "version": false,
     "publish": false,
+    "chip": true,
     "coverage": {
       "lines": 100,
       "functions": 100
@@ -105,6 +106,9 @@
     "lint:fix": "oxlint --disable-nested-config --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "chip:start": "node scripts/run-chip-tests.mjs --start",
+    "chip:test": "node scripts/run-chip-tests.mjs",
+    "chip:stop": "node scripts/run-chip-tests.mjs --stop",
     "reset": "npm run deepClean && npm run softReset",
     "softReset": "npm install --no-fund --no-audit && npm prune --no-fund --no-audit && npm link --no-fund --no-audit matterbridge && npm run build && npm run typecheck",
     "checkDependencies": "npm install --no-fund --no-audit --no-save npm-check-updates && ncu && npm run softReset",

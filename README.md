@@ -100,6 +100,8 @@ It exposes 72 virtual devices:
 
 All these devices continuously change their state and position. The plugin also shows how to use all the command handlers (so you can control all the devices), how to subscribe to attributes, and how to trigger events.
 
+All devices pass the generic Matter conformance test suite (`TC_DeviceBasicComposition.py`, `TC_DeviceConformance.py` and `TC_DefaultWarnings.py`) run via the CHIP test harness, with one known upstream test-suite gap for the Closure devices — see [chipTests.md](./chipTests.md) for details and how to run the suite against this plugin.
+
 If you want to write your own plugin, the easiest way to get started is to clone the [Matterbridge Plugin Template](https://github.com/Luligu/matterbridge-plugin-template). It has **Dev Container support for an instant development environment**, with all tools and extensions (like Node.js, npm, TypeScript, ESLint, Prettier, Jest, and Vitest) already loaded and configured.
 
 If you like this project and find it useful, please consider giving it a star on [GitHub](https://github.com/Luligu/matterbridge-example-dynamic-platform) and sponsoring it.
