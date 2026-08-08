@@ -112,11 +112,11 @@ If you like this project and find it useful, please consider giving it a star on
 
 See the guidelines on [Matterbridge](https://github.com/Luligu/matterbridge/blob/main/README.md) for more information.
 
-## Repository setup
+## Repository toolchain
 
-> **Note:** This repository uses a new toolchain. It replaces the traditional TypeScript / ESLint / Prettier / Jest stack with a faster, lighter setup.
+> **Note:** This repository uses a new toolchain. It replaces the traditional TypeScript / ESLint / Prettier / Jest stack with a faster and lighter setup.
 
-- **No `typescript` package** — replaced by [TypeScript Native](https://github.com/microsoft/typescript-go). The `typescript` package is kept only as a publish-time dependency while tsgo is still in preview.
+- **No `typescript 6.x` package** — replaced by [TypeScript Native 7.x](https://github.com/microsoft/typescript-go).
 - **No ESLint, no Prettier** — replaced by the [oxc](https://oxc.rs) stack: [oxlint](https://oxc.rs/docs/guide/usage/linter.html) for linting and [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) for formatting.
 - **No Jest** — replaced by [Vitest](https://vitest.dev), which is much faster and natively supports ESM without extra configuration.
 - **Far fewer development dependencies** — the number of installed packages drops from **~600** to **~75**. A clean install is much faster.
@@ -130,25 +130,33 @@ See also the [Style Guide](./STYLEGUIDE.md) for JSDoc, naming, and logging conve
 
 ## Copilot instructions
 
-| File                                                             | Notes                                                            |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `.github/copilot-instructions.md`                                | Main project instructions — always loaded                        |
-| `.github/instructions/matterbridge/matterbridge.instructions.md` | Matterbridge endpoint guide — dedicated Copilot instruction file |
-| `.github/instructions/testing/unit-tests.instructions.md`        | Testing standards — scoped to `**/*.test.ts`                     |
+| File                                                                   | Notes                                                                              |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `.github/copilot-instructions.md`                                      | Main project instructions — always loaded                                          |
+| `.github/instructions/chip-tests/chip-tests.instructions.md`           | CHIP conformance test harness — scoped to CHIP test files                          |
+| `.github/instructions/matterbridge/matterbridge.instructions.md`       | Matterbridge endpoint guide — dedicated Copilot instruction file                   |
+| `.github/instructions/plugin-frontend/plugin-frontend.instructions.md` | Plugin frontend SPA and custom REST API guide — scoped to frontend and plugin code |
+| `.github/instructions/testing/unit-tests.instructions.md`              | Testing standards — scoped to `**/*.test.ts`                                       |
 
 ## Claude instructions
 
-| File                                                      | Notes                                                 |
-| --------------------------------------------------------- | ----------------------------------------------------- |
-| `CLAUDE.md`                                               | Main project instructions — always loaded             |
-| `.claude/rules/matterbridge/matterbridge.instructions.md` | Matterbridge endpoint guide — loaded for all contexts |
-| `.claude/rules/testing/unit-tests.instructions.md`        | Testing standards — scoped to `**/*.test.ts`          |
+| File                                                            | Notes                                                                              |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `CLAUDE.md`                                                     | Main project instructions — always loaded                                          |
+| `.claude/rules/chip-tests/chip-tests.instructions.md`           | CHIP conformance test harness — scoped to CHIP test files                          |
+| `.claude/rules/matterbridge/matterbridge.instructions.md`       | Matterbridge endpoint guide — loaded for all contexts                              |
+| `.claude/rules/plugin-frontend/plugin-frontend.instructions.md` | Plugin frontend SPA and custom REST API guide — scoped to frontend and plugin code |
+| `.claude/rules/testing/unit-tests.instructions.md`              | Testing standards — scoped to `**/*.test.ts`                                       |
 
 ## Codex/Agents instructions
 
 | File                         | Notes                                             |
 | ---------------------------- | ------------------------------------------------- |
 | `AGENTS.md`                  | Main project instructions                         |
+| `.agents/chip-tests.md`      | CHIP conformance test harness                     |
+| `.agents/matterbridge.md`    | Matterbridge endpoint guide                       |
+| `.agents/plugin-frontend.md` | Plugin frontend SPA and custom REST API guide     |
+| `.agents/testing.md`         | Testing and validation expectations               |
 | `.codex/config.toml`         | Codex project permissions, approvals, and profile |
 | `.codex/rules/default.rules` | Codex command allow, prompt, and deny rules       |
 
