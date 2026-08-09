@@ -31,23 +31,26 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Breaking changes
 
-- [matterbridge]: Require matterbridge v.3.10.3 with matter v.1.6.0.
+- [matterbridge]: Require matterbridge v.3.10.5 with matter v.1.6.0.
 
 ### Added
 
-- [platform]: Add `closureGarageDoor` device.
-- [thermostat]: Added a thermostat auto mode with schedules (Weekdays and Weekend schedules) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultSchedulesThermostatClusterServer()`.
-- [thermostat]: Added a thermostat auto mode with thermostat suggestions (Comfort and Eco presets with a pre-seeded suggestion) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultThermostatSuggestionsClusterServer()`.
 - [chip]: Add chip-test toolchain agents instruction and chip-test runner.
+- [chip]: Add `chipTests.json`/`chipTests.md` with the generic device basic composition, conformance and default warnings tests, and document known CHIP test suite gaps.
 - [frontend]: Add plugin-frontend agents instructions.
+- [platform]: Add `closureGarageDoor` device. Thanks Ludovic BOUÉ.
+- [platform]: Add `closureVenetianBlind` device with Lift and Tilt panels. Thanks Ludovic BOUÉ.
+- [platform]: Add a thermostat auto mode with schedules (Weekdays and Weekend schedules) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultSchedulesThermostatClusterServer()`. Thanks Ludovic BOUÉ.
+- [thermostat]: Add a thermostat auto mode with thermostat suggestions (Comfort and Eco presets with a pre-seeded suggestion) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultThermostatSuggestionsClusterServer()`.
 
 ### Changed
 
 - [package]: Upgrade package.
 - [package]: Update dependencies.
-- [package]: Bump `@types/node` to v.26.1.2.
-- [package]: Bump `oxfmt` to v.0.61.0.
-- [package]: Bump `oxlint` to v.1.76.0.
+- [package]: Bump `typescript` to v.7.0.2.
+- [package]: Bump `@types/node` to v.26.2.0.
+- [package]: Bump `oxfmt` to v.0.62.0.
+- [package]: Bump `oxlint` to v.1.77.0.
 - [package]: Bump `oxlint-tsgolint` to v.7.0.2001.
 - [package]: Update agents configs.
 
