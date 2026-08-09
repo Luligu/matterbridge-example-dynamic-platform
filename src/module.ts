@@ -252,6 +252,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   thermoAuto: MatterbridgeEndpoint | undefined;
   thermoAutoOccupancy: MatterbridgeEndpoint | undefined;
   thermoAutoPresets: MatterbridgeEndpoint | undefined;
+  thermoAutoSuggestions: MatterbridgeEndpoint | undefined;
   thermoAutoSchedules: MatterbridgeEndpoint | undefined;
   thermoHeat: MatterbridgeEndpoint | undefined;
   thermoCool: MatterbridgeEndpoint | undefined;
@@ -1613,6 +1614,137 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.thermoAutoPresets?.log.info(`Subscribe presets called with: ${debugStringify(newValue)} (old value: ${debugStringify(oldValue)})`);
       },
       this.thermoAutoPresets.log,
+    );
+
+    // *********************** Create a thermostat with AutoMode and ThermostatSuggestions device ***********************
+    const presets_ListSuggestions: Thermostat.Preset[] = [
+      {
+        presetHandle: new Uint8Array([0]),
+        presetScenario: Thermostat.PresetScenario.Occupied,
+        name: 'Comfort',
+        coolingSetpoint: 2400,
+        heatingSetpoint: 2100,
+        builtIn: true,
+      },
+      {
+        presetHandle: new Uint8Array([1]),
+        presetScenario: Thermostat.PresetScenario.Unoccupied,
+        name: 'Eco',
+        coolingSetpoint: 2700,
+        heatingSetpoint: 1800,
+        builtIn: true,
+      },
+    ];
+
+    const thermostatSuggestions_List: Thermostat.ThermostatSuggestion[] = [
+      {
+        uniqueId: 0,
+        presetHandle: new Uint8Array([1]),
+        effectiveTime: Math.floor(Date.now() / 1000),
+        expirationTime: Math.floor(Date.now() / 1000) + 60 * 60,
+      },
+    ];
+
+    this.thermoAutoSuggestions = new MatterbridgeEndpoint([thermostat, bridgedNode, powerSource], { id: 'Thermostat (AutoModeSuggestions)' }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoModeSuggestions)', 'TSU00060', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat With Suggestions')
+      .createDefaultThermostatSuggestionsClusterServer(
+        20,
+        18,
+        22,
+        1,
+        0,
+        35,
+        15,
+        50,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        null,
+        presets_ListSuggestions,
+        undefined,
+        thermostatSuggestions_List,
+      )
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
+
+    /* v8 ignore next */
+    if (this.thermoAutoSuggestions) {
+      this.thermoAutoSuggestions
+        .addChildDeviceType('Temperature', temperatureSensor)
+        .createDefaultTemperatureMeasurementClusterServer(21 * 100)
+        .addRequiredClusterServers();
+
+      this.thermoAutoSuggestions
+        .addChildDeviceType('Humidity', humiditySensor)
+        .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
+        .addRequiredClusterServers();
+
+      this.thermoAutoSuggestions = await this.addDevice(this.thermoAutoSuggestions);
+    }
+
+    // The cluster attributes are set by MatterbridgeThermostatServer
+    this.thermoAutoSuggestions?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
+      this.thermoAutoSuggestions?.log.info(`Command identify called identifyTime ${identifyTime}`);
+    });
+    this.thermoAutoSuggestions?.addCommandHandler('triggerEffect', ({ request: { effectIdentifier, effectVariant } }) => {
+      this.thermoAutoSuggestions?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
+    });
+    this.thermoAutoSuggestions?.addCommandHandler('setpointRaiseLower', ({ request: { mode, amount } }) => {
+      const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
+      this.thermoAutoSuggestions?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
+    });
+    // Mirror the Matter AddThermostatSuggestion command
+    this.thermoAutoSuggestions?.addCommandHandler('addThermostatSuggestion', ({ request: { presetHandle, effectiveTime, expirationInMinutes } }) => {
+      this.thermoAutoSuggestions?.log.info(
+        `Command addThermostatSuggestion called with presetHandle: 0x${Buffer.from(presetHandle).toString('hex')} effectiveTime: ${effectiveTime ?? 'now'} expirationInMinutes: ${expirationInMinutes}`,
+      );
+    });
+    // Mirror the Matter RemoveThermostatSuggestion command
+    this.thermoAutoSuggestions?.addCommandHandler('removeThermostatSuggestion', ({ request: { uniqueId } }) => {
+      this.thermoAutoSuggestions?.log.info(`Command removeThermostatSuggestion called with uniqueId: ${uniqueId}`);
+    });
+    this.thermoAutoSuggestions?.subscribeAttribute(
+      Thermostat,
+      'systemMode',
+      (newValue, oldValue) => {
+        const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
+        this.thermoAutoSuggestions?.log.info(`Subscribe systemMode called with: ${lookupSystemMode[newValue]} (old value: ${lookupSystemMode[oldValue]})`);
+      },
+      this.thermoAutoSuggestions.log,
+    );
+    this.thermoAutoSuggestions?.subscribeAttribute(
+      Thermostat.id,
+      'occupiedHeatingSetpoint',
+      (newValue, oldValue) => {
+        this.thermoAutoSuggestions?.log.info(`Subscribe occupiedHeatingSetpoint called with: ${newValue / 100} (old value: ${oldValue / 100})`);
+      },
+      this.thermoAutoSuggestions.log,
+    );
+    this.thermoAutoSuggestions?.subscribeAttribute(
+      Thermostat.id,
+      'occupiedCoolingSetpoint',
+      (newValue, oldValue) => {
+        this.thermoAutoSuggestions?.log.info(`Subscribe occupiedCoolingSetpoint called with: ${newValue / 100} (old value: ${oldValue / 100})`);
+      },
+      this.thermoAutoSuggestions.log,
+    );
+    this.thermoAutoSuggestions?.subscribeAttribute(
+      Thermostat.id,
+      'thermostatSuggestions',
+      (newValue, oldValue) => {
+        this.thermoAutoSuggestions?.log.info(`Subscribe thermostatSuggestions called with: ${debugStringify(newValue)} (old value: ${debugStringify(oldValue)})`);
+      },
+      this.thermoAutoSuggestions.log,
+    );
+    this.thermoAutoSuggestions?.subscribeAttribute(
+      Thermostat.id,
+      'currentThermostatSuggestion',
+      (newValue, oldValue) => {
+        this.thermoAutoSuggestions?.log.info(`Subscribe currentThermostatSuggestion called with: ${debugStringify(newValue)} (old value: ${debugStringify(oldValue)})`);
+      },
+      this.thermoAutoSuggestions.log,
     );
 
     // *********************** Create a thermostat with AutoMode and Schedules device ***********************

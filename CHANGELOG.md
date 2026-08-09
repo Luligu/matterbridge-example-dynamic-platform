@@ -41,6 +41,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [platform]: Add `closureGarageDoor` device. Thanks Ludovic BOUÉ.
 - [platform]: Add `closureVenetianBlind` device with Lift and Tilt panels. Thanks Ludovic BOUÉ.
 - [platform]: Add a thermostat auto mode with schedules (Weekdays and Weekend schedules) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultSchedulesThermostatClusterServer()`. Thanks Ludovic BOUÉ.
+- [thermostat]: Add a thermostat auto mode with thermostat suggestions (Comfort and Eco presets with a pre-seeded suggestion) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultThermostatSuggestionsClusterServer()`. Thanks Ludovic BOUÉ.
 
 ### Changed
 
