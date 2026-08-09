@@ -1,0 +1,29 @@
+{
+  "config": {
+    "name": "matterbridge-example-dynamic-platform",
+    "type": "DynamicPlatform",
+    "whiteList": [],
+    "blackList": [],
+    "useInterval": false,
+    "enableServerRvc": false,
+    "debug": false,
+    "unregisterOnShutdown": false
+  },
+  "yamlTests": [],
+  "phytonTests": [
+    {
+      "name": "Generic device basic composition",
+      "test": "TC_DeviceBasicComposition.py",
+      "comment": "Chip test bug: test_TC_DESC_2_1 fails on the Venetian Blind Closure device (DeviceType 560) and its Lift/Tilt Closure Panel children (DeviceType 561): their TagList entries use the Matter 1.6 Closure namespace family (0x44-0x46), which the bundled connectedhomeip TC_DeviceBasicComposition.py does not yet include in its accepted-namespace whitelist. Filed upstream: https://github.com/project-chip/connectedhomeip/issues/73479. See chipTests.md Known Issue #1."
+    },
+    {
+      "name": "Generic device conformance",
+      "test": "TC_DeviceConformance.py"
+    },
+    {
+      "name": "Generic device default warnings",
+      "test": "TC_DefaultWarnings.py",
+      "args": ["--bool-arg pixit_allow_default_vendor_id:true"]
+    }
+  ]
+}
