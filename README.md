@@ -23,7 +23,7 @@
 
 Matterbridge dynamic platform example plugin is a template to develop your own plugin using the dynamic platform.
 
-It exposes 72 virtual devices:
+It exposes 73 virtual devices:
 
 - a door contact sensor
 - a motion sensor
@@ -53,6 +53,7 @@ It exposes 72 virtual devices:
   and relativeHumidityMeasurement cluster (to show how to create a composed device with sub endpoints)
 - a thermostat with auto mode (i.e. with Auto Heat and Cool features), occupancy and outdoorTemperature
 - a thermostat auto mode with presets (Home, Away, Sleep, Wake, Vacation and GoingToSleep modes) including 3 sub endpoints with flow, temperature and humidity sensors
+- a thermostat auto mode with schedules (Weekdays and Weekend schedules) including 2 sub endpoints with temperature and humidity sensors
 - a thermostat heat only with two external temperature sensors (tagged like Indoor and Outdoor)
 - a thermostat cool only
 - a fan with Off High presets

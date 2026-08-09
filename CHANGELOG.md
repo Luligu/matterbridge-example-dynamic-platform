@@ -38,8 +38,9 @@ If you like this project and find it useful, please consider giving it a star on
 - [chip]: Add chip-test toolchain agents instruction and chip-test runner.
 - [chip]: Add `chipTests.json`/`chipTests.md` with the generic device basic composition, conformance and default warnings tests, and document known CHIP test suite gaps.
 - [frontend]: Add plugin-frontend agents instructions.
-- [platform]: Add `closureGarageDoor` device.
-- [platform]: Add `closureVenetianBlind` device with Lift and Tilt panels.
+- [platform]: Add `closureGarageDoor` device. Thanks Ludovic BOUÉ.
+- [platform]: Add `closureVenetianBlind` device with Lift and Tilt panels. Thanks Ludovic BOUÉ.
+- [platform]: Add a thermostat auto mode with schedules (Weekdays and Weekend schedules) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultSchedulesThermostatClusterServer()`. Thanks Ludovic BOUÉ.
 
 ### Changed
 

@@ -252,6 +252,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   thermoAuto: MatterbridgeEndpoint | undefined;
   thermoAutoOccupancy: MatterbridgeEndpoint | undefined;
   thermoAutoPresets: MatterbridgeEndpoint | undefined;
+  thermoAutoSchedules: MatterbridgeEndpoint | undefined;
   thermoHeat: MatterbridgeEndpoint | undefined;
   thermoCool: MatterbridgeEndpoint | undefined;
   fanBase: MatterbridgeEndpoint | undefined;
@@ -1612,6 +1613,141 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.thermoAutoPresets?.log.info(`Subscribe presets called with: ${debugStringify(newValue)} (old value: ${debugStringify(oldValue)})`);
       },
       this.thermoAutoPresets.log,
+    );
+
+    // *********************** Create a thermostat with AutoMode and Schedules device ***********************
+    const schedules_List: Thermostat.Schedule[] = [
+      {
+        scheduleHandle: new Uint8Array([0]),
+        systemMode: Thermostat.SystemMode.Auto,
+        name: 'Weekdays',
+        transitions: [
+          { dayOfWeek: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true }, transitionTime: 360, heatingSetpoint: 2000, coolingSetpoint: 2400 },
+          { dayOfWeek: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true }, transitionTime: 750, heatingSetpoint: 1900, coolingSetpoint: 2500 },
+          { dayOfWeek: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true }, transitionTime: 810, heatingSetpoint: 2000, coolingSetpoint: 2400 },
+          { dayOfWeek: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true }, transitionTime: 1320, heatingSetpoint: 1800, coolingSetpoint: 2600 },
+        ],
+        builtIn: true,
+      },
+      {
+        scheduleHandle: new Uint8Array([1]),
+        systemMode: Thermostat.SystemMode.Auto,
+        name: 'Weekend',
+        transitions: [
+          { dayOfWeek: { saturday: true, sunday: true }, transitionTime: 480, heatingSetpoint: 2100, coolingSetpoint: 2300 },
+          { dayOfWeek: { saturday: true, sunday: true }, transitionTime: 1380, heatingSetpoint: 1900, coolingSetpoint: 2500 },
+        ],
+        builtIn: true,
+      },
+    ];
+
+    const scheduleTypeDefinitions: Thermostat.ScheduleType[] = [
+      {
+        systemMode: Thermostat.SystemMode.Auto,
+        numberOfSchedules: 10,
+        scheduleTypeFeatures: { supportsSetpoints: true, supportsNames: true },
+      },
+    ];
+
+    this.thermoAutoSchedules = new MatterbridgeEndpoint([thermostat, bridgedNode, powerSource], { id: 'Thermostat (AutoModeSchedules)' }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Thermostat (AutoModeSchedules)', 'TAS00059', 0xfff1, 'Matterbridge', 'Matterbridge Thermostat With Schedules')
+      .createDefaultSchedulesThermostatClusterServer(
+        20,
+        18,
+        22,
+        1,
+        0,
+        35,
+        15,
+        50,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        null,
+        schedules_List,
+        scheduleTypeDefinitions,
+        10,
+        null,
+      )
+      .createDefaultPowerSourceWiredClusterServer()
+      .addRequiredClusterServers();
+
+    /* v8 ignore next */
+    if (this.thermoAutoSchedules) {
+      this.thermoAutoSchedules
+        .addChildDeviceType('Temperature', temperatureSensor)
+        .createDefaultTemperatureMeasurementClusterServer(21 * 100)
+        .addRequiredClusterServers();
+
+      this.thermoAutoSchedules
+        .addChildDeviceType('Humidity', humiditySensor)
+        .createDefaultRelativeHumidityMeasurementClusterServer(50 * 100)
+        .addRequiredClusterServers();
+
+      this.thermoAutoSchedules = await this.addDevice(this.thermoAutoSchedules);
+    }
+
+    // The cluster attributes are set by MatterbridgeThermostatServer
+    this.thermoAutoSchedules?.addCommandHandler('identify', ({ request: { identifyTime } }) => {
+      this.thermoAutoSchedules?.log.info(`Command identify called identifyTime ${identifyTime}`);
+    });
+    this.thermoAutoSchedules?.addCommandHandler('triggerEffect', ({ request: { effectIdentifier, effectVariant } }) => {
+      this.thermoAutoSchedules?.log.info(`Command identify called effectIdentifier ${effectIdentifier} effectVariant ${effectVariant}`);
+    });
+    this.thermoAutoSchedules?.addCommandHandler('setpointRaiseLower', ({ request: { mode, amount } }) => {
+      const lookupSetpointAdjustMode = ['Heat', 'Cool', 'Both'];
+      this.thermoAutoSchedules?.log.info(`Command setpointRaiseLower called with mode: ${lookupSetpointAdjustMode[mode]} amount: ${amount / 10}`);
+    });
+    // Mirror the Matter SetActiveScheduleRequest command into the activeScheduleHandle attribute
+    this.thermoAutoSchedules?.addCommandHandler('setActiveScheduleRequest', ({ request: { scheduleHandle } }) => {
+      this.thermoAutoSchedules?.log.info(
+        `Command setActiveScheduleRequest called with scheduleHandle: ${scheduleHandle ? `0x${Buffer.from(scheduleHandle).toString('hex')}` : 'null'}`,
+      );
+    });
+    this.thermoAutoSchedules?.subscribeAttribute(
+      Thermostat,
+      'systemMode',
+      (newValue, oldValue) => {
+        const lookupSystemMode = ['Off', 'Auto', '', 'Cool', 'Heat', 'EmergencyHeat', 'Precooling', 'FanOnly', 'Dry', 'Sleep'];
+        this.thermoAutoSchedules?.log.info(`Subscribe systemMode called with: ${lookupSystemMode[newValue]} (old value: ${lookupSystemMode[oldValue]})`);
+      },
+      this.thermoAutoSchedules.log,
+    );
+    this.thermoAutoSchedules?.subscribeAttribute(
+      Thermostat.id,
+      'occupiedHeatingSetpoint',
+      (newValue, oldValue) => {
+        this.thermoAutoSchedules?.log.info(`Subscribe occupiedHeatingSetpoint called with: ${newValue / 100} (old value: ${oldValue / 100})`);
+      },
+      this.thermoAutoSchedules.log,
+    );
+    this.thermoAutoSchedules?.subscribeAttribute(
+      Thermostat.id,
+      'occupiedCoolingSetpoint',
+      (newValue, oldValue) => {
+        this.thermoAutoSchedules?.log.info(`Subscribe occupiedCoolingSetpoint called with: ${newValue / 100} (old value: ${oldValue / 100})`);
+      },
+      this.thermoAutoSchedules.log,
+    );
+    this.thermoAutoSchedules?.subscribeAttribute(
+      Thermostat.id,
+      'activeScheduleHandle',
+      (newValue, oldValue) => {
+        this.thermoAutoSchedules?.log.info(
+          `Subscribe activeScheduleHandle called with: ${newValue ? `0x${Buffer.from(newValue).toString('hex')}` : 'null'} (old value: ${oldValue ? `0x${Buffer.from(oldValue).toString('hex')}` : 'null'})`,
+        );
+      },
+      this.thermoAutoSchedules.log,
+    );
+    this.thermoAutoSchedules?.subscribeAttribute(
+      Thermostat.id,
+      'schedules',
+      (newValue, oldValue) => {
+        this.thermoAutoSchedules?.log.info(`Subscribe schedules called with: ${debugStringify(newValue)} (old value: ${debugStringify(oldValue)})`);
+      },
+      this.thermoAutoSchedules.log,
     );
 
     // *********************** Create a thermostat with Heat device ***********************
