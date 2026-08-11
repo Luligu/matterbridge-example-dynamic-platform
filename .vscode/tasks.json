@@ -63,7 +63,7 @@
       "detail": "Run lint",
       "type": "npm",
       "script": "lint",
-      "problemMatcher": ["$eslint-stylish"]
+      "problemMatcher": []
     },
     {
       "label": "Format",
@@ -115,11 +115,19 @@
       "problemMatcher": []
     },
     {
-      "label": "Upgrade",
-      "detail": "Upgrade the package with Automator",
+      "label": "Update",
+      "detail": "Update the package with mb-run",
       "type": "shell",
-      "command": "node",
-      "args": ["scripts/run-automator.mjs"],
+      "command": "mb-run",
+      "args": ["--update"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Upgrade",
+      "detail": "Upgrade the package with mb-run",
+      "type": "shell",
+      "command": "mb-run",
+      "args": ["--upgrade"],
       "problemMatcher": []
     },
     {
