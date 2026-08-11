@@ -114,7 +114,11 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Matterbridge
 
-See the guidelines on [Matterbridge](https://github.com/Luligu/matterbridge/blob/main/README.md) for more information.
+See the guidelines on [Matterbridge](https://matterbridge.io/README.html) for more information.
+
+## Style guide
+
+See also the [Style Guide](./STYLEGUIDE.md) for JSDoc, naming, and logging conventions used in this repository.
 
 ## Repository toolchain
 
@@ -127,10 +131,6 @@ See the guidelines on [Matterbridge](https://github.com/Luligu/matterbridge/blob
 - **Much faster linting and formatting** — oxlint and oxfmt run in a fraction of the time required by the ESLint / Prettier pipeline.
 - **Much faster builds** — tsgo compiles the project in a fraction of the time required by the standard `tsc` build.
 - **Editor support** — use the VS Code extensions for tsgo and oxc to get the same experience in the editor.
-
-## Style guide
-
-See also the [Style Guide](./STYLEGUIDE.md) for JSDoc, naming, and logging conventions used in this repository.
 
 ## Copilot instructions
 

@@ -49,8 +49,8 @@ If you like this project and find it useful, please consider giving it a star on
 - [package]: Update dependencies.
 - [package]: Bump `typescript` to v.7.0.2.
 - [package]: Bump `@types/node` to v.26.2.0.
-- [package]: Bump `oxfmt` to v.0.62.0.
-- [package]: Bump `oxlint` to v.1.77.0.
+- [package]: Bump `oxfmt` to v.0.63.0.
+- [package]: Bump `oxlint` to v.1.78.0.
 - [package]: Bump `oxlint-tsgolint` to v.7.0.2001.
 - [package]: Update agents configs.
 
