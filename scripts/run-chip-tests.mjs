@@ -1,6 +1,6 @@
 /**
  * run-chip-tests.mjs
- * Version: 1.5.0
+ * Version: 1.5.1
  *
  * Manage the `luligu/matterbridge:chip-test` docker container for the plugin in the current working
  * directory and run the Matter CHIP test suite defined in chipTests.json, logging full results to
@@ -291,7 +291,8 @@ function loadChipTestsFile() {
   // logs`. The node coming online happens well before this and is not sufficient: on an already-commissioned
   // restart the node skips straight to "online", but the plugin (and its cluster state) isn't ready for
   // another ~30s after that, so waiting on the node-online line alone lets tests race a half-configured plugin.
-  readyLogMarker = `Platform ${pluginName} configured successfully`;
+  // Match only the stable prefix because the platform type that follows it varies between plugins.
+  readyLogMarker = `Configured plugin ${pluginName} type `;
 
   resetClusterGlobs = parsed.resetClusterGlobs ?? [];
   if (!Array.isArray(resetClusterGlobs)) {

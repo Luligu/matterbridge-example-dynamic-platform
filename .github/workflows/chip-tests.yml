@@ -1,9 +1,11 @@
-# CHIP conformance test suite (on demand) v.1.0.0
+# CHIP conformance test suite (weekly and on demand) v.1.0.1
 # Path: .github/workflows/chip-tests.yml
 
 name: CHIP conformance tests
 
 on:
+  schedule:
+    - cron: '0 3 * * 1'
   workflow_dispatch:
 
 jobs:
