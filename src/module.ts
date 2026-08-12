@@ -3462,10 +3462,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.thermoAuto?.setAttribute(Thermostat.id, 'localTemperature', 16 * 100, this.thermoAuto.log);
     await this.thermoAuto?.setAttribute(Thermostat.id, 'systemMode', Thermostat.SystemMode.Auto, this.thermoAuto.log);
 
-    /* v8 ignore next if cause no runningState attribute before 3.3.3 */
     if (this.thermoAuto?.hasAttributeServer(Thermostat.id, 'thermostatRunningState')) {
       const runningState = this.thermoAuto?.getAttribute(Thermostat.id, 'thermostatRunningState', this.thermoAuto.log);
-      await this.thermoAuto?.setAttribute(Thermostat.id, 'thermostatRunningState', { ...runningState, heat: true }, this.thermoAuto.log);
+      await this.thermoAuto?.setAttribute(Thermostat.id, 'thermostatRunningState', { ...runningState, heat: true, cool: false }, this.thermoAuto.log);
+    }
+    if (this.thermoHeat?.hasAttributeServer(Thermostat.id, 'thermostatRunningState')) {
+      const runningState = this.thermoHeat?.getAttribute(Thermostat.id, 'thermostatRunningState', this.thermoHeat.log);
+      await this.thermoHeat?.setAttribute(Thermostat.id, 'thermostatRunningState', { ...runningState, heat: true, cool: false }, this.thermoHeat.log);
+    }
+    if (this.thermoCool?.hasAttributeServer(Thermostat.id, 'thermostatRunningState')) {
+      const runningState = this.thermoCool?.getAttribute(Thermostat.id, 'thermostatRunningState', this.thermoCool.log);
+      await this.thermoCool?.setAttribute(Thermostat.id, 'thermostatRunningState', { ...runningState, heat: false, cool: true }, this.thermoCool.log);
     }
 
     this.thermoAuto?.log.info('Set thermostat initial localTemperature to 16°C, mode Auto and heat runningState to true');
@@ -3523,12 +3530,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             }
           }
 
-          /* v8 ignore next if cause no runningState attribute before 3.3.3 */
           if (this.thermoAuto?.hasAttributeServer(Thermostat.id, 'thermostatRunningState')) {
             const runningState = this.thermoAuto?.getAttribute(Thermostat.id, 'thermostatRunningState', this.thermoAuto.log);
             runningState.heat = !runningState?.heat;
             runningState.cool = !runningState?.cool;
             await this.thermoAuto?.setAttribute(Thermostat.id, 'thermostatRunningState', runningState, this.thermoAuto.log);
+          }
+          if (this.thermoHeat?.hasAttributeServer(Thermostat.id, 'thermostatRunningState')) {
+            const runningState = this.thermoHeat?.getAttribute(Thermostat.id, 'thermostatRunningState', this.thermoHeat.log);
+            runningState.heat = !runningState?.heat;
+            await this.thermoHeat?.setAttribute(Thermostat.id, 'thermostatRunningState', runningState, this.thermoHeat.log);
+          }
+          if (this.thermoCool?.hasAttributeServer(Thermostat.id, 'thermostatRunningState')) {
+            const runningState = this.thermoCool?.getAttribute(Thermostat.id, 'thermostatRunningState', this.thermoCool.log);
+            runningState.cool = !runningState?.cool;
+            await this.thermoCool?.setAttribute(Thermostat.id, 'thermostatRunningState', runningState, this.thermoCool.log);
           }
         },
         60 * 1000 + 600,
