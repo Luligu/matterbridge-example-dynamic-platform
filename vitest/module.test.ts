@@ -382,10 +382,17 @@ describe('TestPlatform', () => {
       [ClosureControl.TargetPosition.MoveToSignaturePosition, ClosureControl.CurrentPosition.OpenedAtSignature],
     ] as const;
 
-    for (const [targetPosition, currentPosition] of positions) {
-      await garageDoor.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: targetPosition, latch: false });
-      await new Promise((resolve) => setTimeout(resolve, 1100));
-      expect(garageDoor.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: currentPosition });
+    // The demo movement completion runs on a real (unref'd) setTimeout; fake timers let us advance past it
+    // instantly instead of waiting on wall-clock time.
+    vi.useFakeTimers();
+    try {
+      for (const [targetPosition, currentPosition] of positions) {
+        await garageDoor.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: targetPosition, latch: false });
+        await vi.advanceTimersByTimeAsync(1100);
+        expect(garageDoor.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: currentPosition });
+      }
+    } finally {
+      vi.useRealTimers();
     }
   }, 10000);
 
@@ -401,31 +408,38 @@ describe('TestPlatform', () => {
     expect(liftPanel).toBeDefined();
     if (!liftPanel) return;
 
-    // Let any moveTo/setTarget cascade left pending by the generic ClosureControl loop above fully settle
-    // (parent targetStateTimeout + panel currentStateTimeout, 1000ms each) before driving our own sequence,
-    // so a late-firing leftover timer can't race with and corrupt the assertions below.
-    await new Promise((resolve) => setTimeout(resolve, 2200));
+    // The parent/panel movement-completion timers are real (unref'd) setTimeout calls; fake timers let us
+    // advance past them instantly instead of waiting on wall-clock time.
+    vi.useFakeTimers();
+    try {
+      // Let any moveTo/setTarget cascade left pending by the generic ClosureControl loop above fully settle
+      // (parent targetStateTimeout + panel currentStateTimeout, 1000ms each) before driving our own sequence,
+      // so a late-firing leftover timer can't race with and corrupt the assertions below.
+      await vi.advanceTimersByTimeAsync(2200);
 
-    const moveToAndWait = async (position: ClosureControl.TargetPosition): Promise<void> => {
-      await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position, latch: false });
-      // Wait past the parent's targetStateTimeout (1000ms): sets targetState on both Lift and Tilt.
-      await new Promise((resolve) => setTimeout(resolve, 1100));
-      // Wait past each panel's own currentStateTimeout (1000ms): sets currentState and re-runs
-      // syncClosureVenetianBlindFromPanels(), which is what actually resolves overallCurrentState.
-      await new Promise((resolve) => setTimeout(resolve, 1100));
-    };
+      const moveToAndWait = async (position: ClosureControl.TargetPosition): Promise<void> => {
+        await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position, latch: false });
+        // Advance past the parent's targetStateTimeout (1000ms): sets targetState on both Lift and Tilt.
+        await vi.advanceTimersByTimeAsync(1100);
+        // Advance past each panel's own currentStateTimeout (1000ms): sets currentState and re-runs
+        // syncClosureVenetianBlindFromPanels(), which is what actually resolves overallCurrentState.
+        await vi.advanceTimersByTimeAsync(1100);
+      };
 
-    await moveToAndWait(ClosureControl.TargetPosition.MoveToFullyOpen);
-    expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 0 });
-    expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.FullyOpened });
+      await moveToAndWait(ClosureControl.TargetPosition.MoveToFullyOpen);
+      expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 0 });
+      expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.FullyOpened });
 
-    await moveToAndWait(ClosureControl.TargetPosition.MoveToFullyClosed);
-    expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 10000 });
-    expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.FullyClosed });
+      await moveToAndWait(ClosureControl.TargetPosition.MoveToFullyClosed);
+      expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 10000 });
+      expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.FullyClosed });
 
-    await moveToAndWait(ClosureControl.TargetPosition.MoveToSignaturePosition);
-    expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 5000 });
-    expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.PartiallyOpened });
+      await moveToAndWait(ClosureControl.TargetPosition.MoveToSignaturePosition);
+      expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 5000 });
+      expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.PartiallyOpened });
+    } finally {
+      vi.useRealTimers();
+    }
   }, 15000);
 
   it('should stop the venetian blind without completing pending panel movement', async () => {
@@ -436,16 +450,23 @@ describe('TestPlatform', () => {
     expect(liftPanel).toBeDefined();
     if (!liftPanel) return;
 
-    await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: false });
-    await new Promise((resolve) => setTimeout(resolve, 1100));
-    expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 10000 });
-    expect(liftPanel.getAttribute(ClosureDimension.id, 'currentState')).toMatchObject({ position: 5000 });
+    // The parent/panel movement-completion timers are real (unref'd) setTimeout calls; fake timers let us
+    // advance past them instantly instead of waiting on wall-clock time.
+    vi.useFakeTimers();
+    try {
+      await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: false });
+      await vi.advanceTimersByTimeAsync(1100);
+      expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 10000 });
+      expect(liftPanel.getAttribute(ClosureDimension.id, 'currentState')).toMatchObject({ position: 5000 });
 
-    await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
-    await new Promise((resolve) => setTimeout(resolve, 1100));
+      await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
+      await vi.advanceTimersByTimeAsync(1100);
 
-    expect(liftPanel.getAttribute(ClosureDimension.id, 'currentState')).toMatchObject({ position: 5000 });
-    expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.PartiallyOpened });
+      expect(liftPanel.getAttribute(ClosureDimension.id, 'currentState')).toMatchObject({ position: 5000 });
+      expect(venetianBlind.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: ClosureControl.CurrentPosition.PartiallyOpened });
+    } finally {
+      vi.useRealTimers();
+    }
   }, 5000);
 
   it('should execute thermostat preset commands and subscriptions', async () => {
