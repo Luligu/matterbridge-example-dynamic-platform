@@ -261,6 +261,10 @@ describe('TestPlatform', () => {
         for (const panel of device.getChildEndpoints()) {
           if (panel.hasClusterServer(ClosureDimension)) {
             await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.setTarget', { position: 5000, latch: false });
+            // Step is only allowed while unlatched (Matter spec §5.5.8.2.4); force the state so the handler under test runs.
+            const panelCurrentState = panel.getAttribute(ClosureDimension, 'currentState');
+            await panel.setAttribute(ClosureDimension, 'currentState', { position: panelCurrentState?.position, latch: false, speed: panelCurrentState?.speed });
+            await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.step', { direction: ClosureDimension.StepDirection.Increase, numberOfSteps: 1 });
           }
         }
       }
