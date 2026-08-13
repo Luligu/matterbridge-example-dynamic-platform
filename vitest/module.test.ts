@@ -251,7 +251,10 @@ describe('TestPlatform', () => {
       }
 
       if (device.hasClusterServer(ClosureControl)) {
-        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true });
+        // oxlint-disable-next-line vitest/no-conditional-expect
+        await expect(
+          device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true }),
+        ).rejects.toThrow('ClosureControl.moveTo position changes require latch false while the closure is latched');
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToSignaturePosition, latch: false });
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen, latch: false });
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
@@ -500,10 +503,10 @@ describe('TestPlatform', () => {
         expect(unoccupiedHeat).toBe(preset.unoccupiedHeat);
         expect(unoccupiedCool).toBe(preset.unoccupiedCool);
         if (preset.handle === 0x00) {
-          // oxlint-disable-next-line jest/no-conditional-expect
+          // oxlint-disable-next-line vitest/no-conditional-expect
           expect(activePresetHandle).toEqual(new Uint8Array([0x00]));
         } else {
-          // oxlint-disable-next-line jest/no-conditional-expect
+          // oxlint-disable-next-line vitest/no-conditional-expect
           expect(activePresetHandle).toBeNull();
         }
         // oxlint-disable-next-line no-console

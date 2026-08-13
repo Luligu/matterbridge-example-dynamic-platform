@@ -442,34 +442,36 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // MoveTo is a parent ClosureControl command
     this.closureGarageDoor?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
-      // The mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer after this call
+      // MatterbridgeClosureControlServer sets the mainState to ClosureControl.MainState.Moving after this call
+      // MatterbridgeClosureControlServer sets the overallTargetState to the requested target state after this call
       this.closureGarageDoor?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
-      attributes.countdownTime = 1;
+      attributes.countdownTime = 1; // We simulate a 1 second movement for demo purposes, so set the countdownTime to 1 second.
       /* v8 ignore start -- Demo timer simulates closure movement completion. */
       closureGarageDoorMoveTimeout = setTimeout(() => {
         const targetState = this.closureGarageDoor?.getAttribute(ClosureControl, 'overallTargetState');
         if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
-        void this.closureGarageDoor?.setAttribute(ClosureControl, 'mainState', ClosureControl.MainState.Stopped, this.closureGarageDoor.log);
-        void this.closureGarageDoor?.setAttribute(ClosureControl, 'countdownTime', 0, this.closureGarageDoor.log);
-        void this.closureGarageDoor?.setAttribute(
-          ClosureControl,
-          'overallCurrentState',
+        void this.closureGarageDoor?.setState(
           {
             position: closureTargetToCurrentPosition(targetState.position),
             latch: targetState.latch,
             speed: targetState.speed,
             secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
           },
-          this.closureGarageDoor.log,
+          targetState,
+          ClosureControl.MainState.Stopped,
+          0,
+          [],
         );
+        void this.closureGarageDoor?.triggerMovementCompleted();
       }, 1000).unref();
       /* v8 ignore stop */
     });
 
     // Stop is a parent ClosureControl command
-    this.closureGarageDoor?.addCommandHandler('ClosureControl.stop', () => {
-      // The mainState is set to Stopped by MatterbridgeClosureControlServer after this call
+    this.closureGarageDoor?.addCommandHandler('ClosureControl.stop', ({ attributes }) => {
+      // MatterbridgeClosureControlServer sets the mainState to ClosureControl.MainState.Stopped after this call
       this.closureGarageDoor?.log.info('Command stop called');
+      attributes.countdownTime = 0;
       clearTimeout(closureGarageDoorMoveTimeout);
       closureGarageDoorMoveTimeout = undefined;
     });
@@ -535,20 +537,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Simulates a panel physically reaching its ClosureDimension.targetState, then re-syncs the parent Closure.
     const simulateClosurePanelReachingTarget = (panel: MatterbridgeEndpoint): void => {
-      const pending = closurePanelReachTimeouts.get(panel);
-      if (pending) clearTimeout(pending);
+      clearTimeout(closurePanelReachTimeouts.get(panel));
       /* v8 ignore start -- Demo timer simulates panel movement completion. */
       const currentStateTimeout = setTimeout(() => {
         void (async (): Promise<void> => {
-          closurePanelReachTimeouts.delete(panel);
           const targetState = panel.getAttribute(ClosureDimension, 'targetState');
           if (targetState === undefined || targetState === null) return;
           // Await the write so the parent sync below reads the panel's just-committed currentState, not a stale value.
           await panel.setAttribute(ClosureDimension, 'currentState', targetState, panel.log);
           syncClosureVenetianBlindFromPanels();
         })();
-      }, 1000);
-      currentStateTimeout.unref();
+      }, 1000).unref();
       closurePanelReachTimeouts.set(panel, currentStateTimeout);
       /* v8 ignore stop */
     };
@@ -568,7 +567,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // MoveTo is a parent ClosureControl command; the mainState and overallTargetState attributes are set by MatterbridgeClosureControlServer
     this.closureVenetianBlind?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
       this.closureVenetianBlind?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
-      attributes.countdownTime = 1;
+      attributes.countdownTime = 1; // We simulate a 1 second movement for demo purposes, so set the countdownTime to 1 second.
       clearClosureVenetianBlindTimeouts();
       /* v8 ignore start -- Demo timer waits for MatterbridgeClosureControlServer to commit the resolved overallTargetState. */
       closureVenetianBlindMoveTimeout = setTimeout(() => {
@@ -599,6 +598,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     };
     addClosurePanelSetTargetSimulation(closureVenetianBlindLift);
     addClosurePanelSetTargetSimulation(closureVenetianBlindTilt);
+
+    // Step behaves like setTarget for simulation purposes: MatterbridgeClosureDimensionServer resolves the
+    // requested step into a new targetState.position, so the same reach-target simulation applies here too.
+    const addClosurePanelStepSimulation = (panel: MatterbridgeEndpoint): void => {
+      panel.addCommandHandler('ClosureDimension.step', ({ request: { direction, numberOfSteps, speed } }) => {
+        panel.log.info(`Command step called direction:${direction} numberOfSteps:${numberOfSteps} speed:${speed}`);
+        simulateClosurePanelReachingTarget(panel);
+      });
+    };
+    addClosurePanelStepSimulation(closureVenetianBlindLift);
+    addClosurePanelStepSimulation(closureVenetianBlindTilt);
 
     // *********************** Create a compound climate device ***********************
     this.climate = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)

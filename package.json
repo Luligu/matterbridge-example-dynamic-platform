@@ -109,6 +109,8 @@
     "format:check": "oxfmt --check",
     "chip:start": "node scripts/run-chip-tests.mjs --start",
     "chip:test": "node scripts/run-chip-tests.mjs",
+    "chip:test:closure": "node scripts/run-chip-tests.mjs --test TC_CLCTRL",
+    "chip:test:closureDimension": "node scripts/run-chip-tests.mjs --test TC_CLDIM",
     "chip:stop": "node scripts/run-chip-tests.mjs --stop",
     "reset": "npm run deepClean && npm run softReset",
     "softReset": "npm install --no-fund --no-audit && npm prune --no-fund --no-audit && npm link --no-fund --no-audit matterbridge && npm run build && npm run typecheck",

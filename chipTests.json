@@ -24,6 +24,111 @@
       "name": "Generic device default warnings",
       "test": "TC_DefaultWarnings.py",
       "args": ["--bool-arg pixit_allow_default_vendor_id:true"]
+    },
+    {
+      "name": "GarageDoor Closure attributes",
+      "test": "TC_CLCTRL_2_1.py",
+      "args": ["--endpoint 17"]
+    },
+    {
+      "name": "GarageDoor Closure calibrate command",
+      "test": "TC_CLCTRL_3_1.py",
+      "args": ["--endpoint 17"],
+      "comment": "Calibration (CL) feature is not implemented on Closure (createClosureControlClusterServer only enables Positioning, MotionLatching, and Speed) — all Calibrate-specific steps are skipped by the test itself based on the live FeatureMap, so the test still passes."
+    },
+    {
+      "name": "GarageDoor Closure moveTo position",
+      "test": "TC_CLCTRL_4_1.py",
+      "args": ["--endpoint 17"]
+    },
+    {
+      "name": "GarageDoor Closure moveTo latch",
+      "test": "TC_CLCTRL_4_2.py",
+      "args": ["--endpoint 17"]
+    },
+    {
+      "name": "GarageDoor Closure moveTo field sanity check",
+      "test": "TC_CLCTRL_4_3.py",
+      "args": ["--endpoint 17"]
+    },
+    {
+      "name": "GarageDoor Closure moveTo countdown time",
+      "test": "TC_CLCTRL_4_4.py",
+      "args": ["--endpoint 17"]
+    },
+    {
+      "name": "GarageDoor Closure stop command",
+      "test": "TC_CLCTRL_5_1.py",
+      "args": ["--endpoint 17"],
+      "skip": true,
+      "comment": "Test unconditionally requires a GeneralDiagnostics TestEventTrigger command (step 8a, to simulate MainState=SetupRequired)."
+    },
+    {
+      "name": "GarageDoor Closure event functionality",
+      "test": "TC_CLCTRL_6_1.py",
+      "args": ["--endpoint 17"],
+      "skip": true,
+      "comment": "Test unconditionally requires a GeneralDiagnostics TestEventTrigger command (step 4a, to simulate MainState=Error)."
+    },
+    {
+      "name": "VenetianBlind Lift ClosureDimension attributes",
+      "test": "TC_CLDIM_2_1.py",
+      "args": ["--endpoint 19"]
+    },
+    {
+      "name": "VenetianBlind Tilt ClosureDimension attributes",
+      "test": "TC_CLDIM_2_1.py",
+      "args": ["--endpoint 20"]
+    },
+    {
+      "name": "VenetianBlind Lift ClosureDimension setTarget positioning",
+      "test": "TC_CLDIM_3_1.py",
+      "args": ["--endpoint 19"]
+    },
+    {
+      "name": "VenetianBlind Tilt ClosureDimension setTarget positioning",
+      "test": "TC_CLDIM_3_1.py",
+      "args": ["--endpoint 20"]
+    },
+    {
+      "name": "VenetianBlind Lift ClosureDimension setTarget latching",
+      "test": "TC_CLDIM_3_2.py",
+      "args": ["--endpoint 19"]
+    },
+    {
+      "name": "VenetianBlind Tilt ClosureDimension setTarget latching",
+      "test": "TC_CLDIM_3_2.py",
+      "args": ["--endpoint 20"]
+    },
+    {
+      "name": "VenetianBlind Lift ClosureDimension setTarget field sanity check",
+      "test": "TC_CLDIM_3_3.py",
+      "args": ["--endpoint 19"]
+    },
+    {
+      "name": "VenetianBlind Tilt ClosureDimension setTarget field sanity check",
+      "test": "TC_CLDIM_3_3.py",
+      "args": ["--endpoint 20"]
+    },
+    {
+      "name": "VenetianBlind Lift ClosureDimension step command",
+      "test": "TC_CLDIM_4_1.py",
+      "args": ["--endpoint 19"]
+    },
+    {
+      "name": "VenetianBlind Tilt ClosureDimension step command",
+      "test": "TC_CLDIM_4_1.py",
+      "args": ["--endpoint 20"]
+    },
+    {
+      "name": "VenetianBlind Lift ClosureDimension step input sanity check",
+      "test": "TC_CLDIM_4_2.py",
+      "args": ["--endpoint 19"]
+    },
+    {
+      "name": "VenetianBlind Tilt ClosureDimension step input sanity check",
+      "test": "TC_CLDIM_4_2.py",
+      "args": ["--endpoint 20"]
     }
   ]
 }

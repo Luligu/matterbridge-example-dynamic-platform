@@ -33,6 +33,31 @@ In the shell:
 python3 src/python_testing/TC_DeviceBasicComposition.py
 python3 src/python_testing/TC_DeviceConformance.py
 python3 src/python_testing/TC_DefaultWarnings.py --bool-arg pixit_allow_default_vendor_id:true
+
+# Closure / ClosureControl cluster, GarageDoor device (endpoint 17) — no YAML certification
+# tests exist for Closure/ClosureControl in the bundled connectedhomeip checkout, only Python ones.
+python3 src/python_testing/TC_CLCTRL_2_1.py --endpoint 17
+python3 src/python_testing/TC_CLCTRL_3_1.py --endpoint 17
+python3 src/python_testing/TC_CLCTRL_4_1.py --endpoint 17
+python3 src/python_testing/TC_CLCTRL_4_2.py --endpoint 17
+python3 src/python_testing/TC_CLCTRL_4_3.py --endpoint 17
+python3 src/python_testing/TC_CLCTRL_4_4.py --endpoint 17
+# TC_CLCTRL_5_1.py and TC_CLCTRL_6_1.py are "skip": true in chipTests.json — see Known Issue #2.
+
+# ClosureDimension cluster, Venetian Blind device (endpoint 18) with Lift/Tilt ClosurePanel children
+# (endpoints 19/20) — only Python tests exist for ClosureDimension in the bundled connectedhomeip checkout.
+python3 src/python_testing/TC_CLDIM_2_1.py --endpoint 19
+python3 src/python_testing/TC_CLDIM_2_1.py --endpoint 20
+python3 src/python_testing/TC_CLDIM_3_1.py --endpoint 19
+python3 src/python_testing/TC_CLDIM_3_1.py --endpoint 20
+python3 src/python_testing/TC_CLDIM_3_2.py --endpoint 19
+python3 src/python_testing/TC_CLDIM_3_2.py --endpoint 20
+python3 src/python_testing/TC_CLDIM_3_3.py --endpoint 19
+python3 src/python_testing/TC_CLDIM_3_3.py --endpoint 20
+python3 src/python_testing/TC_CLDIM_4_1.py --endpoint 19
+python3 src/python_testing/TC_CLDIM_4_1.py --endpoint 20
+python3 src/python_testing/TC_CLDIM_4_2.py --endpoint 19
+python3 src/python_testing/TC_CLDIM_4_2.py --endpoint 20
 ```
 
 ### Stop the container
@@ -60,3 +85,6 @@ node scripts/run-chip-tests.mjs --stop
    Expected to resolve once that issue is fixed and the Docker image ships an updated `connectedhomeip`
    checkout. Not marked `"skip": true` in `chipTests.json` since the rest of the file's sub-tests still
    provide useful coverage; only `test_TC_DESC_2_1` is affected.
+
+2. `TC_CLCTRL_5_1.py` and `TC_CLCTRL_6_1.py` are marked `"skip": true`: both unconditionally require a
+   GeneralDiagnostics `TestEventTrigger` command to simulate an otherwise-unreachable `MainState`.
