@@ -38,13 +38,14 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [chip]: Add chip-test toolchain agents instruction and chip-test runner.
-- [chip]: Add `chipTests.json`/`chipTests.md` with the generic device basic composition, conformance and default warnings tests (all pass). Document known CHIP test suite bugs.
-- [chip]: Add `chipTests.json`/`chipTests.md` with the ClosureControl and ClosureDimension cluster tests (all pass).
+- [chip]: Add `chipTests.json`/`chipTests.md` with the generic device basic composition, conformance and default warnings tests (all tests pass ✅). Document known CHIP test suite bugs.
+- [chip]: Add `chipTests.json`/`chipTests.md` with the ClosureControl and ClosureDimension cluster tests (all tests pass ✅).
 - [frontend]: Add plugin-frontend agents instructions.
 - [platform]: Add `closureGarageDoor` device. Thanks Ludovic BOUÉ.
 - [platform]: Add `closureVenetianBlind` device with Lift and Tilt panels. Thanks Ludovic BOUÉ.
 - [platform]: Add a thermostat auto mode with schedules (Weekdays and Weekend schedules) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultSchedulesThermostatClusterServer()`. Thanks Ludovic BOUÉ.
 - [thermostat]: Add a thermostat auto mode with thermostat suggestions (Comfort and Eco presets with a pre-seeded suggestion) including 2 sub endpoints with temperature and humidity sensors, using `createDefaultThermostatSuggestionsClusterServer()`. Thanks Ludovic BOUÉ.
+- [devcontainer]: Bump `devcontainer` to v.1.2.0.
 
 ### Changed
 
