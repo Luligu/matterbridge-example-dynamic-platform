@@ -142,7 +142,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(74);
+    expect(dynamicPlatform.getDevices()).toHaveLength(75);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -150,7 +150,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(74);
+    expect(dynamicPlatform.getDevices()).toHaveLength(75);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
@@ -686,7 +686,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(74);
+    expect(dynamicPlatform.getDevices()).toHaveLength(75);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
     await dynamicPlatform.executeIntervals(26, 10);

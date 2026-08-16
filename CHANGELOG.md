@@ -31,6 +31,10 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [3.0.3] - Dev branch
 
+### Added
+
+- [platform]: Add `closureSlidingGate` device.
+
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
 ## [3.0.2] - 2026-08-14

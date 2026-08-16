@@ -227,6 +227,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   irrigationSystem: IrrigationSystem | undefined;
   closureGarageDoor: Closure | undefined;
   closureVenetianBlind: Closure | undefined;
+  closureSlidingGate: Closure | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
@@ -609,6 +610,53 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     };
     addClosurePanelStepSimulation(closureVenetianBlindLift);
     addClosurePanelStepSimulation(closureVenetianBlindTilt);
+
+    // *********************** Create a sliding gate Closure device ***********************
+    this.closureSlidingGate = new Closure('Sliding Gate', 'GAT000073', {
+      tagList: [getSemtag(ClosureTag.Gate)],
+    });
+
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    this.closureSlidingGate = (await this.addDevice(this.closureSlidingGate)) as Closure | undefined;
+    let closureSlidingGateMoveTimeout: NodeJS.Timeout | undefined;
+
+    // MoveTo is a parent ClosureControl command. Reuses closureTargetToCurrentPosition (declared above for the
+    // garage door), so MoveToPedestrianPosition also gets exercised here (a real driveway gate behavior: a small
+    // pedestrian gap distinct from the fully-open vehicle position).
+    this.closureSlidingGate?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
+      // MatterbridgeClosureControlServer sets the mainState to ClosureControl.MainState.Moving after this call
+      // MatterbridgeClosureControlServer sets the overallTargetState to the requested target state after this call
+      this.closureSlidingGate?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+      attributes.countdownTime = 1; // We simulate a 1 second movement for demo purposes, so set the countdownTime to 1 second.
+      /* v8 ignore start -- Demo timer simulates closure movement completion. */
+      closureSlidingGateMoveTimeout = setTimeout(() => {
+        const targetState = this.closureSlidingGate?.getAttribute(ClosureControl, 'overallTargetState');
+        if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
+        void this.closureSlidingGate?.setState(
+          {
+            position: closureTargetToCurrentPosition(targetState.position),
+            latch: targetState.latch,
+            speed: targetState.speed,
+            secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
+          },
+          targetState,
+          ClosureControl.MainState.Stopped,
+          0,
+          [],
+        );
+        void this.closureSlidingGate?.triggerMovementCompleted();
+      }, 1000).unref();
+      /* v8 ignore stop */
+    });
+
+    // Stop is a parent ClosureControl command
+    this.closureSlidingGate?.addCommandHandler('ClosureControl.stop', ({ attributes }) => {
+      // MatterbridgeClosureControlServer sets the mainState to ClosureControl.MainState.Stopped after this call
+      this.closureSlidingGate?.log.info('Command stop called');
+      attributes.countdownTime = 0;
+      clearTimeout(closureSlidingGateMoveTimeout);
+      closureSlidingGateMoveTimeout = undefined;
+    });
 
     // *********************** Create a compound climate device ***********************
     this.climate = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)
