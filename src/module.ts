@@ -25,11 +25,13 @@
 /* oxlint-disable max-lines */
 /* oxlint-disable max-lines-per-function */
 
+import { ThreeLevelAuto } from '@matter/types/globals';
 import {
   aggregator,
   airPurifier,
   airQualitySensor,
   bridgedNode,
+  closure,
   colorTemperatureLight,
   contactSensor,
   windowCovering,
@@ -80,6 +82,7 @@ import {
   IrrigationSystem,
   LaundryDryer,
   LaundryWasher,
+  MatterbridgeClosureControlServer,
   MicrowaveOven,
   Oven,
   Refrigerator,
@@ -227,7 +230,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   irrigationSystem: IrrigationSystem | undefined;
   closureGarageDoor: Closure | undefined;
   closureVenetianBlind: Closure | undefined;
-  closureSlidingGate: Closure | undefined;
+  closureSlidingGate: MatterbridgeEndpoint | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
@@ -612,17 +615,39 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     addClosurePanelStepSimulation(closureVenetianBlindTilt);
 
     // *********************** Create a sliding gate Closure device ***********************
-    this.closureSlidingGate = new Closure('Sliding Gate', 'GAT000073', {
-      tagList: [getSemtag(ClosureTag.Gate)],
-    });
+    // The Closure single-class device (matterbridge/devices) hard-codes ClosureControl to Positioning +
+    // MotionLatching + Speed only, with no constructor option to add Pedestrian (see
+    // https://github.com/Luligu/matterbridge/issues/609). Build the endpoint the same way Closure itself does
+    // internally (same device types, Identify, BasicInformation and wired PowerSource), but require
+    // MatterbridgeClosureControlServer with the Pedestrian feature added so MoveToPedestrianPosition actually
+    // works instead of being rejected as a ConstraintError — a real driveway gate behavior (a small pedestrian
+    // gap distinct from the fully-open vehicle position).
+    this.closureSlidingGate = new MatterbridgeEndpoint([closure, powerSource], { id: 'SlidingGate-GAT000073', tagList: [getSemtag(ClosureTag.Gate)] }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBasicInformationClusterServer('Sliding Gate', 'GAT000073', 0xfff1, 'Matterbridge', 0x8000, 'Matterbridge Closure')
+      .createDefaultPowerSourceWiredClusterServer();
+    this.closureSlidingGate.behaviors.require(
+      MatterbridgeClosureControlServer.with(
+        ClosureControl.Feature.Positioning,
+        ClosureControl.Feature.MotionLatching,
+        ClosureControl.Feature.Speed,
+        ClosureControl.Feature.Pedestrian,
+      ),
+      {
+        countdownTime: 0,
+        mainState: ClosureControl.MainState.Stopped,
+        currentErrorList: [],
+        overallCurrentState: { position: ClosureControl.CurrentPosition.FullyClosed, latch: true, speed: ThreeLevelAuto.Auto, secureState: true },
+        overallTargetState: { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true, speed: ThreeLevelAuto.Auto },
+        latchControlModes: { remoteLatching: true, remoteUnlatching: true },
+      },
+    );
 
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.closureSlidingGate = (await this.addDevice(this.closureSlidingGate)) as Closure | undefined;
+    this.closureSlidingGate = await this.addDevice(this.closureSlidingGate);
     let closureSlidingGateMoveTimeout: NodeJS.Timeout | undefined;
 
     // MoveTo is a parent ClosureControl command. Reuses closureTargetToCurrentPosition (declared above for the
-    // garage door), so MoveToPedestrianPosition also gets exercised here (a real driveway gate behavior: a small
-    // pedestrian gap distinct from the fully-open vehicle position).
+    // garage door), so MoveToPedestrianPosition also gets exercised here.
     this.closureSlidingGate?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
       // MatterbridgeClosureControlServer sets the mainState to ClosureControl.MainState.Moving after this call
       // MatterbridgeClosureControlServer sets the overallTargetState to the requested target state after this call
@@ -630,21 +655,26 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       attributes.countdownTime = 1; // We simulate a 1 second movement for demo purposes, so set the countdownTime to 1 second.
       /* v8 ignore start -- Demo timer simulates closure movement completion. */
       closureSlidingGateMoveTimeout = setTimeout(() => {
-        const targetState = this.closureSlidingGate?.getAttribute(ClosureControl, 'overallTargetState');
-        if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
-        void this.closureSlidingGate?.setState(
-          {
-            position: closureTargetToCurrentPosition(targetState.position),
-            latch: targetState.latch,
-            speed: targetState.speed,
-            secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
-          },
-          targetState,
-          ClosureControl.MainState.Stopped,
-          0,
-          [],
-        );
-        void this.closureSlidingGate?.triggerMovementCompleted();
+        void (async (): Promise<void> => {
+          const targetState = this.closureSlidingGate?.getAttribute(ClosureControl, 'overallTargetState');
+          if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
+          await this.closureSlidingGate?.setAttribute(ClosureControl, 'countdownTime', 0, this.closureSlidingGate.log);
+          await this.closureSlidingGate?.setAttribute(ClosureControl, 'mainState', ClosureControl.MainState.Stopped, this.closureSlidingGate.log);
+          await this.closureSlidingGate?.setAttribute(ClosureControl, 'currentErrorList', [], this.closureSlidingGate.log);
+          await this.closureSlidingGate?.setAttribute(
+            ClosureControl,
+            'overallCurrentState',
+            {
+              position: closureTargetToCurrentPosition(targetState.position),
+              latch: targetState.latch,
+              speed: targetState.speed,
+              secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
+            },
+            this.closureSlidingGate.log,
+          );
+          await this.closureSlidingGate?.setAttribute(ClosureControl, 'overallTargetState', targetState, this.closureSlidingGate.log);
+          await this.closureSlidingGate?.triggerEvent(ClosureControl, 'movementCompleted', undefined, this.closureSlidingGate.log);
+        })();
       }, 1000).unref();
       /* v8 ignore stop */
     });
