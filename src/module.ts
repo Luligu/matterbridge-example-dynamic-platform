@@ -25,7 +25,6 @@
 /* oxlint-disable max-lines */
 /* oxlint-disable max-lines-per-function */
 
-import { ThreeLevelAuto } from '@matter/types/globals';
 import {
   aggregator,
   airPurifier,
@@ -151,6 +150,7 @@ import {
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
+import { ThreeLevelAuto } from 'matterbridge/matter/types';
 import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
 
 /**
