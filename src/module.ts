@@ -2011,28 +2011,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.airPurifier?.subscribeAttribute(
       FanControl.id,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
-        void (async (): Promise<void> => {
-          this.airPurifier?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
-          );
-          if (context.fabric === undefined) return; // Do not set attributes when offline
-          /* v8 ignore next */
-          if (newValue === FanControl.FanMode.Off) {
-            await this.airPurifier?.setAttribute(FanControl.id, 'percentSetting', 0, this.airPurifier?.log);
-            await this.airPurifier?.setAttribute(FanControl.id, 'percentCurrent', 0, this.airPurifier?.log);
-          } else if (newValue === FanControl.FanMode.Low) {
-            await this.airPurifier?.setAttribute(FanControl.id, 'percentSetting', 33, this.airPurifier?.log);
-            await this.airPurifier?.setAttribute(FanControl.id, 'percentCurrent', 33, this.airPurifier?.log);
-          } else if (newValue === FanControl.FanMode.Medium) {
-            await this.airPurifier?.setAttribute(FanControl.id, 'percentSetting', 66, this.airPurifier?.log);
-            await this.airPurifier?.setAttribute(FanControl.id, 'percentCurrent', 66, this.airPurifier?.log);
-            // oxlint-disable-next-line typescript/no-deprecated
-          } else if (newValue === FanControl.FanMode.High || newValue === FanControl.FanMode.On || newValue === FanControl.FanMode.Auto) {
-            await this.airPurifier?.setAttribute(FanControl.id, 'percentSetting', 100, this.airPurifier?.log);
-            await this.airPurifier?.setAttribute(FanControl.id, 'percentCurrent', 100, this.airPurifier?.log);
-          }
-        })(),
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.airPurifier?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
+        );
+      },
       this.airPurifier.log,
     );
     this.airPurifier?.subscribeAttribute(
@@ -2042,7 +2025,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         void (async (): Promise<void> => {
           this.airPurifier?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
           if (context.fabric === undefined) return; // Do not set attributes when offline
-          if (isValidNumber(newValue, 0, 100)) await this.airPurifier?.setAttribute(FanControl.id, 'percentCurrent', newValue, this.airPurifier?.log);
+          if (newValue === null || isValidNumber(newValue, 0, 100)) await this.airPurifier?.setAttribute(FanControl, 'percentCurrent', newValue ?? 50, this.airPurifier?.log);
         })(),
       this.airPurifier.log,
     );
@@ -2101,35 +2084,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.fanDefault?.subscribeAttribute(
       FanControl,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
-        void (async (): Promise<void> => {
-          this.fanDefault?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
-          );
-          if (context.fabric === undefined) return; // Do not set attributes when offline
-          /* v8 ignore next */
-          if (newValue === FanControl.FanMode.Off) {
-            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 0, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 0, this.fanDefault?.log);
-          } else if (newValue === FanControl.FanMode.Low) {
-            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 33, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 33, this.fanDefault?.log);
-          } else if (newValue === FanControl.FanMode.Medium) {
-            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 66, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 66, this.fanDefault?.log);
-          } else if (newValue === FanControl.FanMode.High) {
-            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 100, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 100, this.fanDefault?.log);
-            // oxlint-disable-next-line typescript/no-deprecated
-          } else if (newValue === FanControl.FanMode.On) {
-            await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', 100, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 100, this.fanDefault?.log);
-          } else if (newValue === FanControl.FanMode.Auto) {
-            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', null, this.fanDefault?.log);
-            await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', 50, this.fanDefault?.log);
-          }
-        })(),
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.fanDefault?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
+        );
+      },
       this.fanDefault.log,
     );
     this.fanDefault?.subscribeAttribute(
@@ -2139,12 +2098,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         void (async (): Promise<void> => {
           this.fanDefault?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
           if (context.fabric === undefined) return; // Do not set attributes when offline
-          if (isValidNumber(newValue, 0, 100)) await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', newValue, this.fanDefault?.log);
-          if (isValidNumber(newValue, 0, 0)) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Off, this.fanDefault?.log);
-          if (isValidNumber(newValue, 1, 33)) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Low, this.fanDefault?.log);
-          if (isValidNumber(newValue, 34, 66)) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Medium, this.fanDefault?.log);
-          if (isValidNumber(newValue, 67, 100)) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanDefault?.log);
-          if (newValue === null) await this.fanDefault?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Auto, this.fanDefault?.log);
+          if (newValue === null || isValidNumber(newValue, 0, 100)) await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', newValue ?? 50, this.fanDefault?.log);
         })(),
       this.fanDefault.log,
     );
@@ -2161,35 +2115,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.fanBase?.subscribeAttribute(
       FanControl,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
-        void (async (): Promise<void> => {
-          this.fanBase?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
-          );
-          if (context.fabric === undefined) return; // Do not set attributes when offline
-          /* v8 ignore next */
-          if (newValue === FanControl.FanMode.Off) {
-            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 0, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 0, this.fanBase?.log);
-          } else if (newValue === FanControl.FanMode.Low) {
-            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 33, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 33, this.fanBase?.log);
-          } else if (newValue === FanControl.FanMode.Medium) {
-            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 66, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 66, this.fanBase?.log);
-          } else if (newValue === FanControl.FanMode.High) {
-            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 100, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 100, this.fanBase?.log);
-            // oxlint-disable-next-line typescript/no-deprecated
-          } else if (newValue === FanControl.FanMode.On) {
-            await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl, 'percentSetting', 100, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 100, this.fanBase?.log);
-          } else if (newValue === FanControl.FanMode.Auto) {
-            await this.fanBase?.setAttribute(FanControl, 'percentSetting', null, this.fanBase?.log);
-            await this.fanBase?.setAttribute(FanControl, 'percentCurrent', 50, this.fanBase?.log);
-          }
-        })(),
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.fanBase?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
+        );
+      },
       this.fanBase.log,
     );
     this.fanBase?.subscribeAttribute(
@@ -2200,10 +2130,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           this.fanBase?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
           if (context.fabric === undefined) return; // Do not set attributes when offline
           if (isValidNumber(newValue, 0, 100)) await this.fanBase?.setAttribute(FanControl, 'percentCurrent', newValue, this.fanBase?.log);
-          if (isValidNumber(newValue, 0, 0)) await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Off, this.fanBase?.log);
-          if (isValidNumber(newValue, 1, 33)) await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Low, this.fanBase?.log);
-          if (isValidNumber(newValue, 34, 66)) await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Medium, this.fanBase?.log);
-          if (isValidNumber(newValue, 67, 100)) await this.fanBase?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanBase?.log);
         })(),
       this.fanBase.log,
     );
@@ -2220,26 +2146,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.fanOnHigh?.subscribeAttribute(
       FanControl,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
-        void (async (): Promise<void> => {
-          this.fanOnHigh?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
-          );
-          if (context.fabric === undefined) return; // Do not set attributes when offline
-          /* v8 ignore next */
-          if (newValue === FanControl.FanMode.Off) {
-            await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', 0, this.fanOnHigh?.log);
-            await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', 0, this.fanOnHigh?.log);
-          } else if (newValue === FanControl.FanMode.High) {
-            await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', 100, this.fanOnHigh?.log);
-            await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', 100, this.fanOnHigh?.log);
-            // oxlint-disable-next-line typescript/no-deprecated
-          } else if (newValue === FanControl.FanMode.On) {
-            await this.fanOnHigh?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanOnHigh?.log);
-            await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', 100, this.fanOnHigh?.log);
-            await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', 100, this.fanOnHigh?.log);
-          }
-        })(),
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.fanOnHigh?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
+        );
+      },
       this.fanOnHigh.log,
     );
     this.fanOnHigh?.subscribeAttribute(
@@ -2250,10 +2161,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           this.fanOnHigh?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
           if (context.fabric === undefined) return; // Do not set attributes when offline
           if (isValidNumber(newValue, 0, 100)) {
-            // oxlint-disable-next-line no-param-reassign
-            if (newValue > 0) newValue = 100; // OnOff fan control only supports 0 and 100
-            await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', newValue, this.fanOnHigh?.log);
-            await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', newValue, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentCurrent', newValue > 0 ? 100 : 0, this.fanOnHigh?.log);
+            await this.fanOnHigh?.setAttribute(FanControl, 'percentSetting', newValue > 0 ? 100 : 0, this.fanOnHigh?.log);
             await this.fanOnHigh?.setAttribute(FanControl, 'fanMode', newValue === 0 ? FanControl.FanMode.Off : FanControl.FanMode.High, this.fanOnHigh?.log);
           }
         })(),
@@ -2272,35 +2181,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.fanComplete?.subscribeAttribute(
       FanControl,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
-        void (async (): Promise<void> => {
-          this.fanComplete?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
-          );
-          if (context.fabric === undefined) return; // Do not set attributes when offline
-          /* v8 ignore next */
-          if (newValue === FanControl.FanMode.Off) {
-            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 0, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 0, this.fanComplete?.log);
-          } else if (newValue === FanControl.FanMode.Low) {
-            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 33, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 33, this.fanComplete?.log);
-          } else if (newValue === FanControl.FanMode.Medium) {
-            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 66, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 66, this.fanComplete?.log);
-          } else if (newValue === FanControl.FanMode.High) {
-            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 100, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 100, this.fanComplete?.log);
-            // oxlint-disable-next-line typescript/no-deprecated
-          } else if (newValue === FanControl.FanMode.On) {
-            await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', 100, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 100, this.fanComplete?.log);
-          } else if (newValue === FanControl.FanMode.Auto) {
-            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', null, this.fanComplete?.log);
-            await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', 50, this.fanComplete?.log);
-          }
-        })(),
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.fanComplete?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
+        );
+      },
       this.fanComplete?.log,
     );
     this.fanComplete?.subscribeAttribute(
@@ -2310,12 +2195,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         void (async (): Promise<void> => {
           this.fanComplete?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
           if (context.fabric === undefined) return; // Do not set attributes when offline
-          if (isValidNumber(newValue, 0, 100)) await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', newValue, this.fanComplete?.log);
-          if (isValidNumber(newValue, 0, 0)) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Off, this.fanComplete?.log);
-          if (isValidNumber(newValue, 1, 33)) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Low, this.fanComplete?.log);
-          if (isValidNumber(newValue, 34, 66)) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Medium, this.fanComplete?.log);
-          if (isValidNumber(newValue, 67, 100)) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.High, this.fanComplete?.log);
-          if (newValue === null) await this.fanComplete?.setAttribute(FanControl, 'fanMode', FanControl.FanMode.Auto, this.fanComplete?.log);
+          if (newValue === null || isValidNumber(newValue, 0, 100)) await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', newValue ?? 50, this.fanComplete?.log);
         })(),
       this.fanComplete?.log,
     );
@@ -2837,33 +2717,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.airConditioner?.subscribeAttribute(
       FanControl.id,
       'fanMode',
-      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) =>
-        void (async (): Promise<void> => {
-          this.airConditioner?.log.info(
-            `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
-          );
-          if (context.fabric === undefined) return; // Do not set attributes when offline
-          if (newValue === FanControl.FanMode.Off) {
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentSetting', 0, this.airConditioner?.log);
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentCurrent', 0, this.airConditioner?.log);
-          } else if (newValue === FanControl.FanMode.Low) {
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentSetting', 33, this.airConditioner?.log);
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentCurrent', 33, this.airConditioner?.log);
-          } else if (newValue === FanControl.FanMode.Medium) {
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentSetting', 66, this.airConditioner?.log);
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentCurrent', 66, this.airConditioner?.log);
-          } else if (newValue === FanControl.FanMode.High) {
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentSetting', 100, this.airConditioner?.log);
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentCurrent', 100, this.airConditioner?.log);
-            // oxlint-disable-next-line typescript/no-deprecated
-          } else if (newValue === FanControl.FanMode.On) {
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentSetting', 100, this.airConditioner?.log);
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentCurrent', 100, this.airConditioner?.log);
-          } else if (newValue === FanControl.FanMode.Auto) {
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentSetting', 50, this.airConditioner?.log);
-            await this.airConditioner?.setAttribute(FanControl.id, 'percentCurrent', 50, this.airConditioner?.log);
-          }
-        })(),
+      (newValue: FanControl.FanMode, oldValue: FanControl.FanMode, context) => {
+        this.airConditioner?.log.info(
+          `Fan mode changed from ${this.fanModeLookup[oldValue]} to ${this.fanModeLookup[newValue]} context: ${context.fabric === undefined ? 'offline' : 'online'}`,
+        );
+      },
       this.airConditioner?.log,
     );
     this.airConditioner?.subscribeAttribute(
@@ -2873,7 +2731,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         void (async (): Promise<void> => {
           this.airConditioner?.log.info(`Percent setting changed from ${oldValue} to ${newValue} context: ${context.fabric === undefined ? 'offline' : 'online'}`);
           if (context.fabric === undefined) return; // Do not set attributes when offline
-          if (isValidNumber(newValue, 0, 100)) await this.airConditioner?.setAttribute(FanControl.id, 'percentCurrent', newValue, this.airConditioner?.log);
+          if (newValue === null || isValidNumber(newValue, 0, 100)) await this.airConditioner?.setAttribute(FanControl, 'percentCurrent', newValue ?? 50, this.airConditioner?.log);
         })(),
       this.airConditioner?.log,
     );
@@ -3585,33 +3443,32 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.fanBase?.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Off, this.fanBase.log);
     await this.fanBase?.setAttribute(FanControl.id, 'percentCurrent', 0, this.fanBase.log);
     await this.fanBase?.setAttribute(FanControl.id, 'percentSetting', 0, this.fanBase.log);
+    await this.fanOnHigh?.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Off, this.fanOnHigh.log);
+    await this.fanOnHigh?.setAttribute(FanControl.id, 'percentCurrent', 0, this.fanOnHigh.log);
+    await this.fanOnHigh?.setAttribute(FanControl.id, 'percentSetting', 0, this.fanOnHigh.log);
+    this.fanDefault?.log.info('Set fan initial fanMode to Auto and percentCurrent to 0');
     await this.fanDefault?.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Auto, this.fanDefault.log);
     await this.fanDefault?.setAttribute(FanControl.id, 'percentCurrent', 0, this.fanDefault.log);
-    await this.fanDefault?.setAttribute(FanControl.id, 'percentSetting', 0, this.fanDefault.log);
+    this.fanComplete?.log.info('Set fan initial fanMode to Auto and percentCurrent to 0');
     await this.fanComplete?.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Auto, this.fanComplete.log);
     await this.fanComplete?.setAttribute(FanControl.id, 'percentCurrent', 0, this.fanComplete.log);
-    await this.fanComplete?.setAttribute(FanControl.id, 'percentSetting', 0, this.fanComplete.log);
     if (this.config.useInterval) {
       // Increment fan percentCurrent every minute
       this.addInterval(
         async () => {
-          let mode = this.fanBase?.getAttribute(FanControl, 'fanMode', this.fanBase.log);
-          let value = this.fanBase?.getAttribute(FanControl, 'percentCurrent', this.fanBase.log);
-          mode = this.fanDefault?.getAttribute(FanControl, 'fanMode', this.fanDefault.log);
-          value = this.fanDefault?.getAttribute(FanControl, 'percentCurrent', this.fanDefault.log);
+          let mode = this.fanDefault?.getAttribute(FanControl, 'fanMode', this.fanDefault.log);
+          let value = this.fanDefault?.getAttribute(FanControl, 'percentCurrent', this.fanDefault.log);
           if (isValidNumber(mode, FanControl.FanMode.Off, FanControl.FanMode.Auto) && mode === FanControl.FanMode.Auto && isValidNumber(value, 0, 100)) {
             value = value + 10 >= 100 ? 0 : value + 10;
             await this.fanDefault?.setAttribute(FanControl, 'percentCurrent', value, this.fanDefault.log);
-            await this.fanDefault?.setAttribute(FanControl, 'percentSetting', value, this.fanDefault.log);
-            this.fanDefault?.log.info(`Set fan percentCurrent and percentSetting to ${value}`);
+            this.fanDefault?.log.info(`Set fan percentCurrent to ${value}`);
           }
           mode = this.fanComplete?.getAttribute(FanControl, 'fanMode', this.fanComplete.log);
           value = this.fanComplete?.getAttribute(FanControl, 'percentCurrent', this.fanComplete.log);
           if (isValidNumber(mode, FanControl.FanMode.Off, FanControl.FanMode.Auto) && mode === FanControl.FanMode.Auto && isValidNumber(value, 0, 100)) {
             value = value + 10 >= 100 ? 0 : value + 10;
             await this.fanComplete?.setAttribute(FanControl, 'percentCurrent', value, this.fanComplete.log);
-            await this.fanComplete?.setAttribute(FanControl, 'percentSetting', value, this.fanComplete.log);
-            this.fanComplete?.log.info(`Set fan percentCurrent and percentSetting to ${value}`);
+            this.fanComplete?.log.info(`Set fan percentCurrent to ${value}`);
           }
         },
         60 * 1000 + 700,

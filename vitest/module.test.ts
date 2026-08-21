@@ -151,6 +151,7 @@ describe('TestPlatform', () => {
 
   it('should execute the commandHandlers', async () => {
     expect(dynamicPlatform.getDevices()).toHaveLength(74);
+    const percentSettingSubscribers = new Set([dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner]);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
       expect(device).toBeDefined();
@@ -321,7 +322,10 @@ describe('TestPlatform', () => {
         await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 30, 30);
         await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 50, 50);
         await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', 80, 80);
+        if (fanControlFeatures.auto) await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Auto);
         await invokeSubscribeHandler(device, 'fanControl', 'percentSetting', null, null);
+        // oxlint-disable-next-line vitest/no-conditional-expect
+        if (fanControlFeatures.auto && percentSettingSubscribers.has(device)) await expect.poll(() => device.getAttribute(FanControl.id, 'percentCurrent')).toBe(50);
         if (fanControlFeatures.rocking) {
           await invokeSubscribeHandler(device, 'fanControl', 'rockSetting', {}, {});
         }
@@ -370,6 +374,45 @@ describe('TestPlatform', () => {
       }
     }
   }, 60000);
+
+  it('should set percent current to 50 when percent setting is null', async () => {
+    const percentSettingSubscribers = [dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner];
+
+    for (const device of percentSettingSubscribers) {
+      if (!device) throw new Error('Expected percent setting subscriber to be registered');
+      const setAttributeSpy = vi.spyOn(device, 'setAttribute');
+
+      expect(await invokeSubscribeHandler(device, FanControl, 'percentSetting', null, null)).toBe(true);
+      await expect.poll(() => setAttributeSpy.mock.calls.some((call) => call[1] === 'percentCurrent' && call[2] === 50)).toBe(true);
+
+      setAttributeSpy.mockRestore();
+    }
+  });
+
+  it('should constrain the on high fan to off and high settings', async () => {
+    const device = dynamicPlatform.fanOnHigh;
+    expect(device).toBeDefined();
+    if (!device) return;
+    const setAttributeSpy = vi.spyOn(device, 'setAttribute');
+
+    expect(await invokeSubscribeHandler(device, FanControl, 'percentSetting', 30, 0)).toBe(true);
+    await expect.poll(() => setAttributeSpy.mock.calls.length).toBeGreaterThanOrEqual(3);
+    expect(setAttributeSpy).toHaveBeenCalledWith(FanControl, 'percentCurrent', 100, device.log);
+    expect(setAttributeSpy).toHaveBeenCalledWith(FanControl, 'percentSetting', 100, device.log);
+    expect(setAttributeSpy).toHaveBeenCalledWith(FanControl, 'fanMode', FanControl.FanMode.High, device.log);
+
+    setAttributeSpy.mockClear();
+    expect(await invokeSubscribeHandler(device, FanControl, 'percentSetting', 0, 100)).toBe(true);
+    await expect.poll(() => setAttributeSpy.mock.calls.length).toBeGreaterThanOrEqual(3);
+    expect(setAttributeSpy).toHaveBeenCalledWith(FanControl, 'percentCurrent', 0, device.log);
+    expect(setAttributeSpy).toHaveBeenCalledWith(FanControl, 'percentSetting', 0, device.log);
+    expect(setAttributeSpy).toHaveBeenCalledWith(FanControl, 'fanMode', FanControl.FanMode.Off, device.log);
+
+    setAttributeSpy.mockClear();
+    expect(await invokeSubscribeHandler(device, FanControl, 'percentSetting', null, 0)).toBe(true);
+    expect(setAttributeSpy).not.toHaveBeenCalled();
+    setAttributeSpy.mockRestore();
+  });
 
   it('should set the garage door current position from each supported target position', async () => {
     const garageDoor = dynamicPlatform.getDeviceByName('Garage Door');
