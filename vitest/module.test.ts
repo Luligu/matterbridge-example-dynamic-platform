@@ -90,7 +90,7 @@ describe('TestPlatform', () => {
 
   it('should throw error in load when version is not valid', () => {
     expect(() => initializePlugin({ ...matterbridge, matterbridgeVersion: '1.5.0' }, log, config)).toThrow(
-      'This plugin requires Matterbridge version >= "3.10.5". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.10.6". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
   });
 
@@ -654,7 +654,7 @@ describe('TestPlatform', () => {
 
     await airConditioner.executeCommandHandler('off', {}, 'onOff', {} as never, airConditioner);
     expect(airConditioner.getAttribute(Thermostat.id, 'localTemperature')).toBeNull();
-    expect(airConditioner.getAttribute(FanControl.id, 'percentSetting')).toBeNull();
+    expect(airConditioner.getAttribute(FanControl.id, 'percentSetting')).toBe(0);
   }, 60000);
 
   it('should execute basic video player commands', async () => {

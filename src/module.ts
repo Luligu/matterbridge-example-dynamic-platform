@@ -310,9 +310,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.5')) {
+    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.6')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.10.5". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.10.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -2831,7 +2831,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await this.airConditioner?.setAttribute(Thermostat.id, 'localTemperature', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(TemperatureMeasurement.id, 'measuredValue', null, this.airConditioner?.log);
       await this.airConditioner?.setAttribute(RelativeHumidityMeasurement.id, 'measuredValue', null, this.airConditioner?.log);
-      await this.airConditioner?.setAttribute(FanControl.id, 'percentSetting', null, this.airConditioner?.log);
+      await this.airConditioner?.setAttribute(FanControl.id, 'percentSetting', 0, this.airConditioner?.log);
     });
     // Fan component of AirConditioner
     this.airConditioner?.subscribeAttribute(
@@ -2880,8 +2880,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a basic video player device ***********************
     this.basicVideoPlayer = new BasicVideoPlayer('BasicVideoPlayer', 'BVP00062');
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.basicVideoPlayer = (await this.addDevice(this.basicVideoPlayer)) as BasicVideoPlayer | undefined;
+    this.basicVideoPlayer = await this.addDevice(this.basicVideoPlayer);
     this.basicVideoPlayer
       ?.addCommandHandler('MediaPlayback.play', () => {
         this.basicVideoPlayer?.log.info(`Command play called`);
@@ -2913,7 +2912,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // this.castingVideoPlayer = (await this.addDevice(this.castingVideoPlayer)) as CastingVideoPlayer | undefined;
 
     // *********************** Create a Speaker device ***********************
-    this.speaker = new Speaker('Speaker', 'SPE00057', false, 100);
+    this.speaker = new Speaker('Speaker', 'SPE00057', { muted: false, volume: 100 });
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.speaker = (await this.addDevice(this.speaker)) as Speaker | undefined;
   }
