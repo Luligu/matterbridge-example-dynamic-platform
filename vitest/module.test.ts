@@ -142,7 +142,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(74);
+    expect(dynamicPlatform.getDevices()).toHaveLength(75);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -150,7 +150,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(74);
+    expect(dynamicPlatform.getDevices()).toHaveLength(75);
     const percentSettingSubscribers = new Set([dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner]);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
@@ -438,6 +438,29 @@ describe('TestPlatform', () => {
       vi.useRealTimers();
     }
   }, 10000);
+
+  it('should move the sliding gate to its pedestrian position', async () => {
+    const slidingGate = dynamicPlatform.getDeviceByName('Sliding Gate');
+    expect(slidingGate).toBeDefined();
+    if (!slidingGate) return;
+
+    vi.useFakeTimers();
+    try {
+      await slidingGate.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', {
+        position: ClosureControl.TargetPosition.MoveToPedestrianPosition,
+        latch: false,
+      });
+      await vi.advanceTimersByTimeAsync(1100);
+      await expect
+        .poll(() => slidingGate.getAttribute(ClosureControl, 'overallCurrentState'))
+        .toMatchObject({
+          position: ClosureControl.CurrentPosition.OpenedForPedestrian,
+          latch: false,
+        });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
   it('should resolve the venetian blind panel target percent for every moveTo position', async () => {
     // The generic ClosureControl loop above invokes moveTo, but the parent-to-panel sync runs inside a
@@ -729,7 +752,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(74);
+    expect(dynamicPlatform.getDevices()).toHaveLength(75);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
     await dynamicPlatform.executeIntervals(26, 10);

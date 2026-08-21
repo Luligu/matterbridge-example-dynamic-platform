@@ -30,6 +30,7 @@ import {
   airPurifier,
   airQualitySensor,
   bridgedNode,
+  closure,
   colorTemperatureLight,
   contactSensor,
   windowCovering,
@@ -80,6 +81,7 @@ import {
   IrrigationSystem,
   LaundryDryer,
   LaundryWasher,
+  MatterbridgeClosureControlServer,
   MicrowaveOven,
   Oven,
   Refrigerator,
@@ -148,6 +150,7 @@ import {
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
+import { ThreeLevelAuto } from 'matterbridge/matter/types';
 import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
 
 /**
@@ -227,6 +230,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   irrigationSystem: IrrigationSystem | undefined;
   closureGarageDoor: Closure | undefined;
   closureVenetianBlind: Closure | undefined;
+  closureSlidingGate: MatterbridgeEndpoint | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
@@ -609,6 +613,76 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     };
     addClosurePanelStepSimulation(closureVenetianBlindLift);
     addClosurePanelStepSimulation(closureVenetianBlindTilt);
+
+    // *********************** Create a sliding gate Closure device ***********************
+    // Closure currently fixes its ClosureControl features without Pedestrian support, so build the
+    // equivalent endpoint directly and add Pedestrian to the required server behavior.
+    this.closureSlidingGate = new MatterbridgeEndpoint(
+      [closure, powerSource],
+      {
+        id: 'SlidingGate-GAT000073',
+        tagList: [getSemtag(ClosureTag.Gate)],
+      },
+      this.config.debug,
+    )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBasicInformationClusterServer('Sliding Gate', 'GAT000073', 0xfff1, 'Matterbridge', 0x8000, 'Matterbridge Closure')
+      .createDefaultPowerSourceWiredClusterServer();
+    this.closureSlidingGate.behaviors.require(
+      MatterbridgeClosureControlServer.with(
+        ClosureControl.Feature.Positioning,
+        ClosureControl.Feature.MotionLatching,
+        ClosureControl.Feature.Speed,
+        ClosureControl.Feature.Pedestrian,
+      ),
+      {
+        countdownTime: 0,
+        mainState: ClosureControl.MainState.Stopped,
+        currentErrorList: [],
+        overallCurrentState: { position: ClosureControl.CurrentPosition.FullyClosed, latch: true, speed: ThreeLevelAuto.Auto, secureState: true },
+        overallTargetState: { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true, speed: ThreeLevelAuto.Auto },
+        latchControlModes: { remoteLatching: true, remoteUnlatching: true },
+      },
+    );
+
+    this.closureSlidingGate = await this.addDevice(this.closureSlidingGate);
+    let closureSlidingGateMoveTimeout: NodeJS.Timeout | undefined;
+
+    this.closureSlidingGate?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
+      this.closureSlidingGate?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+      attributes.countdownTime = 1;
+      /* v8 ignore start -- Demo timer simulates closure movement completion. */
+      closureSlidingGateMoveTimeout = setTimeout(() => {
+        void (async (): Promise<void> => {
+          const targetState = this.closureSlidingGate?.getAttribute(ClosureControl, 'overallTargetState');
+          if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
+          await this.closureSlidingGate?.setAttribute(ClosureControl, 'countdownTime', 0, this.closureSlidingGate.log);
+          await this.closureSlidingGate?.setAttribute(ClosureControl, 'mainState', ClosureControl.MainState.Stopped, this.closureSlidingGate.log);
+          await this.closureSlidingGate?.setAttribute(ClosureControl, 'currentErrorList', [], this.closureSlidingGate.log);
+          await this.closureSlidingGate?.setAttribute(
+            ClosureControl,
+            'overallCurrentState',
+            {
+              position: closureTargetToCurrentPosition(targetState.position),
+              latch: targetState.latch,
+              speed: targetState.speed,
+              secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
+            },
+            this.closureSlidingGate.log,
+          );
+          await this.closureSlidingGate?.setAttribute(ClosureControl, 'overallTargetState', targetState, this.closureSlidingGate.log);
+          await this.closureSlidingGate?.triggerEvent(ClosureControl, 'movementCompleted', undefined, this.closureSlidingGate.log);
+        })();
+      }, 1000).unref();
+      /* v8 ignore stop */
+    });
+
+    this.closureSlidingGate?.addCommandHandler('ClosureControl.stop', ({ attributes }) => {
+      this.closureSlidingGate?.log.info('Command stop called');
+      attributes.countdownTime = 0;
+      clearTimeout(closureSlidingGateMoveTimeout);
+      closureSlidingGateMoveTimeout = undefined;
+    });
 
     // *********************** Create a compound climate device ***********************
     this.climate = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)
