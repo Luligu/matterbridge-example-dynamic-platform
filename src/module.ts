@@ -96,6 +96,7 @@ import {
   ClosureCoveringTag,
   ClosurePanelTag,
   ClosureTag,
+  ClosureWindowTag,
   CommonAreaNamespaceTag,
   CommonLocationTag,
   CommonNumberTag,
@@ -231,6 +232,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   closureGarageDoor: Closure | undefined;
   closureVenetianBlind: Closure | undefined;
   closureSlidingGate: MatterbridgeEndpoint | undefined;
+  closureRoofWindow: MatterbridgeEndpoint | undefined;
   select: MatterbridgeEndpoint | undefined;
   climate: MatterbridgeEndpoint | undefined;
   switch: MatterbridgeEndpoint | undefined;
@@ -682,6 +684,76 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       attributes.countdownTime = 0;
       clearTimeout(closureSlidingGateMoveTimeout);
       closureSlidingGateMoveTimeout = undefined;
+    });
+
+    // *********************** Create a roof window Closure device ***********************
+    // Closure currently fixes its ClosureControl features without Ventilation support, so build the
+    // equivalent endpoint directly and add Ventilation to the required server behavior.
+    this.closureRoofWindow = new MatterbridgeEndpoint(
+      [closure, powerSource],
+      {
+        id: 'RoofWindow-ROO000074',
+        tagList: [getSemtag(ClosureTag.Window), getSemtag(ClosureWindowTag.Roof)],
+      },
+      this.config.debug,
+    )
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBasicInformationClusterServer('Roof Window', 'ROO000074', 0xfff1, 'Matterbridge', 0x8000, 'Matterbridge Closure')
+      .createDefaultPowerSourceWiredClusterServer();
+    this.closureRoofWindow.behaviors.require(
+      MatterbridgeClosureControlServer.with(
+        ClosureControl.Feature.Positioning,
+        ClosureControl.Feature.MotionLatching,
+        ClosureControl.Feature.Speed,
+        ClosureControl.Feature.Ventilation,
+      ),
+      {
+        countdownTime: 0,
+        mainState: ClosureControl.MainState.Stopped,
+        currentErrorList: [],
+        overallCurrentState: { position: ClosureControl.CurrentPosition.FullyClosed, latch: true, speed: ThreeLevelAuto.Auto, secureState: true },
+        overallTargetState: { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true, speed: ThreeLevelAuto.Auto },
+        latchControlModes: { remoteLatching: true, remoteUnlatching: true },
+      },
+    );
+
+    this.closureRoofWindow = await this.addDevice(this.closureRoofWindow);
+    let closureRoofWindowMoveTimeout: NodeJS.Timeout | undefined;
+
+    this.closureRoofWindow?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
+      this.closureRoofWindow?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+      attributes.countdownTime = 1;
+      /* v8 ignore start -- Demo timer simulates closure movement completion. */
+      closureRoofWindowMoveTimeout = setTimeout(() => {
+        void (async (): Promise<void> => {
+          const targetState = this.closureRoofWindow?.getAttribute(ClosureControl, 'overallTargetState');
+          if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
+          await this.closureRoofWindow?.setAttribute(ClosureControl, 'countdownTime', 0, this.closureRoofWindow.log);
+          await this.closureRoofWindow?.setAttribute(ClosureControl, 'mainState', ClosureControl.MainState.Stopped, this.closureRoofWindow.log);
+          await this.closureRoofWindow?.setAttribute(ClosureControl, 'currentErrorList', [], this.closureRoofWindow.log);
+          await this.closureRoofWindow?.setAttribute(
+            ClosureControl,
+            'overallCurrentState',
+            {
+              position: closureTargetToCurrentPosition(targetState.position),
+              latch: targetState.latch,
+              speed: targetState.speed,
+              secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
+            },
+            this.closureRoofWindow.log,
+          );
+          await this.closureRoofWindow?.setAttribute(ClosureControl, 'overallTargetState', targetState, this.closureRoofWindow.log);
+          await this.closureRoofWindow?.triggerEvent(ClosureControl, 'movementCompleted', undefined, this.closureRoofWindow.log);
+        })();
+      }, 1000).unref();
+      /* v8 ignore stop */
+    });
+
+    this.closureRoofWindow?.addCommandHandler('ClosureControl.stop', ({ attributes }) => {
+      this.closureRoofWindow?.log.info('Command stop called');
+      attributes.countdownTime = 0;
+      clearTimeout(closureRoofWindowMoveTimeout);
+      closureRoofWindowMoveTimeout = undefined;
     });
 
     // *********************** Create a compound climate device ***********************

@@ -142,7 +142,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(75);
+    expect(dynamicPlatform.getDevices()).toHaveLength(76);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -150,7 +150,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(75);
+    expect(dynamicPlatform.getDevices()).toHaveLength(76);
     const percentSettingSubscribers = new Set([dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner]);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
@@ -462,6 +462,29 @@ describe('TestPlatform', () => {
     }
   });
 
+  it('should move the roof window to its ventilation position', async () => {
+    const roofWindow = dynamicPlatform.getDeviceByName('Roof Window');
+    expect(roofWindow).toBeDefined();
+    if (!roofWindow) return;
+
+    vi.useFakeTimers();
+    try {
+      await roofWindow.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', {
+        position: ClosureControl.TargetPosition.MoveToVentilationPosition,
+        latch: false,
+      });
+      await vi.advanceTimersByTimeAsync(1100);
+      await expect
+        .poll(() => roofWindow.getAttribute(ClosureControl, 'overallCurrentState'))
+        .toMatchObject({
+          position: ClosureControl.CurrentPosition.OpenedForVentilation,
+          latch: false,
+        });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('should resolve the venetian blind panel target percent for every moveTo position', async () => {
     // The generic ClosureControl loop above invokes moveTo, but the parent-to-panel sync runs inside a
     // real (un-awaited) setTimeout, so it never actually fires during that loop. Drive it explicitly here,
@@ -752,7 +775,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(75);
+    expect(dynamicPlatform.getDevices()).toHaveLength(76);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
     await dynamicPlatform.executeIntervals(26, 10);

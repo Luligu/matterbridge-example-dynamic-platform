@@ -39,6 +39,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [platform]: Add `closureSlidingGate` device with pedestrian opening support. Thanks Ludovic BOUÉ.
+- [platform]: Add `closureRoofWindow` device with ventilation opening support. Thanks Ludovic BOUÉ.
 - [devcontainer]: Bump `Dev Container` to v.2.0.0 with a Node Bun stack.
 
 ### Fixed
