@@ -31,6 +31,15 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [3.0.3] - Dev branch
 
+### Breaking changes
+
+- [matterbridge]: Require matterbridge v.3.10.6 with matter v.1.6.0.
+
+### Fixed
+
+- [speaker]: Update to the `Speaker` constructor options object required by matterbridge v.3.10.6.
+- [fanControl]: `percentSetting` is no longer nullable in matterbridge v.3.10.6; set it to 0 instead of null when turning off the air conditioner.
+
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
 ## [3.0.2] - 2026-08-14
