@@ -42,6 +42,13 @@ If you like this project and find it useful, please consider giving it a star on
 - [platform]: Add `closureRoofWindow` device with ventilation opening support. Thanks Ludovic BOUÉ.
 - [devcontainer]: Upgrade the `Dev Container` to v.2.0.0, using the Node.js and Bun stack.
 
+### Changed
+
+- [package]: Update dependencies.
+- [package]: Bump `@types/node` to v.26.4.0.
+- [package]: Bump `oxfmt` to v.0.65.0.
+- [package]: Bump `oxlint` to v.1.80.0.
+
 ### Fixed
 
 - [speaker]: Update to the `Speaker` constructor options object required by matterbridge v.3.10.6.

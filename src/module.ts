@@ -408,17 +408,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.soil = await this.addDevice(this.soil);
 
     // *********************** Create a IrrigationSystem device ***********************
-    this.irrigation = new IrrigationSystem('Irrigation System', 'IRR000068', { batteryPowered: true, flowMeasuredValue: 15 }).addZone(CommonNumberTag.One);
+    this.irrigation = new IrrigationSystem('Irrigation System', 'IRR000068', { batteryPowered: true, flowMeasuredValue: 15 }).addZone(
+      CommonNumberTag.One,
+      undefined,
+      undefined,
+      2000,
+      true,
+    );
 
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.irrigation = (await this.addDevice(this.irrigation)) as IrrigationSystem | undefined;
 
     // *********************** Create a IrrigationSystem device with 4 zones ***********************
     this.irrigationSystem = new IrrigationSystem('Irrigation System 4 zones', 'IRR000069', { flowMeasuredValue: 60 })
-      .addZone(CommonNumberTag.One)
-      .addZone(CommonNumberTag.Two)
-      .addZone(CommonNumberTag.Three)
-      .addZone(CommonNumberTag.Four);
+      .addZone(CommonNumberTag.One, undefined, undefined, 2000, true)
+      .addZone(CommonNumberTag.Two, undefined, undefined, 2000, true)
+      .addZone(CommonNumberTag.Three, undefined, undefined, 2000, true)
+      .addZone(CommonNumberTag.Four, undefined, undefined, 2000, true);
 
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.irrigationSystem = (await this.addDevice(this.irrigationSystem)) as IrrigationSystem | undefined;
@@ -2208,7 +2214,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.valve = new MatterbridgeEndpoint([waterValve, bridgedNode, powerSource], { id: 'Water valve' }, this.config.debug)
       .createDefaultBridgedDeviceBasicInformationClusterServer('Water valve', 'WAV00029', 0xfff1, 'Matterbridge', 'Matterbridge Water valve')
       .createDefaultIdentifyClusterServer()
-      .createDefaultValveConfigurationAndControlClusterServer()
+      .createDefaultValveConfigurationAndControlClusterServer(undefined, undefined, 2000, true)
       .createDefaultPowerSourceWiredClusterServer()
       .addRequiredClusterServers();
 
@@ -2572,6 +2578,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     If the RVC is in a bridge with other devices, the whole Home app crashes... so don't try it. If your controller is Apple Home use server mode for the RVC.
     */
+    // oxlint-disable-next-line typescript/no-deprecated
     this.roboticVacuum = new RoboticVacuumCleaner(
       this.config.enableServerRvc ? 'Robot Vacuum Server' : 'Robot Vacuum',
       'RVC00043',
@@ -2730,6 +2737,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create an Oven **************************
     this.oven = new Oven('Oven', 'OVN00054');
+    // oxlint-disable-next-line typescript/no-deprecated
     this.oven.addCabinet(
       'Upper Cabinet',
       [{ mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label }],
@@ -2755,6 +2763,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       2, // currentPhase
       ['pre-heating', 'pre-heated', 'cooling down'], // phaseList
     );
+    // oxlint-disable-next-line typescript/no-deprecated
     this.oven.addCabinet(
       'Lower Cabinet',
       [{ mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label }],
@@ -2778,18 +2787,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create an Cooktop **************************
     this.cooktop = new Cooktop('Cooktop', 'CKT00055');
+    // oxlint-disable-next-line typescript/no-deprecated
     this.cooktop.addSurface('Surface Top Left', [
       { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label },
       { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: CommonPositionTag.Left.label },
     ]);
+    // oxlint-disable-next-line typescript/no-deprecated
     this.cooktop.addSurface('Surface Top Right', [
       { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label },
       { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: CommonPositionTag.Right.label },
     ]);
+    // oxlint-disable-next-line typescript/no-deprecated
     this.cooktop.addSurface('Surface Bottom Left', [
       { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label },
       { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: CommonPositionTag.Left.label },
     ]);
+    // oxlint-disable-next-line typescript/no-deprecated
     this.cooktop.addSurface('Surface Bottom Right', [
       { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label },
       { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: CommonPositionTag.Right.label },
@@ -2799,6 +2812,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create an Refrigerator **************************
     const refrigerator = new Refrigerator('Refrigerator', 'REF00056');
+    // oxlint-disable-next-line typescript/no-deprecated
     refrigerator.addCabinet(
       'Refrigerator Top', // name
       [
@@ -2811,6 +2825,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       1 * 100, // stepTemperature
       1200, // currentTemperature
     );
+    // oxlint-disable-next-line typescript/no-deprecated
     refrigerator.addCabinet(
       'Freezer Bottom', // name
       [
