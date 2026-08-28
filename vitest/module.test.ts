@@ -143,7 +143,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(76);
+    expect(dynamicPlatform.getDevices()).toHaveLength(77);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -151,7 +151,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(76);
+    expect(dynamicPlatform.getDevices()).toHaveLength(77);
     const percentSettingSubscribers = new Set([dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner]);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
@@ -312,6 +312,39 @@ describe('TestPlatform', () => {
         await device.setAttribute(DoorLock, 'operatingMode', DoorLock.OperatingMode.Normal);
         await device.setAttribute(DoorLock, 'wrongCodeEntryLimit', 3);
         await device.setAttribute(DoorLock, 'userCodeTemporaryDisableTime', 30);
+      }
+      if (device.id === 'ScheduleLock') {
+        await device.invokeBehaviorCommand(DoorLock, 'setUser', {
+          operationType: DoorLock.DataOperationType.Add,
+          userIndex: 1,
+          userName: 'Scheduled User',
+          userUniqueId: 100,
+          userStatus: DoorLock.UserStatus.OccupiedEnabled,
+          userType: DoorLock.UserType.ScheduleRestrictedUser,
+          credentialRule: DoorLock.CredentialRule.Single,
+        });
+        await device.invokeBehaviorCommand(DoorLock, 'setWeekDaySchedule', {
+          weekDayIndex: 1,
+          userIndex: 1,
+          daysMask: new DoorLock.DaysMask({ monday: true }),
+          startHour: 8,
+          startMinute: 30,
+          endHour: 17,
+          endMinute: 30,
+        });
+        await device.invokeBehaviorCommand(DoorLock, 'getWeekDaySchedule', { weekDayIndex: 1, userIndex: 1 });
+        await device.invokeBehaviorCommand(DoorLock, 'clearWeekDaySchedule', { weekDayIndex: 1, userIndex: 1 });
+        await device.invokeBehaviorCommand(DoorLock, 'setYearDaySchedule', { yearDayIndex: 1, userIndex: 1, localStartTime: 1_000, localEndTime: 2_000 });
+        await device.invokeBehaviorCommand(DoorLock, 'getYearDaySchedule', { yearDayIndex: 1, userIndex: 1 });
+        await device.invokeBehaviorCommand(DoorLock, 'clearYearDaySchedule', { yearDayIndex: 1, userIndex: 1 });
+        await device.invokeBehaviorCommand(DoorLock, 'setHolidaySchedule', {
+          holidayIndex: 1,
+          localStartTime: 3_000,
+          localEndTime: 4_000,
+          operatingMode: DoorLock.OperatingMode.Vacation,
+        });
+        await device.invokeBehaviorCommand(DoorLock, 'getHolidaySchedule', { holidayIndex: 1 });
+        await device.invokeBehaviorCommand(DoorLock, 'clearHolidaySchedule', { holidayIndex: 1 });
       }
 
       if (device.hasClusterServer(FanControl)) {
@@ -801,7 +834,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(76);
+    expect(dynamicPlatform.getDevices()).toHaveLength(77);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
     await dynamicPlatform.executeIntervals(26, 10);

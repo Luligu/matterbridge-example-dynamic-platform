@@ -207,6 +207,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   coverLiftTilt: MatterbridgeEndpoint | undefined;
   lock: MatterbridgeEndpoint | undefined;
   userPinLock: MatterbridgeEndpoint | undefined;
+  scheduleLock: MatterbridgeEndpoint | undefined;
   thermoAuto: MatterbridgeEndpoint | undefined;
   thermoAutoOccupancy: MatterbridgeEndpoint | undefined;
   thermoAutoPresets: MatterbridgeEndpoint | undefined;
@@ -1276,6 +1277,44 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.userPinLock?.log.info(`Subscribe userCodeTemporaryDisableTime called with: ${value}`);
       },
       this.userPinLock.log,
+    );
+
+    // *********************** Create a lock device with User, Pin and access schedule features ***********************
+    this.scheduleLock = new MatterbridgeEndpoint([doorLock, bridgedNode, powerSource], { id: 'ScheduleLock' }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Lock with Schedules', 'LSC00080', 0xfff1, 'Matterbridge', 'Matterbridge Lock')
+      .createUserPinDoorLockClusterServer(DoorLock.LockState.Locked, DoorLock.LockType.DeadBolt, 0, 4, 10, 2, 3, 4)
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(95)
+      .addRequiredClusterServers();
+
+    this.scheduleLock = await this.addDevice(this.scheduleLock);
+
+    // The cluster attributes are set by MatterbridgeDoorLockServer
+    this.scheduleLock?.addCommandHandler('Identify.identify', ({ request: { identifyTime } }) => {
+      this.scheduleLock?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.scheduleLock?.addCommandHandler('DoorLock.lockDoor', () => {
+      this.scheduleLock?.log.info('Command lockDoor called');
+    });
+    this.scheduleLock?.addCommandHandler('DoorLock.unlockDoor', () => {
+      this.scheduleLock?.log.info('Command unlockDoor called');
+    });
+    this.scheduleLock?.addCommandHandler('DoorLock.setWeekDaySchedule', ({ request: { weekDayIndex, userIndex } }) => {
+      this.scheduleLock?.log.info(`Command setWeekDaySchedule called for weekDayIndex:${weekDayIndex} userIndex:${userIndex}`);
+    });
+    this.scheduleLock?.addCommandHandler('DoorLock.setYearDaySchedule', ({ request: { yearDayIndex, userIndex } }) => {
+      this.scheduleLock?.log.info(`Command setYearDaySchedule called for yearDayIndex:${yearDayIndex} userIndex:${userIndex}`);
+    });
+    this.scheduleLock?.addCommandHandler('DoorLock.setHolidaySchedule', ({ request: { holidayIndex } }) => {
+      this.scheduleLock?.log.info(`Command setHolidaySchedule called for holidayIndex:${holidayIndex}`);
+    });
+    this.scheduleLock?.subscribeAttribute(
+      DoorLock,
+      'operatingMode',
+      (value) => {
+        this.scheduleLock?.log.info(`Subscribe operatingMode called with: ${getEnumDescription(DoorLock.OperatingMode, value)}`);
+      },
+      this.scheduleLock.log,
     );
 
     // *********************** Create a thermostat with AutoMode device ***********************
@@ -3282,6 +3321,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         60 * 1000 + 500,
       );
     }
+
+    // Set schedule lock to Locked
+    await this.scheduleLock?.setAttribute(DoorLock.id, 'lockState', DoorLock.LockState.Locked, this.scheduleLock.log);
+    this.scheduleLock?.log.info('Set schedule lock initial lockState to Locked');
 
     // Set local to 16°C
     await this.thermoAuto?.setAttribute(Thermostat.id, 'localTemperature', 16 * 100, this.thermoAuto.log);
