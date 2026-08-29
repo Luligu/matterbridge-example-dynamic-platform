@@ -3784,18 +3784,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.setSelectDevice(device.serialNumber, device.deviceName, undefined, 'hub');
     if (this.validateDevice(device.deviceName)) {
       device.softwareVersion = parseVersionString(this.version);
-      device.softwareVersionString = this.version === '' ? 'Unknown' : this.version;
+      device.softwareVersionString = this.version === '' ? /* v8 ignore next defensive code */ 'Unknown' : this.version;
       device.hardwareVersion = parseVersionString(this.matterbridge.matterbridgeVersion);
       device.hardwareVersionString = this.matterbridge.matterbridgeVersion;
-      device.softwareVersion = isValidNumber(device.softwareVersion, 0, UINT32_MAX) ? device.softwareVersion : undefined;
-      device.softwareVersionString = isValidString(device.softwareVersionString, 1) ? device.softwareVersionString.slice(0, 64) : undefined;
-      device.hardwareVersion = isValidNumber(device.hardwareVersion, 0, UINT16_MAX) ? device.hardwareVersion : undefined;
-      device.hardwareVersionString = isValidString(device.hardwareVersionString, 1) ? device.hardwareVersionString.slice(0, 64) : undefined;
+      device.softwareVersion = isValidNumber(device.softwareVersion, 0, UINT32_MAX) ? device.softwareVersion : /* v8 ignore next defensive code */ undefined;
+      device.softwareVersionString = isValidString(device.softwareVersionString, 1) ? device.softwareVersionString.slice(0, 64) : /* v8 ignore next defensive code */ undefined;
+      device.hardwareVersion = isValidNumber(device.hardwareVersion, 0, UINT16_MAX) ? device.hardwareVersion : /* v8 ignore next defensive code */ undefined;
+      device.hardwareVersionString = isValidString(device.hardwareVersionString, 1) ? device.hardwareVersionString.slice(0, 64) : /* v8 ignore next defensive code */ undefined;
       const options = device.getClusterServerOptions(BridgedDeviceBasicInformation.id);
       if (options) {
+        /* v8 ignore next defensive code */
         options.softwareVersion = device.softwareVersion ?? 1;
+        /* v8 ignore next defensive code */
         options.softwareVersionString = device.softwareVersionString ?? '1.0.0';
+        /* v8 ignore next defensive code */
         options.hardwareVersion = device.hardwareVersion ?? 1;
+        /* v8 ignore next defensive code */
         options.hardwareVersionString = device.hardwareVersionString ?? '1.0.0';
       }
       await this.registerDevice(device);
