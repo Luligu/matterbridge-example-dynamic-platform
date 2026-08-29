@@ -197,6 +197,19 @@ function matterToLux(value: number): number {
   return Math.round(lux < 0 ? 0 : lux);
 }
 
+/**
+ * Type guard for the Descriptor cluster's `deviceTypeList` option value.
+ *
+ * TODO: once the required matterbridge version is > 3.10.8, `getClusterServerOptions(Descriptor)` returns
+ * a typed `deviceTypeList`, so this guard becomes redundant and the call site can read the field directly.
+ *
+ * @param {unknown} value - The value to check.
+ * @returns {boolean} `true` if the value is a device type list array.
+ */
+function isDeviceTypeList(value: unknown): value is { deviceType: number; revision: number }[] {
+  return Array.isArray(value);
+}
+
 export type DynamicPlatformConfig = PlatformConfig & {
   whiteList: string[];
   blackList: string[];
@@ -3796,9 +3809,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       if (device.mode === undefined && !device.deviceTypes.has(bridgedNode.code)) {
         device.deviceTypes.set(bridgedNode.code, bridgedNode);
         const options = device.getClusterServerOptions(Descriptor);
-        if (options?.deviceTypeList) {
-          // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-          const deviceTypeList = options.deviceTypeList as { deviceType: number; revision: number }[];
+        const deviceTypeList = options?.deviceTypeList;
+        if (isDeviceTypeList(deviceTypeList)) {
           if (!deviceTypeList.find((dt) => dt.deviceType === bridgedNode.code)) {
             deviceTypeList.push({ deviceType: bridgedNode.code, revision: bridgedNode.revision });
           }
