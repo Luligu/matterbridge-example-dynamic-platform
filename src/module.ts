@@ -2578,29 +2578,26 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     If the RVC is in a bridge with other devices, the whole Home app crashes... so don't try it. If your controller is Apple Home use server mode for the RVC.
     */
-    // oxlint-disable-next-line typescript/no-deprecated
-    this.roboticVacuum = new RoboticVacuumCleaner(
-      this.config.enableServerRvc ? 'Robot Vacuum Server' : 'Robot Vacuum',
-      'RVC00043',
-      this.config.enableServerRvc ? 'server' : undefined,
-      1, // currentRunMode
-      [
+    this.roboticVacuum = new RoboticVacuumCleaner(this.config.enableServerRvc ? 'Robot Vacuum Server' : 'Robot Vacuum', 'RVC00043', {
+      mode: this.config.enableServerRvc ? 'server' : undefined,
+      currentRunMode: 1,
+      supportedRunModes: [
         { label: 'Idle', mode: 1, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
         { label: 'Cleaning', mode: 2, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }] },
         { label: 'Mapping', mode: 3, modeTags: [{ value: RvcRunMode.ModeTag.Mapping }] },
         { label: 'SpotCleaning', mode: 4, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }, { value: RvcRunMode.ModeTag.Max }] },
-      ], // supportedRunModes
-      1, // currentCleanMode
-      [
+      ],
+      currentCleanMode: 1,
+      supportedCleanModes: [
         { label: 'Vacuum', mode: 1, modeTags: [{ value: RvcCleanMode.ModeTag.Vacuum }] },
         { label: 'Mop', mode: 2, modeTags: [{ value: RvcCleanMode.ModeTag.Mop }] },
         { label: 'Clean', mode: 3, modeTags: [{ value: RvcCleanMode.ModeTag.DeepClean }] },
-      ], // supportedCleanModes
-      null, // currentPhase
-      null, // phaseList
-      undefined, // operationalState
-      undefined, // operationalStateList
-      [
+      ],
+      currentPhase: null,
+      phaseList: null,
+      operationalState: undefined,
+      operationalStateList: undefined,
+      supportedAreas: [
         {
           areaId: 1,
           mapId: 1,
@@ -2621,10 +2618,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           mapId: 2,
           areaInfo: { locationInfo: { locationName: 'Bathroom', floorNumber: 1, areaType: CommonAreaNamespaceTag.Bathroom.tag }, landmarkInfo: null },
         },
-      ], // supportedAreas
-      [], // selectedAreas
-      1, // currentArea
-      [
+      ],
+      selectedAreas: [],
+      currentArea: 1,
+      supportedMaps: [
         {
           mapId: 1,
           name: 'Ground floor',
@@ -2633,8 +2630,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           mapId: 2,
           name: 'First floor',
         },
-      ], // supportedMaps
-    );
+      ],
+    });
     if (this.config.enableServerRvc) {
       this.log.notice('RVC is in server mode so it has its own QR code (it shows in the "Devices" panel of the Home page)');
     }
@@ -2741,12 +2738,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create an Oven **************************
     this.oven = new Oven('Oven', 'OVN00054');
-    // oxlint-disable-next-line typescript/no-deprecated
-    this.oven.addCabinet(
-      'Upper Cabinet',
-      [{ mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label }],
-      2, // currentMode
-      [
+    this.oven.addCabinet('Upper Cabinet', {
+      tagList: [{ mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label }],
+      currentMode: 2,
+      supportedModes: [
         { label: 'Bake', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Bake }] },
         { label: 'Convection', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
         { label: 'Grill', mode: 3, modeTags: [{ value: OvenMode.ModeTag.Grill }] },
@@ -2757,91 +2752,89 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         { label: 'Warming', mode: 8, modeTags: [{ value: OvenMode.ModeTag.Warming }] },
         { label: 'Proofing', mode: 9, modeTags: [{ value: OvenMode.ModeTag.Proofing }] },
         { label: 'Steam', mode: 10, modeTags: [{ value: OvenMode.ModeTag.Steam }] },
-      ], // supportedModes
-      180 * 100, // targetTemperature
-      100 * 100, // minTemperature
-      300 * 100, // maxTemperature
-      10 * 100, // stepTemperature
-      20 * 100, // currentTemperature
-      OperationalState.OperationalStateEnum.Stopped, // operationalState
-      2, // currentPhase
-      ['pre-heating', 'pre-heated', 'cooling down'], // phaseList
-    );
-    // oxlint-disable-next-line typescript/no-deprecated
-    this.oven.addCabinet(
-      'Lower Cabinet',
-      [{ mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label }],
-      3, // currentMode
-      [
+      ],
+      targetTemperature: 180 * 100,
+      minTemperature: 100 * 100,
+      maxTemperature: 300 * 100,
+      step: 10 * 100,
+      currentTemperature: 20 * 100,
+      operationalState: OperationalState.OperationalStateEnum.Stopped,
+      currentPhase: 2,
+      phaseList: ['pre-heating', 'pre-heated', 'cooling down'],
+    });
+    this.oven.addCabinet('Lower Cabinet', {
+      tagList: [{ mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label }],
+      currentMode: 3,
+      supportedModes: [
         { label: 'Convection', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
         { label: 'Clean', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Clean }] },
         { label: 'Steam', mode: 3, modeTags: [{ value: OvenMode.ModeTag.Steam }] },
-      ], // supportedModes
-      200 * 100, // targetTemperature
-      100 * 100, // minTemperature
-      300 * 100, // maxTemperature
-      10 * 100, // stepTemperature
-      200 * 100, // currentTemperature
-      OperationalState.OperationalStateEnum.Running, // operationalState
-      1, // currentPhase
-      ['pre-heating', 'pre-heated', 'cooling down'], // phaseList
-    );
+      ],
+      targetTemperature: 200 * 100,
+      minTemperature: 100 * 100,
+      maxTemperature: 300 * 100,
+      step: 10 * 100,
+      currentTemperature: 200 * 100,
+      operationalState: OperationalState.OperationalStateEnum.Running,
+      currentPhase: 1,
+      phaseList: ['pre-heating', 'pre-heated', 'cooling down'],
+    });
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.oven = (await this.addDevice(this.oven)) as Oven | undefined;
 
     // *********************** Create an Cooktop **************************
     this.cooktop = new Cooktop('Cooktop', 'CKT00055');
-    // oxlint-disable-next-line typescript/no-deprecated
-    this.cooktop.addSurface('Surface Top Left', [
-      { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label },
-      { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: CommonPositionTag.Left.label },
-    ]);
-    // oxlint-disable-next-line typescript/no-deprecated
-    this.cooktop.addSurface('Surface Top Right', [
-      { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label },
-      { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: CommonPositionTag.Right.label },
-    ]);
-    // oxlint-disable-next-line typescript/no-deprecated
-    this.cooktop.addSurface('Surface Bottom Left', [
-      { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label },
-      { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: CommonPositionTag.Left.label },
-    ]);
-    // oxlint-disable-next-line typescript/no-deprecated
-    this.cooktop.addSurface('Surface Bottom Right', [
-      { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label },
-      { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: CommonPositionTag.Right.label },
-    ]);
+    this.cooktop.addSurface('Surface Top Left', {
+      tagList: [
+        { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label },
+        { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: CommonPositionTag.Left.label },
+      ],
+    });
+    this.cooktop.addSurface('Surface Top Right', {
+      tagList: [
+        { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label },
+        { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: CommonPositionTag.Right.label },
+      ],
+    });
+    this.cooktop.addSurface('Surface Bottom Left', {
+      tagList: [
+        { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label },
+        { mfgCode: null, namespaceId: CommonPositionTag.Left.namespaceId, tag: CommonPositionTag.Left.tag, label: CommonPositionTag.Left.label },
+      ],
+    });
+    this.cooktop.addSurface('Surface Bottom Right', {
+      tagList: [
+        { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label },
+        { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: CommonPositionTag.Right.label },
+      ],
+    });
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.cooktop = (await this.addDevice(this.cooktop)) as Cooktop | undefined;
 
     // *********************** Create an Refrigerator **************************
     const refrigerator = new Refrigerator('Refrigerator', 'REF00056');
-    // oxlint-disable-next-line typescript/no-deprecated
-    refrigerator.addCabinet(
-      'Refrigerator Top', // name
-      [
+    refrigerator.addCabinet('Refrigerator Top', {
+      tagList: [
         { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: 'Refrigerator Top' },
         { mfgCode: null, namespaceId: RefrigeratorTag.Refrigerator.namespaceId, tag: RefrigeratorTag.Refrigerator.tag, label: RefrigeratorTag.Refrigerator.label },
-      ], // tagList
-      12 * 100, // targetTemperature
-      5 * 100, // minTemperature
-      20 * 100, // maxTemperature
-      1 * 100, // stepTemperature
-      1200, // currentTemperature
-    );
-    // oxlint-disable-next-line typescript/no-deprecated
-    refrigerator.addCabinet(
-      'Freezer Bottom', // name
-      [
+      ],
+      targetTemperature: 12 * 100,
+      minTemperature: 5 * 100,
+      maxTemperature: 20 * 100,
+      step: 1 * 100,
+      currentTemperature: 1200,
+    });
+    refrigerator.addCabinet('Freezer Bottom', {
+      tagList: [
         { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: 'Freezer Bottom' },
         { mfgCode: null, namespaceId: RefrigeratorTag.Freezer.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label },
-      ], // tagList
-      -18 * 100, // targetTemperature
-      -30 * 100, // minTemperature
-      -10 * 100, // maxTemperature
-      1 * 100, // stepTemperature
-      -1800, // currentTemperature
-    );
+      ],
+      targetTemperature: -18 * 100,
+      minTemperature: -30 * 100,
+      maxTemperature: -10 * 100,
+      step: 1 * 100,
+      currentTemperature: -1800,
+    });
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     this.refrigerator = (await this.addDevice(refrigerator)) as Refrigerator | undefined;
 

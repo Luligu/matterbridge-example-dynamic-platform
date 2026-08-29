@@ -54,6 +54,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [speaker]: Update to the `Speaker` constructor options object required by matterbridge v.3.10.6.
 - [fanControl]: `percentSetting` is no longer nullable in matterbridge v.3.10.6; set it to 0 instead of null when turning off the air conditioner.
 - [energy]: Update `WaterHeater`, `Evse`, `SolarPower`, `BatteryStorage`, and `HeatPump` to the options object constructor, present since matterbridge v.3.10.7. The deprecated positional-arguments constructors are still supported but no longer used in this plugin.
+- [devices]: Update `RoboticVacuumCleaner`, `Oven.addCabinet`, `Cooktop.addSurface`, and `Refrigerator.addCabinet` to the options object form, removing the last `typescript/no-deprecated` oxlint suppressions in the platform.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
