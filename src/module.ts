@@ -316,9 +316,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.6')) {
+    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.7')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.10.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.10.7". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -2641,43 +2641,51 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.roboticVacuum = await this.addDevice(this.roboticVacuum);
 
     // *********************** Create a water heater ***************************
-    this.waterHeater = new WaterHeater('Water Heater', 'WHT00044', 50, 60, 20, 80, undefined, 85, 220_000, 1_000, 220_000, 12_000_000, 500_000, 3_000_000);
+    this.waterHeater = new WaterHeater('Water Heater', 'WHT00044', {
+      waterTemperature: 50,
+      targetWaterTemperature: 60,
+      minHeatSetpointLimit: 20,
+      maxHeatSetpointLimit: 80,
+      tankPercentage: 85,
+      voltage: 220_000,
+      current: 1_000,
+      power: 220_000,
+      energy: 12_000_000,
+      absMinPower: 500_000,
+      absMaxPower: 3_000_000,
+    });
     this.waterHeater = await this.addDevice(this.waterHeater);
 
     // *********************** Create an Evse ***************************
-    this.evse = new Evse(
-      'Evse',
-      'EVS00045',
-      1,
-      [
+    this.evse = new Evse('Evse', 'EVS00045', {
+      currentMode: 1,
+      supportedModes: [
         { label: 'On demand', mode: 1, modeTags: [{ value: EnergyEvseMode.ModeTag.Manual }] },
         { label: 'Scheduled', mode: 2, modeTags: [{ value: EnergyEvseMode.ModeTag.TimeOfUse }] },
         { label: 'Solar Charging', mode: 3, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }] },
         { label: 'Solar Charging Scheduled', mode: 4, modeTags: [{ value: EnergyEvseMode.ModeTag.SolarCharging }, { value: EnergyEvseMode.ModeTag.TimeOfUse }] },
       ],
-      EnergyEvse.State.PluggedInCharging,
-      EnergyEvse.SupplyState.ChargingEnabled,
-      EnergyEvse.FaultState.NoError,
-      220_000, // 220 volt
-      10_000, // 10 ampere
-      2_200_000, // 2200 watt
-      1_000_000, // 1 kWh
-      500_000, // 500 Wh
-      32_000_000, // 32 kWh
-    );
+      state: EnergyEvse.State.PluggedInCharging,
+      supplyState: EnergyEvse.SupplyState.ChargingEnabled,
+      faultState: EnergyEvse.FaultState.NoError,
+      voltage: 220_000, // 220 volt
+      current: 10_000, // 10 ampere
+      power: 2_200_000, // 2200 watt
+      energy: 1_000_000, // 1 kWh
+      absMinPower: 500_000, // 500 Wh
+      absMaxPower: 32_000_000, // 32 kWh
+    });
     this.evse = await this.addDevice(this.evse);
 
     // *********************** Create a SolarPower **************************
-    this.solarPower = new SolarPower(
-      'Solar Power',
-      'SOL00046',
-      220_000, // 220 volt
-      10_000, // 10 ampere
-      2200_000, // 2200 watt
-      2_200_000, // 2.2 kWh
-      0, // 0 kWh
-      500_000, // 500 Wh
-    );
+    this.solarPower = new SolarPower('Solar Power', 'SOL00046', {
+      voltage: 220_000, // 220 volt
+      current: 10_000, // 10 ampere
+      power: 2200_000, // 2200 watt
+      energyExported: 2_200_000, // 2.2 kWh
+      absMinPower: 0, // 0 kWh
+      absMaxPower: 500_000, // 500 Wh
+    });
     this.solarPower.addPanel('Panel 1', CommonNumberTag.One);
     this.solarPower.addPanel('Panel 2', CommonNumberTag.Two);
     this.solarPower.addPanel('Panel 3', CommonNumberTag.Three);
@@ -2687,32 +2695,28 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.solarPower = (await this.addDevice(this.solarPower)) as SolarPower | undefined;
 
     // *********************** Create a BatteryStorage **************************
-    this.batteryStorage = new BatteryStorage(
-      'Battery Storage',
-      'BST00047',
-      75,
-      PowerSource.BatChargeLevel.Ok,
-      220_000, // 220 volt
-      10_000, // 10 ampere
-      2_200_000, // 2200 watt
-      1_000_000, // 1 kWh
-      2_000_000, // 2 kWh
-      -2_000_000, // -2 kWh
-      3_000_000, // 3 kWh
-    );
+    this.batteryStorage = new BatteryStorage('Battery Storage', 'BST00047', {
+      batPercentRemaining: 75,
+      batChargeLevel: PowerSource.BatChargeLevel.Ok,
+      voltage: 220_000, // 220 volt
+      current: 10_000, // 10 ampere
+      power: 2_200_000, // 2200 watt
+      energyImported: 1_000_000, // 1 kWh
+      energyExported: 2_000_000, // 2 kWh
+      absMinPower: -2_000_000, // -2 kWh
+      absMaxPower: 3_000_000, // 3 kWh
+    });
     this.batteryStorage = await this.addDevice(this.batteryStorage);
 
     // *********************** Create an HeatPump **************************
-    this.heatPump = new HeatPump(
-      'Heat Pump',
-      'HPU00048',
-      220_000, // 220 volt
-      10_000, // 10 ampere
-      2_200_000, // 2200 watt
-      1_000_000, // 1 kWh
-      500_000, // 500 watt
-      3_000_000, // 3 kWh
-    );
+    this.heatPump = new HeatPump('Heat Pump', 'HPU00048', {
+      voltage: 220_000, // 220 volt
+      current: 10_000, // 10 ampere
+      power: 2_200_000, // 2200 watt
+      energyImported: 1_000_000, // 1 kWh
+      absMinPower: 500_000, // 500 watt
+      absMaxPower: 3_000_000, // 3 kWh
+    });
     this.heatPump = await this.addDevice(this.heatPump);
 
     // *********************** Create a LaundryWasher **************************

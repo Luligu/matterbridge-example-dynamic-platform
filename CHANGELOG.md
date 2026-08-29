@@ -33,7 +33,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Breaking changes
 
-- [matterbridge]: Require matterbridge v.3.10.6 with matter v.1.6.0.
+- [matterbridge]: Require matterbridge v.3.10.7 with matter v.1.6.0.
 - [fanControl]: Matterbridge v.3.10.6 now manages the compliant FanControl `fanMode` and `percentSetting` synchronization; plugin examples now only update `percentCurrent` as physical device feedback.
 
 ### Added
@@ -53,6 +53,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [speaker]: Update to the `Speaker` constructor options object required by matterbridge v.3.10.6.
 - [fanControl]: `percentSetting` is no longer nullable in matterbridge v.3.10.6; set it to 0 instead of null when turning off the air conditioner.
+- [energy]: Update `WaterHeater`, `Evse`, `SolarPower`, `BatteryStorage`, and `HeatPump` to the options object constructor, present since matterbridge v.3.10.7. The deprecated positional-arguments constructors are still supported but no longer used in this plugin.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
