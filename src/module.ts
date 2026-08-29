@@ -116,7 +116,6 @@ import {
   ClosureControl,
   ClosureDimension,
   ColorControl,
-  Descriptor,
   DeviceEnergyManagement,
   DoorLock,
   ElectricalEnergyMeasurement,
@@ -152,63 +151,56 @@ import {
   WindowCovering,
 } from 'matterbridge/matter/clusters';
 import { ThreeLevelAuto } from 'matterbridge/matter/types';
-import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString } from 'matterbridge/utils';
+import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString, parseVersionString } from 'matterbridge/utils';
+
+// TODO: remove luxToMatter and matterToLux and import them from matterbridge/utils when this plugin requires matterbridge >=3.10.8.
+/* v8 ignore start -- covered with full branch coverage in the matterbridge repo's packages/utils/vitest/measurementUtils.test.ts. */
 
 /**
  * Convert an illuminance value in lux to the Matter encoded representation used by the
- * IlluminanceMeasurement cluster. The Matter spec encodes illuminance logarithmically
- * as: value = round( 10000 * log10(lux) ), constrained to the range 0x0000 - 0xFFFE.
- * (0xFFFF is reserved / invalid.) Values at or below 0 lux are encoded as 0.
+ * IlluminanceMeasurement cluster's MeasuredValue attribute.
+ *
+ * Per the Matter Application Cluster spec §2.2.5.1: MeasuredValue = 10,000 x log10(illuminance) + 1,
+ * where 1 lx <= illuminance <= 3.576 Mlx, corresponding to a MeasuredValue in the range 1 to 0xFFFE.
+ * A MeasuredValue of 0 indicates an illuminance too low to be measured (0xFFFF is reserved / invalid).
  *
  * Edge cases handled:
- *  - NaN / non‑finite / negative inputs -> treated as 0
+ *  - NaN / non‑finite inputs -> treated as 0 (too low to be measured)
+ *  - lux < 1 -> treated as 0 (too low to be measured, per the spec's lower encoding bound)
  *  - Very large inputs -> capped at 0xFFFE
- *  - lux == 0 -> returns 0 (avoids -Infinity from log10(0))
  *
- * @param {number} lux Illuminance in lux (>= 0). Fractional values allowed.
- * @returns {number} Encoded Matter illuminance value (0 .. 0xFFFE)
+ * @param {number} lux Illuminance in lux. Fractional values allowed.
+ * @returns {number} Encoded Matter illuminance value (0, or 1 .. 0xFFFE)
  */
 function luxToMatter(lux: number): number {
-  /* v8 ignore next: defensive check */
-  if (!Number.isFinite(lux) || lux <= 0) return 0;
-  const encoded = 10000 * Math.log10(lux);
-  /* v8 ignore next: defensive check */
-  if (!Number.isFinite(encoded) || encoded < 0) return 0; // extra safety
-  return Math.round(Math.min(encoded, 0xfffe));
+  // Matter 1.6.0 § 2.2.5.1: MeasuredValue is 0, or in the range 1 to 0xFFFE for 1 lx <= illuminance <= 3.576 Mlx.
+  if (!Number.isFinite(lux) || lux < 1) return 0;
+  // Matter 1.6.0 § 2.2.5.1: MeasuredValue = 10,000 x log10(illuminance) + 1.
+  const encoded = Math.round(10000 * Math.log10(lux) + 1);
+  return Math.min(encoded, 0xfffe);
 }
 
 /**
- * Convert a Matter encoded illuminance value back to lux. This is the inverse of
- * luxToMatter: lux = 10 ^ (value / 10000). Results are rounded to the nearest integer
- * lux for simplicity.
+ * Convert a Matter encoded IlluminanceMeasurement MeasuredValue back to lux. This is the inverse of
+ * luxToMatter: illuminance = 10 ^ ((MeasuredValue - 1) / 10000). Results are rounded to the nearest
+ * integer lux for simplicity.
  *
  * Edge cases handled:
- *  - NaN / non‑finite / negative inputs -> treated as 0
- *  - Inputs > 0xFFFE are capped at 0xFFFE (0xFFFF is invalid per spec)
+ *  - NaN / non‑finite / value <= 0 inputs -> treated as 0 lx (0 is the "too low to be measured" sentinel)
+ *  - Inputs > 0xFFFE are capped at 0xFFFE (0xFFFF is reserved / invalid per spec)
  *
  * @param {number} value Encoded Matter illuminance value (0 .. 0xFFFE)
  * @returns {number} Illuminance in lux (integer, >= 0)
  */
 function matterToLux(value: number): number {
-  /* v8 ignore next: defensive check */
+  // Matter 1.6.0 § 2.2.5.1: MeasuredValue = 0 indicates an illuminance too low to be measured.
   if (!Number.isFinite(value) || value <= 0) return 0;
   const v = Math.min(value, 0xfffe);
-  const lux = Math.pow(10, v / 10000);
-  return Math.round(lux < 0 ? 0 : lux);
+  // Matter 1.6.0 § 2.2.5.1: illuminance = 10 ^ ((MeasuredValue - 1) / 10,000), the inverse of luxToMatter.
+  return Math.round(Math.pow(10, (v - 1) / 10000));
 }
 
-/**
- * Type guard for the Descriptor cluster's `deviceTypeList` option value.
- *
- * TODO: once the required matterbridge version is > 3.10.8, `getClusterServerOptions(Descriptor)` returns
- * a typed `deviceTypeList`, so this guard becomes redundant and the call site can read the field directly.
- *
- * @param {unknown} value - The value to check.
- * @returns {boolean} `true` if the value is a device type list array.
- */
-function isDeviceTypeList(value: unknown): value is { deviceType: number; revision: number }[] {
-  return Array.isArray(value);
-}
+/* v8 ignore stop */
 
 export type DynamicPlatformConfig = PlatformConfig & {
   whiteList: string[];
@@ -2951,6 +2943,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       for (const { callback } of this.intervals) {
         await callback();
       }
+      // v8 ignore else
       if (pauseTime > 0) {
         await new Promise((resolve) => setTimeout(resolve, pauseTime));
       }
@@ -3790,14 +3783,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (!device.serialNumber || !device.deviceName) return undefined;
     this.setSelectDevice(device.serialNumber, device.deviceName, undefined, 'hub');
     if (this.validateDevice(device.deviceName)) {
-      device.softwareVersion = Number.parseInt(this.version.replace(/\D/g, ''));
+      device.softwareVersion = parseVersionString(this.version);
       device.softwareVersionString = this.version === '' ? 'Unknown' : this.version;
-      device.hardwareVersion = Number.parseInt(this.matterbridge.matterbridgeVersion.replace(/\D/g, ''));
+      device.hardwareVersion = parseVersionString(this.matterbridge.matterbridgeVersion);
       device.hardwareVersionString = this.matterbridge.matterbridgeVersion;
       device.softwareVersion = isValidNumber(device.softwareVersion, 0, UINT32_MAX) ? device.softwareVersion : undefined;
-      device.softwareVersionString = isValidString(device.softwareVersionString) ? device.softwareVersionString.slice(0, 64) : undefined;
+      device.softwareVersionString = isValidString(device.softwareVersionString, 1) ? device.softwareVersionString.slice(0, 64) : undefined;
       device.hardwareVersion = isValidNumber(device.hardwareVersion, 0, UINT16_MAX) ? device.hardwareVersion : undefined;
-      device.hardwareVersionString = isValidString(device.hardwareVersionString) ? device.hardwareVersionString.slice(0, 64) : undefined;
+      device.hardwareVersionString = isValidString(device.hardwareVersionString, 1) ? device.hardwareVersionString.slice(0, 64) : undefined;
       const options = device.getClusterServerOptions(BridgedDeviceBasicInformation.id);
       if (options) {
         options.softwareVersion = device.softwareVersion ?? 1;
@@ -3805,29 +3798,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         options.hardwareVersion = device.hardwareVersion ?? 1;
         options.hardwareVersionString = device.hardwareVersionString ?? '1.0.0';
       }
-      // We need to add bridgedNode device type and BridgedDeviceBasicInformation cluster for single class devices that doesn't add it in childbridge mode.
-      if (device.mode === undefined && !device.deviceTypes.has(bridgedNode.code)) {
-        device.deviceTypes.set(bridgedNode.code, bridgedNode);
-        const options = device.getClusterServerOptions(Descriptor);
-        const deviceTypeList = options?.deviceTypeList;
-        if (isDeviceTypeList(deviceTypeList)) {
-          if (!deviceTypeList.find((dt) => dt.deviceType === bridgedNode.code)) {
-            deviceTypeList.push({ deviceType: bridgedNode.code, revision: bridgedNode.revision });
-          }
-        }
-        device.createDefaultBridgedDeviceBasicInformationClusterServer(
-          device.deviceName,
-          device.serialNumber,
-          device.vendorId,
-          device.vendorName,
-          device.productName,
-          device.softwareVersion,
-          device.softwareVersionString,
-          device.hardwareVersion,
-          device.hardwareVersionString,
-        );
-      }
-
       await this.registerDevice(device);
       return device;
     } else {

@@ -57,6 +57,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [devices]: Update `RoboticVacuumCleaner`, `Oven.addCabinet`, `Cooktop.addSurface`, and `Refrigerator.addCabinet` to the options object form, removing the last `typescript/no-deprecated` oxlint suppressions in the platform.
 - [platform]: Make the local `addDevice` helper generic (`addDevice<T extends MatterbridgeEndpoint>`) so it returns the same subclass it was given, removing 9 `typescript/no-unsafe-type-assertion` oxlint suppressions at its call sites.
 - [platform]: Type `initializePlugin`'s `config` parameter directly as `DynamicPlatformConfig`, matching the pattern used in production plugins, removing the last `typescript/no-unsafe-type-assertion` cast on plugin startup.
+- [illuminance]: `luxToMatter`/`matterToLux` were missing the `+ 1` offset required by the Matter spec's `MeasuredValue = 10,000 x log10(illuminance) + 1` formula (Matter 1.6.0 § 2.2.5.1); every encoded illuminance value was off by 1. Fixed and aligned with the corrected implementation in matterbridge's `packages/utils`.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
