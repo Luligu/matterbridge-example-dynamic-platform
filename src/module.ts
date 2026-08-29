@@ -416,8 +416,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       true,
     );
 
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.irrigation = (await this.addDevice(this.irrigation)) as IrrigationSystem | undefined;
+    this.irrigation = await this.addDevice(this.irrigation);
 
     // *********************** Create a IrrigationSystem device with 4 zones ***********************
     this.irrigationSystem = new IrrigationSystem('Irrigation System 4 zones', 'IRR000069', { flowMeasuredValue: 60 })
@@ -426,16 +425,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       .addZone(CommonNumberTag.Three, undefined, undefined, 2000, true)
       .addZone(CommonNumberTag.Four, undefined, undefined, 2000, true);
 
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.irrigationSystem = (await this.addDevice(this.irrigationSystem)) as IrrigationSystem | undefined;
+    this.irrigationSystem = await this.addDevice(this.irrigationSystem);
 
     // *********************** Create a garage door Closure device ***********************
     this.closureGarageDoor = new Closure('Garage Door', 'GAR000071', {
       tagList: [getSemtag(ClosureTag.GarageDoor)],
     });
 
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.closureGarageDoor = (await this.addDevice(this.closureGarageDoor)) as Closure | undefined;
+    this.closureGarageDoor = await this.addDevice(this.closureGarageDoor);
     let closureGarageDoorMoveTimeout: NodeJS.Timeout | undefined;
 
     /**
@@ -495,8 +492,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     const closureVenetianBlindLift = this.closureVenetianBlind.addPanel('Lift', [getSemtag(ClosurePanelTag.Lift)], 'lift');
     const closureVenetianBlindTilt = this.closureVenetianBlind.addPanel('Tilt', [getSemtag(ClosurePanelTag.Tilt)], 'tilt');
 
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.closureVenetianBlind = (await this.addDevice(this.closureVenetianBlind)) as Closure | undefined;
+    this.closureVenetianBlind = await this.addDevice(this.closureVenetianBlind);
 
     // Per the Matter spec (§5.4.4 / §5.5.4), a Closure's overall state and its ClosureDimension panels' state are
     // associated: a MoveTo on the parent must drive every panel to a matching target, and the parent's overall
@@ -2688,8 +2684,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.solarPower.addPanel('Panel 3', CommonNumberTag.Three);
     this.solarPower.addPanel('Panel 4', CommonNumberTag.Four);
 
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.solarPower = (await this.addDevice(this.solarPower)) as SolarPower | undefined;
+    this.solarPower = await this.addDevice(this.solarPower);
 
     // *********************** Create a BatteryStorage **************************
     this.batteryStorage = new BatteryStorage('Battery Storage', 'BST00047', {
@@ -2779,8 +2774,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       currentPhase: 1,
       phaseList: ['pre-heating', 'pre-heated', 'cooling down'],
     });
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.oven = (await this.addDevice(this.oven)) as Oven | undefined;
+    this.oven = await this.addDevice(this.oven);
 
     // *********************** Create an Cooktop **************************
     this.cooktop = new Cooktop('Cooktop', 'CKT00055');
@@ -2808,8 +2802,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         { mfgCode: null, namespaceId: CommonPositionTag.Right.namespaceId, tag: CommonPositionTag.Right.tag, label: CommonPositionTag.Right.label },
       ],
     });
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.cooktop = (await this.addDevice(this.cooktop)) as Cooktop | undefined;
+    this.cooktop = await this.addDevice(this.cooktop);
 
     // *********************** Create an Refrigerator **************************
     const refrigerator = new Refrigerator('Refrigerator', 'REF00056');
@@ -2835,8 +2828,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       step: 1 * 100,
       currentTemperature: -1800,
     });
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.refrigerator = (await this.addDevice(refrigerator)) as Refrigerator | undefined;
+    this.refrigerator = await this.addDevice(refrigerator);
 
     // *********************** Create a airConditioner device ***********************
     this.airConditioner = new AirConditioner('Air Conditioner', 'ACO00027', {
@@ -2929,8 +2921,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a Speaker device ***********************
     this.speaker = new Speaker('Speaker', 'SPE00057', { muted: false, volume: 100 });
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    this.speaker = (await this.addDevice(this.speaker)) as Speaker | undefined;
+    this.speaker = await this.addDevice(this.speaker);
   }
 
   // This is just a helper to execute the intervals callbacks immediately without waiting for the interval time, useful for testing
@@ -3782,7 +3773,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     if (this.config.unregisterOnShutdown) await this.unregisterAllDevices(500);
   }
 
-  async addDevice(device: MatterbridgeEndpoint): Promise<MatterbridgeEndpoint | undefined> {
+  async addDevice<T extends MatterbridgeEndpoint>(device: T): Promise<T | undefined> {
     /* v8 ignore next defensive code, should not happen */
     if (!device.serialNumber || !device.deviceName) return undefined;
     this.setSelectDevice(device.serialNumber, device.deviceName, undefined, 'hub');
