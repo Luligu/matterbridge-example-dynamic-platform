@@ -56,6 +56,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [energy]: Update `WaterHeater`, `Evse`, `SolarPower`, `BatteryStorage`, and `HeatPump` to the options object constructor, present since matterbridge v.3.10.7. The deprecated positional-arguments constructors are still supported but no longer used in this plugin.
 - [devices]: Update `RoboticVacuumCleaner`, `Oven.addCabinet`, `Cooktop.addSurface`, and `Refrigerator.addCabinet` to the options object form, removing the last `typescript/no-deprecated` oxlint suppressions in the platform.
 - [platform]: Make the local `addDevice` helper generic (`addDevice<T extends MatterbridgeEndpoint>`) so it returns the same subclass it was given, removing 9 `typescript/no-unsafe-type-assertion` oxlint suppressions at its call sites.
+- [platform]: Type `initializePlugin`'s `config` parameter directly as `DynamicPlatformConfig`, matching the pattern used in production plugins, removing the last `typescript/no-unsafe-type-assertion` cast on plugin startup.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 

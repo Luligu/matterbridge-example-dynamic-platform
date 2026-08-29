@@ -210,12 +210,11 @@ export type DynamicPlatformConfig = PlatformConfig & {
  *
  * @param {PlatformMatterbridge} matterbridge - The Matterbridge instance.
  * @param {AnsiLogger} log - The logger instance.
- * @param {PlatformConfig} config - The platform configuration.
+ * @param {DynamicPlatformConfig} config - The platform configuration.
  * @returns {ExampleMatterbridgeDynamicPlatform} The initialized platform.
  */
-export default function initializePlugin(matterbridge: PlatformMatterbridge, log: AnsiLogger, config: PlatformConfig): ExampleMatterbridgeDynamicPlatform {
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-  return new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config as DynamicPlatformConfig);
+export default function initializePlugin(matterbridge: PlatformMatterbridge, log: AnsiLogger, config: DynamicPlatformConfig): ExampleMatterbridgeDynamicPlatform {
+  return new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
 }
 
 export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatform {
