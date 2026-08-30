@@ -434,6 +434,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a garage door Closure device ***********************
     this.closureGarageDoor = new Closure('Garage Door', 'GAR000071', {
       tagList: [getSemtag(ClosureTag.GarageDoor)],
+      motionLatching: true,
     });
 
     this.closureGarageDoor = await this.addDevice(this.closureGarageDoor);
@@ -492,9 +493,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a venetian blind Closure device with Lift and Tilt panels ***********************
     this.closureVenetianBlind = new Closure('Venetian Blind', 'VEN000072', {
       tagList: [getSemtag(ClosureTag.Covering), getSemtag(ClosureCoveringTag.Venetian)],
+      motionLatching: true,
     });
-    const closureVenetianBlindLift = this.closureVenetianBlind.addPanel('Lift', [getSemtag(ClosurePanelTag.Lift)], 'lift');
-    const closureVenetianBlindTilt = this.closureVenetianBlind.addPanel('Tilt', [getSemtag(ClosurePanelTag.Tilt)], 'tilt');
+    const closureVenetianBlindLift = this.closureVenetianBlind.addPanel('Lift', [getSemtag(ClosurePanelTag.Lift)], 'lift', { motionLatching: true });
+    const closureVenetianBlindTilt = this.closureVenetianBlind.addPanel('Tilt', [getSemtag(ClosurePanelTag.Tilt)], 'tilt', { motionLatching: true });
 
     this.closureVenetianBlind = await this.addDevice(this.closureVenetianBlind);
 
