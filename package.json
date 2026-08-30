@@ -117,8 +117,8 @@
     "prepublishOnly": "npm run cleanBuildProduction && npm pkg delete devDependencies scripts automator && node scripts/prepublish-clean.mjs && npm install --no-fund --no-audit --omit=dev && npm shrinkwrap --omit=dev"
   },
   "dependencies": {
-    "node-ansi-logger": "3.3.0",
-    "node-persist-manager": "2.1.0"
+    "node-ansi-logger": "3.3.1",
+    "node-persist-manager": "2.1.1"
   },
   "devDependencies": {
     "@types/node": "26.4.0",
