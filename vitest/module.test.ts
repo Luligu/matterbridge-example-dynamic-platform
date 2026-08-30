@@ -252,19 +252,32 @@ describe('TestPlatform', () => {
       }
 
       if (device.hasClusterServer(ClosureControl)) {
-        // oxlint-disable-next-line vitest/no-conditional-expect
-        await expect(
-          device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true }),
-        ).rejects.toThrow('ClosureControl.moveTo position changes require latch false while the closure is latched');
-        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToSignaturePosition, latch: false });
-        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen, latch: false });
+        const closureControlFeatures = featuresFor(device, ClosureControl);
+
+        if (closureControlFeatures.motionLatching) {
+          // oxlint-disable-next-line vitest/no-conditional-expect
+          await expect(
+            device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true }),
+          ).rejects.toThrow('ClosureControl.moveTo position changes require latch false while the closure is latched');
+          await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToSignaturePosition, latch: false });
+          await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen, latch: false });
+        } else {
+          await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToSignaturePosition });
+          await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen });
+        }
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
         for (const panel of device.getChildEndpoints()) {
           if (panel.hasClusterServer(ClosureDimension)) {
-            await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.setTarget', { position: 5000, latch: false });
-            // Step is only allowed while unlatched (Matter spec §5.5.8.2.4); force the state so the handler under test runs.
-            const panelCurrentState = panel.getAttribute(ClosureDimension, 'currentState');
-            await panel.setAttribute(ClosureDimension, 'currentState', { position: panelCurrentState?.position, latch: false, speed: panelCurrentState?.speed });
+            const closureDimensionFeatures = featuresFor(panel, ClosureDimension);
+
+            if (closureDimensionFeatures.motionLatching) {
+              await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.setTarget', { position: 5000, latch: false });
+              // Step is only allowed while unlatched (Matter spec §5.5.8.2.4); force the state so the handler under test runs.
+              const panelCurrentState = panel.getAttribute(ClosureDimension, 'currentState');
+              await panel.setAttribute(ClosureDimension, 'currentState', { position: panelCurrentState?.position, latch: false, speed: panelCurrentState?.speed });
+            } else {
+              await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.setTarget', { position: 5000 });
+            }
             await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.step', { direction: ClosureDimension.StepDirection.Increase, numberOfSteps: 1 });
           }
         }

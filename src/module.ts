@@ -493,10 +493,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a venetian blind Closure device with Lift and Tilt panels ***********************
     this.closureVenetianBlind = new Closure('Venetian Blind', 'VEN000072', {
       tagList: [getSemtag(ClosureTag.Covering), getSemtag(ClosureCoveringTag.Venetian)],
-      motionLatching: true,
     });
-    const closureVenetianBlindLift = this.closureVenetianBlind.addPanel('Lift', [getSemtag(ClosurePanelTag.Lift)], 'lift', { motionLatching: true });
-    const closureVenetianBlindTilt = this.closureVenetianBlind.addPanel('Tilt', [getSemtag(ClosurePanelTag.Tilt)], 'tilt', { motionLatching: true });
+    const closureVenetianBlindLift = this.closureVenetianBlind.addPanel('Lift', [getSemtag(ClosurePanelTag.Lift)], 'lift');
+    const closureVenetianBlindTilt = this.closureVenetianBlind.addPanel('Tilt', [getSemtag(ClosurePanelTag.Tilt)], 'tilt');
 
     this.closureVenetianBlind = await this.addDevice(this.closureVenetianBlind);
 
@@ -542,10 +541,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             : ClosureControl.CurrentPosition.PartiallyOpened;
 
       void this.closureVenetianBlind?.setAttribute(ClosureControl, 'mainState', ClosureControl.MainState.Stopped, this.closureVenetianBlind.log);
+      // The Venetian Blind does not support MotionLatching (a blind has no latch/lock, unlike a gate or garage door),
+      // so secureState mirrors the fully-closed position instead of a latch state.
       void this.closureVenetianBlind?.setAttribute(
         ClosureControl,
         'overallCurrentState',
-        { position: overallPosition, latch: liftCurrent.latch ?? true, speed: liftCurrent.speed, secureState: liftCurrent.position === 10000 && liftCurrent.latch === true },
+        { position: overallPosition, speed: liftCurrent.speed, secureState: overallPosition === ClosureControl.CurrentPosition.FullyClosed },
         this.closureVenetianBlind?.log,
       );
     };
@@ -569,14 +570,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Parent MoveTo drives the child panels by mirroring the resolved overall target into each panel's targetState.
     // Direct controller commands to a panel still arrive through ClosureDimension.setTarget below.
-    const moveClosurePanelTo = (
-      panel: MatterbridgeEndpoint,
-      position: number,
-      latch: ClosureControl.OverallTargetState['latch'],
-      speed: ClosureControl.OverallTargetState['speed'],
-    ): void => {
-      // v8 ignore next -- latch here is always defined
-      void panel.setAttribute(ClosureDimension, 'targetState', { position, latch: latch ?? true, speed }, panel.log);
+    const moveClosurePanelTo = (panel: MatterbridgeEndpoint, position: number, speed: ClosureControl.OverallTargetState['speed']): void => {
+      void panel.setAttribute(ClosureDimension, 'targetState', { position, speed }, panel.log);
       simulateClosurePanelReachingTarget(panel);
     };
 
@@ -592,8 +587,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         const targetState = this.closureVenetianBlind?.getAttribute(ClosureControl, 'overallTargetState');
         if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
         const panelPercent = closurePanelTargetPercent(targetState.position);
-        moveClosurePanelTo(closureVenetianBlindLift, panelPercent, targetState.latch, targetState.speed);
-        moveClosurePanelTo(closureVenetianBlindTilt, panelPercent, targetState.latch, targetState.speed);
+        moveClosurePanelTo(closureVenetianBlindLift, panelPercent, targetState.speed);
+        moveClosurePanelTo(closureVenetianBlindTilt, panelPercent, targetState.speed);
       }, 1000).unref();
       /* v8 ignore stop */
     });
