@@ -34,7 +34,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Breaking changes
 
 - [matterbridge]: Require matterbridge v.3.10.7 with matter v.1.6.0.
-- [fanControl]: Matterbridge v.3.10.6 now manages the compliant FanControl `fanMode` and `percentSetting` synchronization; plugin examples now only update `percentCurrent` as physical device feedback.
+- [fanControl]: Matterbridge v.3.10.7 now manages the compliant FanControl `fanMode` and `percentSetting` synchronization; plugins now only update `percentCurrent` as physical device feedback from `fanMode` and `percentSetting`.
 
 ### Added
 
