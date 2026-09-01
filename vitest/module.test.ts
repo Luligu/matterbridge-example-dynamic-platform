@@ -24,7 +24,6 @@ import {
   OnOff,
   Thermostat,
 } from 'matterbridge/matter/clusters';
-import { log, loggerInfoSpy, loggerLogSpy, setDebug, setupTest } from 'matterbridge/vitest-utils';
 import {
   addMatterbridge,
   createServerNode,
@@ -32,9 +31,14 @@ import {
   destroyTestEnvironment,
   flushServerNode,
   getMatterbridge,
+  log,
+  loggerInfoSpy,
+  loggerLogSpy,
+  setDebug,
+  setupTest,
   startServerNode,
   stopServerNode,
-} from 'matterbridge/vitest-utils/matter';
+} from 'matterbridge/test-utils/vitest';
 
 import initializePlugin, { type DynamicPlatformConfig, ExampleMatterbridgeDynamicPlatform } from '../src/module.js';
 
