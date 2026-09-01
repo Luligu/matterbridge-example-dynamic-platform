@@ -46,6 +46,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
+- [platform]: Add `ScheduleLock` device: a door lock with the User, PinCredential, and optional WeekDayAccessSchedules, YearDayAccessSchedules, and HolidaySchedules features.
 - [platform]: Add `closureSlidingGate` device with pedestrian opening support. Thanks Ludovic BOUÉ.
 - [platform]: Add `closureRoofWindow` device with ventilation opening support. Thanks Ludovic BOUÉ.
 - [devcontainer]: Upgrade the `Dev Container` to v.2.0.0, using the Node.js and Bun stack.
