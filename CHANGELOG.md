@@ -35,6 +35,10 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [matterbridge]: Require matterbridge v.3.10.8 with matter v.1.6.0.
 
+### Added
+
+- [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets: `criticalOverTemperatureThreshold` on the Oven's Upper Cabinet, `criticalUnderTemperatureThreshold` on the Refrigerator's Freezer Bottom cabinet. Requires the matterbridge `TemperatureAlarm` support (not yet released).
+
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
 ## [3.0.3] - 2026-08-30
