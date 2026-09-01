@@ -30,7 +30,6 @@ import {
   airPurifier,
   airQualitySensor,
   bridgedNode,
-  closure,
   colorTemperatureLight,
   contactSensor,
   windowCovering,
@@ -81,7 +80,6 @@ import {
   IrrigationSystem,
   LaundryDryer,
   LaundryWasher,
-  MatterbridgeClosureControlServer,
   MicrowaveOven,
   Oven,
   Refrigerator,
@@ -150,7 +148,6 @@ import {
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
-import { ThreeLevelAuto } from 'matterbridge/matter/types';
 import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString, parseVersionString } from 'matterbridge/utils';
 
 // TODO: remove luxToMatter and matterToLux and import them from matterbridge/utils when this plugin requires matterbridge >=3.10.8.
@@ -434,59 +431,57 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // *********************** Create a garage door Closure device ***********************
     this.closureGarageDoor = new Closure('Garage Door', 'GAR000071', {
       tagList: [getSemtag(ClosureTag.GarageDoor)],
+      movementDuration: 2000, // Simulate a 2 second movement duration for demo purposes
     });
 
     this.closureGarageDoor = await this.addDevice(this.closureGarageDoor);
-    let closureGarageDoorMoveTimeout: NodeJS.Timeout | undefined;
-
-    /**
-     * Convert a ClosureControl target position to its corresponding current position.
-     *
-     * @param {ClosureControl.TargetPosition} position Requested closure target position.
-     * @returns {ClosureControl.CurrentPosition} Matching reached position.
-     */
-    function closureTargetToCurrentPosition(position: ClosureControl.TargetPosition): ClosureControl.CurrentPosition {
-      if (position === ClosureControl.TargetPosition.MoveToFullyClosed) return ClosureControl.CurrentPosition.FullyClosed;
-      if (position === ClosureControl.TargetPosition.MoveToFullyOpen) return ClosureControl.CurrentPosition.FullyOpened;
-      if (position === ClosureControl.TargetPosition.MoveToPedestrianPosition) return ClosureControl.CurrentPosition.OpenedForPedestrian;
-      if (position === ClosureControl.TargetPosition.MoveToVentilationPosition) return ClosureControl.CurrentPosition.OpenedForVentilation;
-      return ClosureControl.CurrentPosition.OpenedAtSignature;
-    }
 
     // MoveTo is a parent ClosureControl command
-    this.closureGarageDoor?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
-      // MatterbridgeClosureControlServer sets the mainState to ClosureControl.MainState.Moving after this call
-      // MatterbridgeClosureControlServer sets the overallTargetState to the requested target state after this call
+    this.closureGarageDoor?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
       this.closureGarageDoor?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
-      attributes.countdownTime = 1; // We simulate a 1 second movement for demo purposes, so set the countdownTime to 1 second.
-      /* v8 ignore start -- Demo timer simulates closure movement completion. */
-      closureGarageDoorMoveTimeout = setTimeout(() => {
-        const targetState = this.closureGarageDoor?.getAttribute(ClosureControl, 'overallTargetState');
-        if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
-        void this.closureGarageDoor?.setState(
-          {
-            position: closureTargetToCurrentPosition(targetState.position),
-            latch: targetState.latch,
-            speed: targetState.speed,
-            secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
-          },
-          targetState,
-          ClosureControl.MainState.Stopped,
-          0,
-          [],
-        );
-        void this.closureGarageDoor?.triggerMovementCompleted();
-      }, 1000).unref();
-      /* v8 ignore stop */
     });
 
     // Stop is a parent ClosureControl command
-    this.closureGarageDoor?.addCommandHandler('ClosureControl.stop', ({ attributes }) => {
-      // MatterbridgeClosureControlServer sets the mainState to ClosureControl.MainState.Stopped after this call
+    this.closureGarageDoor?.addCommandHandler('ClosureControl.stop', () => {
       this.closureGarageDoor?.log.info('Command stop called');
-      attributes.countdownTime = 0;
-      clearTimeout(closureGarageDoorMoveTimeout);
-      closureGarageDoorMoveTimeout = undefined;
+    });
+
+    // *********************** Create a sliding gate Closure device ***********************
+    this.closureSlidingGate = new Closure('Sliding Gate', 'GAT000073', {
+      tagList: [getSemtag(ClosureTag.Gate)],
+      movementDuration: 2000,
+      motionLatching: true,
+      speed: true,
+      pedestrian: true,
+    });
+
+    this.closureSlidingGate = await this.addDevice(this.closureSlidingGate);
+
+    this.closureSlidingGate?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
+      this.closureSlidingGate?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+    });
+
+    this.closureSlidingGate?.addCommandHandler('ClosureControl.stop', () => {
+      this.closureSlidingGate?.log.info('Command stop called');
+    });
+
+    // *********************** Create a roof window Closure device ***********************
+    this.closureRoofWindow = new Closure('Roof Window', 'ROO000074', {
+      tagList: [getSemtag(ClosureTag.Window), getSemtag(ClosureWindowTag.Roof)],
+      movementDuration: 2000,
+      motionLatching: true,
+      speed: true,
+      ventilation: true,
+    });
+
+    this.closureRoofWindow = await this.addDevice(this.closureRoofWindow);
+
+    this.closureRoofWindow?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed } }) => {
+      this.closureRoofWindow?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
+    });
+
+    this.closureRoofWindow?.addCommandHandler('ClosureControl.stop', () => {
+      this.closureRoofWindow?.log.info('Command stop called');
     });
 
     // *********************** Create a venetian blind Closure device with Lift and Tilt panels ***********************
@@ -543,7 +538,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       void this.closureVenetianBlind?.setAttribute(
         ClosureControl,
         'overallCurrentState',
-        { position: overallPosition, latch: liftCurrent.latch ?? true, speed: liftCurrent.speed, secureState: liftCurrent.position === 10000 && liftCurrent.latch === true },
+        { position: overallPosition, secureState: liftCurrent.position === 10000 },
         this.closureVenetianBlind?.log,
       );
     };
@@ -567,14 +562,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // Parent MoveTo drives the child panels by mirroring the resolved overall target into each panel's targetState.
     // Direct controller commands to a panel still arrive through ClosureDimension.setTarget below.
-    const moveClosurePanelTo = (
-      panel: MatterbridgeEndpoint,
-      position: number,
-      latch: ClosureControl.OverallTargetState['latch'],
-      speed: ClosureControl.OverallTargetState['speed'],
-    ): void => {
-      // v8 ignore next -- latch here is always defined
-      void panel.setAttribute(ClosureDimension, 'targetState', { position, latch: latch ?? true, speed }, panel.log);
+    const moveClosurePanelTo = (panel: MatterbridgeEndpoint, position: number): void => {
+      void panel.setAttribute(ClosureDimension, 'targetState', { position }, panel.log);
       simulateClosurePanelReachingTarget(panel);
     };
 
@@ -590,8 +579,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         const targetState = this.closureVenetianBlind?.getAttribute(ClosureControl, 'overallTargetState');
         if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
         const panelPercent = closurePanelTargetPercent(targetState.position);
-        moveClosurePanelTo(closureVenetianBlindLift, panelPercent, targetState.latch, targetState.speed);
-        moveClosurePanelTo(closureVenetianBlindTilt, panelPercent, targetState.latch, targetState.speed);
+        moveClosurePanelTo(closureVenetianBlindLift, panelPercent);
+        moveClosurePanelTo(closureVenetianBlindTilt, panelPercent);
       }, 1000).unref();
       /* v8 ignore stop */
     });
@@ -623,147 +612,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     };
     addClosurePanelStepSimulation(closureVenetianBlindLift);
     addClosurePanelStepSimulation(closureVenetianBlindTilt);
-
-    // *********************** Create a sliding gate Closure device ***********************
-    // Closure currently fixes its ClosureControl features without Pedestrian support, so build the
-    // equivalent endpoint directly and add Pedestrian to the required server behavior.
-    this.closureSlidingGate = new MatterbridgeEndpoint(
-      [closure, powerSource],
-      {
-        id: 'SlidingGate-GAT000073',
-        tagList: [getSemtag(ClosureTag.Gate)],
-      },
-      this.config.debug,
-    )
-      .createDefaultIdentifyClusterServer()
-      .createDefaultBasicInformationClusterServer('Sliding Gate', 'GAT000073', 0xfff1, 'Matterbridge', 0x8000, 'Matterbridge Closure')
-      .createDefaultPowerSourceWiredClusterServer();
-    this.closureSlidingGate.behaviors.require(
-      MatterbridgeClosureControlServer.with(
-        ClosureControl.Feature.Positioning,
-        ClosureControl.Feature.MotionLatching,
-        ClosureControl.Feature.Speed,
-        ClosureControl.Feature.Pedestrian,
-      ),
-      {
-        countdownTime: 0,
-        mainState: ClosureControl.MainState.Stopped,
-        currentErrorList: [],
-        overallCurrentState: { position: ClosureControl.CurrentPosition.FullyClosed, latch: true, speed: ThreeLevelAuto.Auto, secureState: true },
-        overallTargetState: { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true, speed: ThreeLevelAuto.Auto },
-        latchControlModes: { remoteLatching: true, remoteUnlatching: true },
-      },
-    );
-
-    this.closureSlidingGate = await this.addDevice(this.closureSlidingGate);
-    let closureSlidingGateMoveTimeout: NodeJS.Timeout | undefined;
-
-    this.closureSlidingGate?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
-      this.closureSlidingGate?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
-      attributes.countdownTime = 1;
-      /* v8 ignore start -- Demo timer simulates closure movement completion. */
-      closureSlidingGateMoveTimeout = setTimeout(() => {
-        void (async (): Promise<void> => {
-          const targetState = this.closureSlidingGate?.getAttribute(ClosureControl, 'overallTargetState');
-          if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
-          await this.closureSlidingGate?.setAttribute(ClosureControl, 'countdownTime', 0, this.closureSlidingGate.log);
-          await this.closureSlidingGate?.setAttribute(ClosureControl, 'mainState', ClosureControl.MainState.Stopped, this.closureSlidingGate.log);
-          await this.closureSlidingGate?.setAttribute(ClosureControl, 'currentErrorList', [], this.closureSlidingGate.log);
-          await this.closureSlidingGate?.setAttribute(
-            ClosureControl,
-            'overallCurrentState',
-            {
-              position: closureTargetToCurrentPosition(targetState.position),
-              latch: targetState.latch,
-              speed: targetState.speed,
-              secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
-            },
-            this.closureSlidingGate.log,
-          );
-          await this.closureSlidingGate?.setAttribute(ClosureControl, 'overallTargetState', targetState, this.closureSlidingGate.log);
-          await this.closureSlidingGate?.triggerEvent(ClosureControl, 'movementCompleted', undefined, this.closureSlidingGate.log);
-        })();
-      }, 1000).unref();
-      /* v8 ignore stop */
-    });
-
-    this.closureSlidingGate?.addCommandHandler('ClosureControl.stop', ({ attributes }) => {
-      this.closureSlidingGate?.log.info('Command stop called');
-      attributes.countdownTime = 0;
-      clearTimeout(closureSlidingGateMoveTimeout);
-      closureSlidingGateMoveTimeout = undefined;
-    });
-
-    // *********************** Create a roof window Closure device ***********************
-    // Closure currently fixes its ClosureControl features without Ventilation support, so build the
-    // equivalent endpoint directly and add Ventilation to the required server behavior.
-    this.closureRoofWindow = new MatterbridgeEndpoint(
-      [closure, powerSource],
-      {
-        id: 'RoofWindow-ROO000074',
-        tagList: [getSemtag(ClosureTag.Window), getSemtag(ClosureWindowTag.Roof)],
-      },
-      this.config.debug,
-    )
-      .createDefaultIdentifyClusterServer()
-      .createDefaultBasicInformationClusterServer('Roof Window', 'ROO000074', 0xfff1, 'Matterbridge', 0x8000, 'Matterbridge Closure')
-      .createDefaultPowerSourceWiredClusterServer();
-    // TODO: remove when require >= 3.10.8
-    this.closureRoofWindow.behaviors.require(
-      MatterbridgeClosureControlServer.with(
-        ClosureControl.Feature.Positioning,
-        ClosureControl.Feature.MotionLatching,
-        ClosureControl.Feature.Speed,
-        ClosureControl.Feature.Ventilation,
-      ),
-      {
-        countdownTime: 0,
-        mainState: ClosureControl.MainState.Stopped,
-        currentErrorList: [],
-        overallCurrentState: { position: ClosureControl.CurrentPosition.FullyClosed, latch: true, speed: ThreeLevelAuto.Auto, secureState: true },
-        overallTargetState: { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true, speed: ThreeLevelAuto.Auto },
-        latchControlModes: { remoteLatching: true, remoteUnlatching: true },
-      },
-    );
-
-    this.closureRoofWindow = await this.addDevice(this.closureRoofWindow);
-    let closureRoofWindowMoveTimeout: NodeJS.Timeout | undefined;
-
-    this.closureRoofWindow?.addCommandHandler('ClosureControl.moveTo', ({ request: { position, latch, speed }, attributes }) => {
-      this.closureRoofWindow?.log.info(`Command moveTo called position:${position} latch:${latch} speed:${speed}`);
-      attributes.countdownTime = 1;
-      /* v8 ignore start -- Demo timer simulates closure movement completion. */
-      closureRoofWindowMoveTimeout = setTimeout(() => {
-        void (async (): Promise<void> => {
-          const targetState = this.closureRoofWindow?.getAttribute(ClosureControl, 'overallTargetState');
-          if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
-          await this.closureRoofWindow?.setAttribute(ClosureControl, 'countdownTime', 0, this.closureRoofWindow.log);
-          await this.closureRoofWindow?.setAttribute(ClosureControl, 'mainState', ClosureControl.MainState.Stopped, this.closureRoofWindow.log);
-          await this.closureRoofWindow?.setAttribute(ClosureControl, 'currentErrorList', [], this.closureRoofWindow.log);
-          await this.closureRoofWindow?.setAttribute(
-            ClosureControl,
-            'overallCurrentState',
-            {
-              position: closureTargetToCurrentPosition(targetState.position),
-              latch: targetState.latch,
-              speed: targetState.speed,
-              secureState: targetState.position === ClosureControl.TargetPosition.MoveToFullyClosed && targetState.latch === true,
-            },
-            this.closureRoofWindow.log,
-          );
-          await this.closureRoofWindow?.setAttribute(ClosureControl, 'overallTargetState', targetState, this.closureRoofWindow.log);
-          await this.closureRoofWindow?.triggerEvent(ClosureControl, 'movementCompleted', undefined, this.closureRoofWindow.log);
-        })();
-      }, 1000).unref();
-      /* v8 ignore stop */
-    });
-
-    this.closureRoofWindow?.addCommandHandler('ClosureControl.stop', ({ attributes }) => {
-      this.closureRoofWindow?.log.info('Command stop called');
-      attributes.countdownTime = 0;
-      clearTimeout(closureRoofWindowMoveTimeout);
-      closureRoofWindowMoveTimeout = undefined;
-    });
 
     // *********************** Create a compound climate device ***********************
     this.climate = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Climate' }, this.config.debug)

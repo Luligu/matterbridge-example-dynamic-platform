@@ -9,6 +9,7 @@ const MATTER_PORT = 8000;
 const MATTER_CREATE_ONLY = true;
 
 import { featuresFor, invokeSubscribeHandler, type PlatformMatterbridge } from 'matterbridge';
+import { MatterbridgeClosureControlServer } from 'matterbridge/devices';
 import { LogLevel } from 'matterbridge/logger';
 import {
   ClosureControl,
@@ -252,19 +253,48 @@ describe('TestPlatform', () => {
       }
 
       if (device.hasClusterServer(ClosureControl)) {
-        // oxlint-disable-next-line vitest/no-conditional-expect
-        await expect(
-          device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: true }),
-        ).rejects.toThrow('ClosureControl.moveTo position changes require latch false while the closure is latched');
-        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToSignaturePosition, latch: false });
-        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyOpen, latch: false });
+        const features = device.featuresOf(MatterbridgeClosureControlServer.id);
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', {
+          position: ClosureControl.TargetPosition.MoveToFullyClosed,
+          ...(features.motionLatching ? { latch: false } : {}),
+        });
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', {
+          position: ClosureControl.TargetPosition.MoveToSignaturePosition,
+          ...(features.motionLatching ? { latch: false } : {}),
+        });
+        if (features.ventilation) {
+          await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', {
+            position: ClosureControl.TargetPosition.MoveToVentilationPosition,
+            ...(features.motionLatching ? { latch: false } : {}),
+          });
+        }
+        if (features.pedestrian) {
+          await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', {
+            position: ClosureControl.TargetPosition.MoveToPedestrianPosition,
+            ...(features.motionLatching ? { latch: false } : {}),
+          });
+        }
+        await device.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', {
+          position: ClosureControl.TargetPosition.MoveToFullyOpen,
+          ...(features.motionLatching ? { latch: false } : {}),
+        });
         await device.invokeBehaviorCommand('closureControl', 'ClosureControl.stop', {});
         for (const panel of device.getChildEndpoints()) {
           if (panel.hasClusterServer(ClosureDimension)) {
-            await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.setTarget', { position: 5000, latch: false });
-            // Step is only allowed while unlatched (Matter spec §5.5.8.2.4); force the state so the handler under test runs.
-            const panelCurrentState = panel.getAttribute(ClosureDimension, 'currentState');
-            await panel.setAttribute(ClosureDimension, 'currentState', { position: panelCurrentState?.position, latch: false, speed: panelCurrentState?.speed });
+            const panelFeatures = featuresFor(panel, ClosureDimension);
+            await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.setTarget', {
+              position: 5000,
+              ...(panelFeatures.motionLatching ? { latch: false } : {}),
+            });
+            if (panelFeatures.motionLatching) {
+              // Step is only allowed while unlatched (Matter spec §5.5.8.2.4); force the state so the handler under test runs.
+              const panelCurrentState = panel.getAttribute(ClosureDimension, 'currentState');
+              await panel.setAttribute(ClosureDimension, 'currentState', {
+                position: panelCurrentState?.position,
+                latch: false,
+                ...(panelFeatures.speed ? { speed: panelCurrentState?.speed } : {}),
+              });
+            }
             await panel.invokeBehaviorCommand('closureDimension', 'ClosureDimension.step', { direction: ClosureDimension.StepDirection.Increase, numberOfSteps: 1 });
           }
         }
@@ -431,7 +461,7 @@ describe('TestPlatform', () => {
     try {
       for (const [targetPosition, currentPosition] of positions) {
         await garageDoor.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: targetPosition, latch: false });
-        await vi.advanceTimersByTimeAsync(1100);
+        await vi.advanceTimersByTimeAsync(2100);
         expect(garageDoor.getAttribute(ClosureControl.id, 'overallCurrentState')).toMatchObject({ position: currentPosition });
       }
     } finally {
@@ -507,7 +537,7 @@ describe('TestPlatform', () => {
       await vi.advanceTimersByTimeAsync(2200);
 
       const moveToAndWait = async (position: ClosureControl.TargetPosition): Promise<void> => {
-        await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position, latch: false });
+        await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position });
         // Advance past the parent's targetStateTimeout (1000ms): sets targetState on both Lift and Tilt.
         await vi.advanceTimersByTimeAsync(1100);
         // Advance past each panel's own currentStateTimeout (1000ms): sets currentState and re-runs
@@ -543,7 +573,7 @@ describe('TestPlatform', () => {
     // advance past them instantly instead of waiting on wall-clock time.
     vi.useFakeTimers();
     try {
-      await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed, latch: false });
+      await venetianBlind.invokeBehaviorCommand('closureControl', 'ClosureControl.moveTo', { position: ClosureControl.TargetPosition.MoveToFullyClosed });
       await vi.advanceTimersByTimeAsync(1100);
       expect(liftPanel.getAttribute(ClosureDimension.id, 'targetState')).toMatchObject({ position: 10000 });
       expect(liftPanel.getAttribute(ClosureDimension.id, 'currentState')).toMatchObject({ position: 5000 });
@@ -649,7 +679,7 @@ describe('TestPlatform', () => {
 
     // Test addThermostatSuggestion command with an unknown preset
     const invalidAddRequest = { presetHandle: new Uint8Array([0xff]), effectiveTime: null, expirationInMinutes: 45 };
-    await expect(thermoAutoSuggestions.invokeBehaviorCommand('Thermostat', 'addThermostatSuggestion', invalidAddRequest)).rejects.toThrow('Requested PresetHandle not found');
+    await expect(thermoAutoSuggestions.invokeBehaviorCommand('Thermostat', 'addThermostatSuggestion', invalidAddRequest)).rejects.toThrow('requested PresetHandle not found');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command addThermostatSuggestion called'));
 
     // Test removeThermostatSuggestion command with a valid uniqueId
@@ -658,7 +688,7 @@ describe('TestPlatform', () => {
     expect(thermoAutoSuggestions.getAttribute(Thermostat.id, 'thermostatSuggestions')).toHaveLength(1);
 
     // Test removeThermostatSuggestion command with an unknown uniqueId
-    await expect(thermoAutoSuggestions.invokeBehaviorCommand('Thermostat', 'removeThermostatSuggestion', { uniqueId: 99 })).rejects.toThrow('Requested UniqueID not found');
+    await expect(thermoAutoSuggestions.invokeBehaviorCommand('Thermostat', 'removeThermostatSuggestion', { uniqueId: 99 })).rejects.toThrow('requested UniqueID not found');
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command removeThermostatSuggestion called'));
 
     // Test subscriptions
@@ -696,7 +726,7 @@ describe('TestPlatform', () => {
     // Test setActiveScheduleRequest command with an unknown schedule
     const invalidScheduleHandle = new Uint8Array([0xff]);
     await expect(thermoAutoSchedule.invokeBehaviorCommand('Thermostat', 'setActiveScheduleRequest', { scheduleHandle: invalidScheduleHandle })).rejects.toThrow(
-      'Requested ScheduleHandle not found',
+      'requested ScheduleHandle not found',
     );
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Command setActiveScheduleRequest called'));
     // The unknown schedule request must not corrupt the previously active schedule handle
