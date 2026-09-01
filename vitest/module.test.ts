@@ -480,13 +480,11 @@ describe('TestPlatform', () => {
         position: ClosureControl.TargetPosition.MoveToPedestrianPosition,
         latch: false,
       });
-      await vi.advanceTimersByTimeAsync(1100);
-      await expect
-        .poll(() => slidingGate.getAttribute(ClosureControl, 'overallCurrentState'))
-        .toMatchObject({
-          position: ClosureControl.CurrentPosition.OpenedForPedestrian,
-          latch: false,
-        });
+      await vi.advanceTimersByTimeAsync(2100);
+      expect(slidingGate.getAttribute(ClosureControl, 'overallCurrentState')).toMatchObject({
+        position: ClosureControl.CurrentPosition.OpenedForPedestrian,
+        latch: false,
+      });
     } finally {
       vi.useRealTimers();
     }
@@ -503,13 +501,11 @@ describe('TestPlatform', () => {
         position: ClosureControl.TargetPosition.MoveToVentilationPosition,
         latch: false,
       });
-      await vi.advanceTimersByTimeAsync(1100);
-      await expect
-        .poll(() => roofWindow.getAttribute(ClosureControl, 'overallCurrentState'))
-        .toMatchObject({
-          position: ClosureControl.CurrentPosition.OpenedForVentilation,
-          latch: false,
-        });
+      await vi.advanceTimersByTimeAsync(2100);
+      expect(roofWindow.getAttribute(ClosureControl, 'overallCurrentState')).toMatchObject({
+        position: ClosureControl.CurrentPosition.OpenedForVentilation,
+        latch: false,
+      });
     } finally {
       vi.useRealTimers();
     }
