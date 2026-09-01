@@ -148,56 +148,7 @@ import {
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
-import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString, parseVersionString } from 'matterbridge/utils';
-
-// TODO: remove luxToMatter and matterToLux and import them from matterbridge/utils when this plugin requires matterbridge >=3.10.8.
-/* v8 ignore start -- covered with full branch coverage in the matterbridge repo's packages/utils/vitest/measurementUtils.test.ts. */
-
-/**
- * Convert an illuminance value in lux to the Matter encoded representation used by the
- * IlluminanceMeasurement cluster's MeasuredValue attribute.
- *
- * Per the Matter Application Cluster spec §2.2.5.1: MeasuredValue = 10,000 x log10(illuminance) + 1,
- * where 1 lx <= illuminance <= 3.576 Mlx, corresponding to a MeasuredValue in the range 1 to 0xFFFE.
- * A MeasuredValue of 0 indicates an illuminance too low to be measured (0xFFFF is reserved / invalid).
- *
- * Edge cases handled:
- *  - NaN / non‑finite inputs -> treated as 0 (too low to be measured)
- *  - lux < 1 -> treated as 0 (too low to be measured, per the spec's lower encoding bound)
- *  - Very large inputs -> capped at 0xFFFE
- *
- * @param {number} lux Illuminance in lux. Fractional values allowed.
- * @returns {number} Encoded Matter illuminance value (0, or 1 .. 0xFFFE)
- */
-function luxToMatter(lux: number): number {
-  // Matter 1.6.0 § 2.2.5.1: MeasuredValue is 0, or in the range 1 to 0xFFFE for 1 lx <= illuminance <= 3.576 Mlx.
-  if (!Number.isFinite(lux) || lux < 1) return 0;
-  // Matter 1.6.0 § 2.2.5.1: MeasuredValue = 10,000 x log10(illuminance) + 1.
-  const encoded = Math.round(10000 * Math.log10(lux) + 1);
-  return Math.min(encoded, 0xfffe);
-}
-
-/**
- * Convert a Matter encoded IlluminanceMeasurement MeasuredValue back to lux. This is the inverse of
- * luxToMatter: illuminance = 10 ^ ((MeasuredValue - 1) / 10000). Results are rounded to the nearest
- * integer lux for simplicity.
- *
- * Edge cases handled:
- *  - NaN / non‑finite / value <= 0 inputs -> treated as 0 lx (0 is the "too low to be measured" sentinel)
- *  - Inputs > 0xFFFE are capped at 0xFFFE (0xFFFF is reserved / invalid per spec)
- *
- * @param {number} value Encoded Matter illuminance value (0 .. 0xFFFE)
- * @returns {number} Illuminance in lux (integer, >= 0)
- */
-function matterToLux(value: number): number {
-  // Matter 1.6.0 § 2.2.5.1: MeasuredValue = 0 indicates an illuminance too low to be measured.
-  if (!Number.isFinite(value) || value <= 0) return 0;
-  const v = Math.min(value, 0xfffe);
-  // Matter 1.6.0 § 2.2.5.1: illuminance = 10 ^ ((MeasuredValue - 1) / 10,000), the inverse of luxToMatter.
-  return Math.round(Math.pow(10, (v - 1) / 10000));
-}
-
-/* v8 ignore stop */
+import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString, luxToMatter, matterToLux, parseVersionString } from 'matterbridge/utils';
 
 export type DynamicPlatformConfig = PlatformConfig & {
   whiteList: string[];
@@ -317,9 +268,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.7')) {
+    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.8')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.10.7". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.10.8". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -497,12 +448,6 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // associated: a MoveTo on the parent must drive every panel to a matching target, and the parent's overall
     // state must reflect once all panels have reached their own target. These helpers keep the parent and the
     // Lift/Tilt panels of the venetian blind in sync in both directions.
-    const closurePanelTargetPercent = (position: ClosureControl.TargetPosition): number => {
-      if (position === ClosureControl.TargetPosition.MoveToFullyOpen) return 0;
-      if (position === ClosureControl.TargetPosition.MoveToFullyClosed) return 10000;
-      return 5000; // Pedestrian/Ventilation/Signature positions: demo mid-travel value.
-    };
-
     // Tracks the pending "reach target" timer per panel and the pending parent-to-panel sync timer, so a new
     // moveTo/setTarget command cancels any stale timer instead of letting it fire later with an outdated target.
     const closurePanelReachTimeouts = new Map<MatterbridgeEndpoint, NodeJS.Timeout>();
@@ -578,7 +523,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         closureVenetianBlindMoveTimeout = undefined;
         const targetState = this.closureVenetianBlind?.getAttribute(ClosureControl, 'overallTargetState');
         if (targetState === undefined || targetState === null || targetState.position === undefined || targetState.position === null) return;
-        const panelPercent = closurePanelTargetPercent(targetState.position);
+        const panelPercent = this.closureVenetianBlind?.targetPositionToTargetPercent(targetState.position);
+        if (panelPercent === undefined) return;
         moveClosurePanelTo(closureVenetianBlindLift, panelPercent);
         moveClosurePanelTo(closureVenetianBlindTilt, panelPercent);
       }, 1000).unref();
