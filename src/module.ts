@@ -2602,6 +2602,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       operationalState: OperationalState.OperationalStateEnum.Stopped,
       currentPhase: 2,
       phaseList: ['pre-heating', 'pre-heated', 'cooling down'],
+      criticalOverTemperatureThreshold: 280 * 100,
     });
     this.oven.addCabinet('Lower Cabinet', {
       tagList: [{ mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label }],
@@ -2673,6 +2674,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       maxTemperature: -10 * 100,
       step: 1 * 100,
       currentTemperature: -1800,
+      criticalUnderTemperatureThreshold: -25 * 100,
     });
     this.refrigerator = await this.addDevice(refrigerator);
 
