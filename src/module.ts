@@ -1289,6 +1289,31 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.scheduleLock = await this.addDevice(this.scheduleLock);
 
+    // Matter 1.6.0 § 5.2.6.18.8: tracks ScheduleLock users of type ExpiringUser so the demo can simulate the lock
+    // autonomously disabling their credential once it expires, reporting UserStatus.OccupiedDisabled from GetUser.
+    // The demo has no way to tell which credential unlocked the door (see MatterbridgeDoorLockServer's note on
+    // CredentialOverTheAirAccess), so any successful UnlockDoor command is treated as the "first use" for every
+    // ExpiringUser still awaiting one. NextUserIndex, Credentials, and the fabric index fields are not tracked by
+    // this demo and are reported as null once a user expires; a real lock would resolve them from its own database.
+    //
+    // Reporting only, not enforcement: expiry here only changes what GetUser reports, it does not touch
+    // @matter/node's own user/credential database. Verified live with a real chip-tool client, PINCode included:
+    // this cluster has DoorLock.Feature.CredentialOverTheAirAccess disabled (see MatterbridgeDoorLockServer's note
+    // on it above), so a PinCode sent with UnlockDoor/LockDoor is rejected at the conformance layer before it can
+    // reach @matter/node's PIN check (#validatePin in @matter/node/behaviors/door-lock/DoorLockServer.ts) — remote
+    // Lock/Unlock is never actually gated by a credential on this endpoint, expired ExpiringUser or not. A real
+    // lock enforces this itself, in firmware the endpoint here has no equivalent of (MatterbridgeEndpoint's
+    // invokeBehaviorCommand could reach @matter/node's database directly, but it is deprecated, "used ONLY in Jest
+    // tests", so this demo does not call it from plugin code). So this demo's expiry is visible only to a GetUser
+    // query, never enforced against an actual unlock attempt. Not every controller is equally affected by
+    // MatterbridgeDoorLockServer's tradeoff — e.g. Home Assistant's Matter integration is known to send PinCode
+    // correctly for locks that do declare CredentialOverTheAirAccess — but that path isn't reachable through this
+    // plugin's locks either way, since the feature is off for every Matterbridge DoorLock, HA included.
+    const scheduleLockExpiringUsers = new Map<
+      number,
+      { userName: string | null; userUniqueId: number | null; credentialRule: DoorLock.CredentialRule | null; timeout?: NodeJS.Timeout; expired: boolean }
+    >();
+
     // The cluster attributes are set by MatterbridgeDoorLockServer
     this.scheduleLock?.addCommandHandler('Identify.identify', ({ request: { identifyTime } }) => {
       this.scheduleLock?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -1298,7 +1323,31 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     });
     this.scheduleLock?.addCommandHandler('DoorLock.unlockDoor', () => {
       this.scheduleLock?.log.info('Command unlockDoor called');
+      const expiringUserTimeout = this.scheduleLock?.getAttribute(DoorLock, 'expiringUserTimeout');
+      if (!expiringUserTimeout) return;
+      for (const [userIndex, user] of scheduleLockExpiringUsers) {
+        if (user.expired || user.timeout) continue; // already used or already expired
+        this.scheduleLock?.log.info(
+          `ExpiringUser ${user.userName ?? 'null'} (userIndex:${userIndex}) used its credential for the first time; it expires in ${expiringUserTimeout} minutes`,
+        );
+        /* v8 ignore start -- Demo timer simulates the lock autonomously disabling the user once its credential expires. */
+        user.timeout = setTimeout(
+          () => {
+            user.expired = true;
+            user.timeout = undefined;
+            this.scheduleLock?.log.info(`ExpiringUser ${user.userName ?? 'null'} (userIndex:${userIndex}) credential expired; userStatus set to OccupiedDisabled`);
+          },
+          expiringUserTimeout * 60 * 1000,
+        ).unref();
+        /* v8 ignore stop */
+      }
     });
+    // Reporting only, not enforcement: WeekDay/YearDay/Holiday schedules are stored and returned as-is by
+    // DoorLockServer (setWeekDaySchedule/setYearDaySchedule/setHolidaySchedule in
+    // @matter/node/behaviors/door-lock/DoorLockServer.ts only validate index/count constraints), and this demo adds
+    // no clock of its own on top. Neither this plugin nor @matter/node ever checks the current time against a
+    // schedule before validating a PIN, so a ScheduleRestrictedUser's PIN unlocks the door at any time regardless
+    // of the configured schedules.
     this.scheduleLock?.addCommandHandler('DoorLock.setWeekDaySchedule', ({ request: { weekDayIndex, userIndex } }) => {
       this.scheduleLock?.log.info(`Command setWeekDaySchedule called for weekDayIndex:${weekDayIndex} userIndex:${userIndex}`);
     });
@@ -1308,9 +1357,56 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.scheduleLock?.addCommandHandler('DoorLock.setHolidaySchedule', ({ request: { holidayIndex } }) => {
       this.scheduleLock?.log.info(`Command setHolidaySchedule called for holidayIndex:${holidayIndex}`);
     });
-    // Demonstrates DoorLock.UserType.ExpiringUser: its credential stays valid for expiringUserTimeout minutes after its first use (Matter 1.6.0 § 5.2.6.18.8).
-    this.scheduleLock?.addCommandHandler('DoorLock.setUser', ({ request: { userIndex, userType } }) => {
+    // Matter 1.6.0 § 5.2.6.18.8: (re)arm tracking whenever a user is (re)provisioned as ExpiringUser, and drop it
+    // otherwise so the countdown above only ever runs for users currently of that type.
+    this.scheduleLock?.addCommandHandler('DoorLock.setUser', ({ request: { userIndex, userName, userUniqueId, userType, credentialRule } }) => {
       this.scheduleLock?.log.info(`Command setUser called for userIndex:${userIndex} userType:${getEnumDescription(DoorLock.UserType, userType, { fallback: 'null' })}`);
+      if (userType === null) return; // Modify without changing UserType: keep any existing ExpiringUser tracking as-is.
+      const existing = scheduleLockExpiringUsers.get(userIndex);
+      clearTimeout(existing?.timeout);
+      scheduleLockExpiringUsers.delete(userIndex);
+      if (userType === DoorLock.UserType.ExpiringUser) {
+        scheduleLockExpiringUsers.set(userIndex, {
+          userName: userName ?? existing?.userName ?? null,
+          userUniqueId: userUniqueId ?? existing?.userUniqueId ?? null,
+          credentialRule: credentialRule ?? existing?.credentialRule ?? null,
+          expired: false,
+        });
+      }
+    });
+    this.scheduleLock?.addCommandHandler('DoorLock.getUser', ({ request: { userIndex } }) => {
+      const user = scheduleLockExpiringUsers.get(userIndex);
+      if (!user?.expired) {
+        // Not a tracked, expired ExpiringUser: fall back to MatterbridgeDoorLockServer's own user database. The
+        // mapped response type for a "get" command cannot express "no answer", but MatterbridgeDoorLockServer.getUser
+        // treats undefined exactly that way (falls back to its own database) before this cast erases the type.
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        return undefined as unknown as DoorLock.GetUserResponse;
+      }
+      this.scheduleLock?.log.info(`Command getUser called for userIndex:${userIndex}: credential expired, reporting userStatus OccupiedDisabled`);
+      return {
+        userIndex,
+        userName: user.userName,
+        userUniqueId: user.userUniqueId,
+        userStatus: DoorLock.UserStatus.OccupiedDisabled,
+        userType: DoorLock.UserType.ExpiringUser,
+        credentialRule: user.credentialRule,
+        credentials: null,
+        creatorFabricIndex: null,
+        lastModifiedFabricIndex: null,
+        nextUserIndex: null,
+      };
+    });
+    this.scheduleLock?.addCommandHandler('DoorLock.clearUser', ({ request: { userIndex } }) => {
+      this.scheduleLock?.log.info(`Command clearUser called for userIndex:${userIndex}`);
+      if (userIndex === 0xfffe) {
+        for (const user of scheduleLockExpiringUsers.values()) clearTimeout(user.timeout);
+        scheduleLockExpiringUsers.clear();
+        return;
+      }
+      const existing = scheduleLockExpiringUsers.get(userIndex);
+      clearTimeout(existing?.timeout);
+      scheduleLockExpiringUsers.delete(userIndex);
     });
     this.scheduleLock?.subscribeAttribute(
       DoorLock,
