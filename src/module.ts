@@ -1279,11 +1279,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.userPinLock.log,
     );
 
-    // *********************** Create a lock device with User, Pin and access schedule features ***********************
+    // *********************** Create a lock device with User, Pin and access schedule features, and an expiring user PIN (DoorLock.UserType.ExpiringUser) ***********************
     this.scheduleLock = new MatterbridgeEndpoint([doorLock, bridgedNode, powerSource], { id: 'ScheduleLock' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Lock with Schedules', 'LSC00080', 0xfff1, 'Matterbridge', 'Matterbridge Lock')
-      .createUserPinDoorLockClusterServer(DoorLock.LockState.Locked, DoorLock.LockType.DeadBolt, 0, 4, 10, 2, 3, 4)
+      .createUserPinDoorLockClusterServer(DoorLock.LockState.Locked, DoorLock.LockType.DeadBolt, 0, 4, 10, 2, 3, 4, 10)
       .createDefaultPowerSourceRechargeableBatteryClusterServer(95)
       .addRequiredClusterServers();
 
@@ -1308,11 +1308,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.scheduleLock?.addCommandHandler('DoorLock.setHolidaySchedule', ({ request: { holidayIndex } }) => {
       this.scheduleLock?.log.info(`Command setHolidaySchedule called for holidayIndex:${holidayIndex}`);
     });
+    // Demonstrates DoorLock.UserType.ExpiringUser: its credential stays valid for expiringUserTimeout minutes after its first use (Matter 1.6.0 § 5.2.6.18.8).
+    this.scheduleLock?.addCommandHandler('DoorLock.setUser', ({ request: { userIndex, userType } }) => {
+      this.scheduleLock?.log.info(`Command setUser called for userIndex:${userIndex} userType:${getEnumDescription(DoorLock.UserType, userType, { fallback: 'null' })}`);
+    });
     this.scheduleLock?.subscribeAttribute(
       DoorLock,
       'operatingMode',
       (value) => {
         this.scheduleLock?.log.info(`Subscribe operatingMode called with: ${getEnumDescription(DoorLock.OperatingMode, value)}`);
+      },
+      this.scheduleLock.log,
+    );
+    this.scheduleLock?.subscribeAttribute(
+      DoorLock,
+      'expiringUserTimeout',
+      (value) => {
+        this.scheduleLock?.log.info(`Subscribe expiringUserTimeout called with: ${value}`);
       },
       this.scheduleLock.log,
     );
