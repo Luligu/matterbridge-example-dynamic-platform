@@ -50,7 +50,7 @@ It exposes 77 virtual devices:
 - a cover with windowCovering cluster and both lift and tilt features
 - a lock with doorLock cluster
 - a lock with doorLock cluster and User and PinCredential support (userPinLock)
-- a lock with doorLock cluster, User and PinCredential support, and WeekDay, YearDay and Holiday access schedules (scheduleLock)
+- a lock with doorLock cluster, User and PinCredential support, WeekDay, YearDay and Holiday access schedules, and an expiring user PIN (DoorLock.UserType.ExpiringUser) via the expiringUserTimeout attribute (scheduleLock)
 - a thermostat auto mode (i.e. with Auto Heat and Cool features) with thermostat cluster and 3 sub endpoints with flowMeasurement cluster, temperatureMeasurement cluster
   and relativeHumidityMeasurement cluster (to show how to create a composed device with sub endpoints)
 - a thermostat with auto mode (i.e. with Auto Heat and Cool features), occupancy and outdoorTemperature

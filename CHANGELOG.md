@@ -35,6 +35,10 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [matterbridge]: Require matterbridge v.3.10.8 with matter v.1.6.0.
 
+### Added
+
+- [platform]: `ScheduleLock` now sets the `expiringUserTimeout` parameter of `createUserPinDoorLockClusterServer()`, creating the `ExpiringUserTimeout` attribute (Matter 1.6.0 § 5.2.6.18.8), and demonstrates a `DoorLock.UserType.ExpiringUser` temporary PIN via a `DoorLock.setUser` example.
+
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
 ## [3.0.3] - 2026-08-30

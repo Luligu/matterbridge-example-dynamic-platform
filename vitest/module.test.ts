@@ -327,6 +327,15 @@ describe('TestPlatform', () => {
           userType: DoorLock.UserType.ScheduleRestrictedUser,
           credentialRule: DoorLock.CredentialRule.Single,
         });
+        await device.invokeBehaviorCommand(DoorLock, 'setUser', {
+          operationType: DoorLock.DataOperationType.Add,
+          userIndex: 2,
+          userName: 'Temporary Guest',
+          userUniqueId: 101,
+          userStatus: DoorLock.UserStatus.OccupiedEnabled,
+          userType: DoorLock.UserType.ExpiringUser,
+          credentialRule: DoorLock.CredentialRule.Single,
+        });
         await device.invokeBehaviorCommand(DoorLock, 'setWeekDaySchedule', {
           weekDayIndex: 1,
           userIndex: 1,
