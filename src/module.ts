@@ -2579,7 +2579,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create an Oven **************************
     this.oven = new Oven('Oven', 'OVN00054');
-    this.oven.addCabinet('Upper Cabinet', {
+    const ovenUpperCabinet = this.oven.addCabinet('Upper Cabinet', {
       tagList: [{ mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label }],
       currentMode: 2,
       supportedModes: [
@@ -2602,8 +2602,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       operationalState: OperationalState.OperationalStateEnum.Stopped,
       currentPhase: 2,
       phaseList: ['pre-heating', 'pre-heated', 'cooling down'],
-      criticalOverTemperatureThreshold: 280 * 100,
     });
+    // Enable the TemperatureAlarm OverTemperature feature directly on the cabinet endpoint.
+    ovenUpperCabinet.createDefaultTemperatureAlarmClusterServer(280 * 100);
     this.oven.addCabinet('Lower Cabinet', {
       tagList: [{ mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label }],
       currentMode: 3,
@@ -2664,7 +2665,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       step: 1 * 100,
       currentTemperature: 1200,
     });
-    refrigerator.addCabinet('Freezer Bottom', {
+    const freezerBottomCabinet = refrigerator.addCabinet('Freezer Bottom', {
       tagList: [
         { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: 'Freezer Bottom' },
         { mfgCode: null, namespaceId: RefrigeratorTag.Freezer.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label },
@@ -2674,8 +2675,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       maxTemperature: -10 * 100,
       step: 1 * 100,
       currentTemperature: -1800,
-      criticalUnderTemperatureThreshold: -25 * 100,
     });
+    // Enable the TemperatureAlarm UnderTemperature feature directly on the cabinet endpoint.
+    freezerBottomCabinet.createDefaultTemperatureAlarmClusterServer(undefined, -25 * 100);
     this.refrigerator = await this.addDevice(refrigerator);
 
     // *********************** Create a airConditioner device ***********************
