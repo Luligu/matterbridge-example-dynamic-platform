@@ -358,6 +358,10 @@ describe('TestPlatform', () => {
         });
         await device.invokeBehaviorCommand(DoorLock, 'getHolidaySchedule', { holidayIndex: 1 });
         await device.invokeBehaviorCommand(DoorLock, 'clearHolidaySchedule', { holidayIndex: 1 });
+        // Set to a different value to exercise the subscribeAttribute callback (it only fires on change), then
+        // restore the original 10-minute default so the later ExpiringUser lifecycle test's timer math still holds.
+        await device.setAttribute(DoorLock, 'expiringUserTimeout', 15);
+        await device.setAttribute(DoorLock, 'expiringUserTimeout', 10);
       }
       if (device.id === 'RfidLock') {
         // oxlint-disable-next-line vitest/no-conditional-expect
@@ -539,6 +543,24 @@ describe('TestPlatform', () => {
       logInfoSpy.mockClear();
       await vi.advanceTimersByTimeAsync(10 * 60 * 1000 + 100);
       expect(logInfoSpy).not.toHaveBeenCalledWith(expect.stringContaining('userIndex:3'));
+
+      // clearUser(0xfffe) clears every tracked ExpiringUser at once, cancelling each pending countdown.
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'setUser', {
+        operationType: DoorLock.DataOperationType.Add,
+        userIndex: 4,
+        userName: 'Third Guest',
+        userUniqueId: 103,
+        userStatus: DoorLock.UserStatus.OccupiedEnabled,
+        userType: DoorLock.UserType.ExpiringUser,
+        credentialRule: DoorLock.CredentialRule.Single,
+      });
+      logInfoSpy.mockClear();
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'unlockDoor', {});
+      expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Third Guest (userIndex:4) used its credential for the first time'));
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'clearUser', { userIndex: 0xfffe });
+      logInfoSpy.mockClear();
+      await vi.advanceTimersByTimeAsync(10 * 60 * 1000 + 100);
+      expect(logInfoSpy).not.toHaveBeenCalledWith(expect.stringContaining('userIndex:4'));
     } finally {
       vi.useRealTimers();
     }
