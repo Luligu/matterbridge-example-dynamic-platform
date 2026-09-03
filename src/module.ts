@@ -3005,9 +3005,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1000, freezer.log);
           }
           if (this.phase === 1) await this.refrigerator.setDoorOpenState(true);
-          if (this.phase === 2) await this.refrigerator.triggerDoorOpenState(true);
           if (this.phase === 4) await this.refrigerator.setDoorOpenState(false);
-          if (this.phase === 4) await this.refrigerator.triggerDoorOpenState(false);
           if (this.phase === 5) {
             const refrigerator = this.refrigerator.getChildEndpointById('RefrigeratorTop');
             // 1 Auto 2 RapidCool
@@ -3022,9 +3020,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await freezer?.setAttribute('TemperatureMeasurement', 'measuredValue', -1500, freezer.log);
           }
           if (this.phase === 6) await this.refrigerator.setDoorOpenState(true);
-          if (this.phase === 7) await this.refrigerator.triggerDoorOpenState(true);
           if (this.phase === 9) await this.refrigerator.setDoorOpenState(false);
-          if (this.phase === 9) await this.refrigerator.triggerDoorOpenState(false);
         }
         this.phase += 1;
         this.phase = this.phase >= 10 ? 0 : this.phase;
