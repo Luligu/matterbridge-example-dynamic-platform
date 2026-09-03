@@ -358,6 +358,10 @@ describe('TestPlatform', () => {
         });
         await device.invokeBehaviorCommand(DoorLock, 'getHolidaySchedule', { holidayIndex: 1 });
         await device.invokeBehaviorCommand(DoorLock, 'clearHolidaySchedule', { holidayIndex: 1 });
+        // Restore the value right back to 10: a later test relies on the 10 minute expiringUserTimeout configured
+        // on this cluster to arm the ExpiringUser countdown it advances fake timers past.
+        await device.setAttribute(DoorLock, 'expiringUserTimeout', 15);
+        await device.setAttribute(DoorLock, 'expiringUserTimeout', 10);
       }
 
       if (device.hasClusterServer(FanControl)) {
@@ -505,6 +509,12 @@ describe('TestPlatform', () => {
       logInfoSpy.mockClear();
       await vi.advanceTimersByTimeAsync(10 * 60 * 1000 + 100);
       expect(logInfoSpy).not.toHaveBeenCalledWith(expect.stringContaining('userIndex:3'));
+
+      // ClearUser with the 0xFFFE "clear all users" sentinel (matched by @matter/node's own DoorLockServer) drops
+      // every tracked ExpiringUser, not just the one addressed by a specific userIndex.
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'clearUser', { userIndex: 0xfffe });
+      const clearedUser = await scheduleLock.executeCommandHandler('DoorLock.getUser', { userIndex: 2 }, 'doorLock', {} as never, scheduleLock);
+      expect(clearedUser).toBeUndefined();
     } finally {
       vi.useRealTimers();
     }
