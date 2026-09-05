@@ -40,6 +40,16 @@ If you like this project and find it useful, please consider giving it a star on
 - [platform]: `ScheduleLock` now sets the `expiringUserTimeout` parameter of `createUserPinDoorLockClusterServer()`, creating the `ExpiringUserTimeout` attribute (Matter 1.6.0 § 5.2.6.18.8), and implements the `DoorLock.UserType.ExpiringUser` business logic: the first `UnlockDoor` after a user is provisioned as `ExpiringUser` arms a countdown of `expiringUserTimeout` minutes, after which `GetUser` reports that user's `UserStatus` as `OccupiedDisabled`. Verified live against a real chip-tool client (`SetUser` → `UnlockDoor` → wait out the countdown → `GetUser`).
   - This is reporting only, not access enforcement: the expiry updates this plugin's own tracking and `GetUser`'s response, not `@matter/node`'s user/credential database. Verified live with chip-tool, `PINCode` included: `ScheduleLock` has `DoorLock.Feature.CredentialOverTheAirAccess` disabled, so a `PinCode` sent with `UnlockDoor` is rejected at the conformance layer before it can reach `@matter/node`'s PIN check — remote Lock/Unlock is never actually gated by a credential on this endpoint, expired `ExpiringUser` or not. The same applies to the existing WeekDay/YearDay/Holiday access schedules: both this plugin and `@matter/node`'s `DoorLockServer` store and return schedules as-is and never check the current time against them before validating a PIN.
   - `CredentialOverTheAirAccess` is disabled for every Matterbridge `DoorLock` at the `MatterbridgeDoorLockServer` class level (not something a plugin can turn back on per endpoint), because some controllers never send `PinCode` even when the cluster requires it for remote operations. Not every controller is equally affected — e.g. Home Assistant's Matter integration is known to send `PinCode` correctly for locks that do declare the feature — but that path is unreachable through this plugin's locks either way, since the feature is off for all of them regardless of controller.
+- [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
+
+### Changed
+
+- [package]: Upgrade package.
+- [package]: Update dependencies.
+- [package]: Bump `@types/node` to v.26.4.1.
+- [package]: Bump `@vitest/coverage-v8` and `vitest` to v.5.0.0.
+- [package]: Bump `oxfmt` to v.0.66.0.
+- [package]: Bump `oxlint` to v.1.81.0.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
