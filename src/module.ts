@@ -208,6 +208,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   lock: MatterbridgeEndpoint | undefined;
   userPinLock: MatterbridgeEndpoint | undefined;
   scheduleLock: MatterbridgeEndpoint | undefined;
+  rfidLock: MatterbridgeEndpoint | undefined;
   thermoAuto: MatterbridgeEndpoint | undefined;
   thermoAutoOccupancy: MatterbridgeEndpoint | undefined;
   thermoAutoPresets: MatterbridgeEndpoint | undefined;
@@ -1315,6 +1316,38 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         this.scheduleLock?.log.info(`Subscribe operatingMode called with: ${getEnumDescription(DoorLock.OperatingMode, value)}`);
       },
       this.scheduleLock.log,
+    );
+
+    // *********************** Create a lock device with User, Pin and RFID credential features ***********************
+    this.rfidLock = new MatterbridgeEndpoint([doorLock, bridgedNode, powerSource], { id: 'RfidLock' }, this.config.debug)
+      .createDefaultIdentifyClusterServer()
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Lock with RFID', 'LRF00090', 0xfff1, 'Matterbridge', 'Matterbridge Lock')
+      .createUserPinDoorLockClusterServer(DoorLock.LockState.Locked, DoorLock.LockType.DeadBolt, 0, 4, 10, undefined, undefined, undefined, undefined, 10)
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(95)
+      .addRequiredClusterServers();
+
+    this.rfidLock = await this.addDevice(this.rfidLock);
+
+    // Matter 1.6.0 § 5.2.4: numberOfRfidUsersSupported (set above) enables DoorLock.Feature.RfidCredential and its
+    // NumberOfRFIDUsersSupported/MinRFIDCodeLength/MaxRFIDCodeLength attributes. SetCredential, GetCredentialStatus
+    // and ClearCredential already handle DoorLock.CredentialType.Rfid generically in MatterbridgeDoorLockServer, so
+    // this demo needs no RFID-specific command handlers beyond the usual lockDoor/unlockDoor/identify below.
+    this.rfidLock?.addCommandHandler('Identify.identify', ({ request: { identifyTime } }) => {
+      this.rfidLock?.log.info(`Command identify called identifyTime:${identifyTime}`);
+    });
+    this.rfidLock?.addCommandHandler('DoorLock.lockDoor', () => {
+      this.rfidLock?.log.info('Command lockDoor called');
+    });
+    this.rfidLock?.addCommandHandler('DoorLock.unlockDoor', () => {
+      this.rfidLock?.log.info('Command unlockDoor called');
+    });
+    this.rfidLock?.subscribeAttribute(
+      DoorLock,
+      'operatingMode',
+      (value) => {
+        this.rfidLock?.log.info(`Subscribe operatingMode called with: ${getEnumDescription(DoorLock.OperatingMode, value)}`);
+      },
+      this.rfidLock.log,
     );
 
     // *********************** Create a thermostat with AutoMode device ***********************
@@ -3329,6 +3362,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // Set schedule lock to Locked
     await this.scheduleLock?.setAttribute(DoorLock.id, 'lockState', DoorLock.LockState.Locked, this.scheduleLock.log);
     this.scheduleLock?.log.info('Set schedule lock initial lockState to Locked');
+
+    // Set rfid lock to Locked
+    await this.rfidLock?.setAttribute(DoorLock.id, 'lockState', DoorLock.LockState.Locked, this.rfidLock.log);
+    this.rfidLock?.log.info('Set rfid lock initial lockState to Locked');
 
     // Set local to 16°C
     await this.thermoAuto?.setAttribute(Thermostat.id, 'localTemperature', 16 * 100, this.thermoAuto.log);

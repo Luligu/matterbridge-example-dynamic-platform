@@ -37,6 +37,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
+- [platform]: Add `RfidLock` device: a door lock with the User, PinCredential, and RfidCredential (RID) features, testing the `numberOfRfidUsersSupported` parameter of `createUserPinDoorLockClusterServer()` (Matter 1.6.0 § 5.2.4). `SetCredential`, `GetCredentialStatus`, and `ClearCredential` already handle `DoorLock.CredentialType.Rfid` generically in `MatterbridgeDoorLockServer`, so no RFID-specific command handlers were needed for this device.
 - [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
 
 ### Changed

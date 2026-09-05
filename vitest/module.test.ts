@@ -147,7 +147,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(77);
+    expect(dynamicPlatform.getDevices()).toHaveLength(78);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -155,7 +155,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(77);
+    expect(dynamicPlatform.getDevices()).toHaveLength(78);
     const percentSettingSubscribers = new Set([dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner]);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
@@ -349,6 +349,40 @@ describe('TestPlatform', () => {
         });
         await device.invokeBehaviorCommand(DoorLock, 'getHolidaySchedule', { holidayIndex: 1 });
         await device.invokeBehaviorCommand(DoorLock, 'clearHolidaySchedule', { holidayIndex: 1 });
+      }
+      if (device.id === 'RfidLock') {
+        // oxlint-disable-next-line vitest/no-conditional-expect
+        expect(device.getAttribute(DoorLock, 'numberOfRfidUsersSupported')).toBe(10);
+        // oxlint-disable-next-line vitest/no-conditional-expect
+        expect(device.getAttribute(DoorLock, 'minRfidCodeLength')).toBe(8);
+        // oxlint-disable-next-line vitest/no-conditional-expect
+        expect(device.getAttribute(DoorLock, 'maxRfidCodeLength')).toBe(20);
+
+        // Matter 1.6.0 § 5.2.4: 14-byte ASCII-hex representation of a 7-byte ISO 14443A UID, within the default [8, 20] range.
+        const rfidTag = Buffer.from('04A224B21C6E80', 'ascii');
+
+        // SetCredential/GetCredentialStatus/ClearCredential are handled entirely by MatterbridgeDoorLockServer (no
+        // plugin command handler is registered for them), so this only exercises the round trip for coverage;
+        // asserting the CredentialType.Rfid GetCredentialStatus response itself is matterbridge core's job.
+        await device.invokeBehaviorCommand(DoorLock, 'setUser', {
+          operationType: DoorLock.DataOperationType.Add,
+          userIndex: 1,
+          userName: 'RFID User',
+          userUniqueId: 100,
+          userStatus: DoorLock.UserStatus.OccupiedEnabled,
+          userType: DoorLock.UserType.UnrestrictedUser,
+          credentialRule: DoorLock.CredentialRule.Single,
+        });
+        await device.invokeBehaviorCommand(DoorLock, 'setCredential', {
+          operationType: DoorLock.DataOperationType.Add,
+          credential: { credentialType: DoorLock.CredentialType.Rfid, credentialIndex: 1 },
+          credentialData: rfidTag,
+          userIndex: 1,
+          userStatus: null,
+          userType: null,
+        });
+        await device.invokeBehaviorCommand(DoorLock, 'getCredentialStatus', { credential: { credentialType: DoorLock.CredentialType.Rfid, credentialIndex: 1 } });
+        await device.invokeBehaviorCommand(DoorLock, 'clearCredential', { credential: { credentialType: DoorLock.CredentialType.Rfid, credentialIndex: 1 } });
       }
 
       if (device.hasClusterServer(FanControl)) {
@@ -838,7 +872,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(77);
+    expect(dynamicPlatform.getDevices()).toHaveLength(78);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
 
     await dynamicPlatform.executeIntervals(26, 10);
