@@ -35,6 +35,10 @@ If you like this project and find it useful, please consider giving it a star on
 
 - [matterbridge]: Require matterbridge v.3.10.8 with matter v.1.6.0.
 
+### Added
+
+- [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
+
 ### Changed
 
 - [package]: Upgrade package.

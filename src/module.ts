@@ -2579,7 +2579,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create an Oven **************************
     this.oven = new Oven('Oven', 'OVN00054');
-    this.oven.addCabinet('Upper Cabinet', {
+    const ovenUpperCabinet = this.oven.addCabinet('Upper Cabinet', {
       tagList: [{ mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: CommonPositionTag.Top.label }],
       currentMode: 2,
       supportedModes: [
@@ -2603,7 +2603,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       currentPhase: 2,
       phaseList: ['pre-heating', 'pre-heated', 'cooling down'],
     });
-    this.oven.addCabinet('Lower Cabinet', {
+    // Enable the TemperatureAlarm OverTemperature feature directly on the cabinet endpoint.
+    ovenUpperCabinet.createDefaultTemperatureAlarmClusterServer(280_00);
+    const ovenLowerCabinet = this.oven.addCabinet('Lower Cabinet', {
       tagList: [{ mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label }],
       currentMode: 3,
       supportedModes: [
@@ -2620,6 +2622,8 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       currentPhase: 1,
       phaseList: ['pre-heating', 'pre-heated', 'cooling down'],
     });
+    // Enable the TemperatureAlarm OverTemperature feature directly on the cabinet endpoint.
+    ovenLowerCabinet.createDefaultTemperatureAlarmClusterServer(280_00);
     this.oven = await this.addDevice(this.oven);
 
     // *********************** Create an Cooktop **************************
@@ -2652,7 +2656,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create an Refrigerator **************************
     const refrigerator = new Refrigerator('Refrigerator', 'REF00056');
-    refrigerator.addCabinet('Refrigerator Top', {
+    const refrigeratorTopCabinet = refrigerator.addCabinet('Refrigerator Top', {
       tagList: [
         { mfgCode: null, namespaceId: CommonPositionTag.Top.namespaceId, tag: CommonPositionTag.Top.tag, label: 'Refrigerator Top' },
         { mfgCode: null, namespaceId: RefrigeratorTag.Refrigerator.namespaceId, tag: RefrigeratorTag.Refrigerator.tag, label: RefrigeratorTag.Refrigerator.label },
@@ -2663,17 +2667,21 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       step: 1 * 100,
       currentTemperature: 1200,
     });
-    refrigerator.addCabinet('Freezer Bottom', {
+    // Enable the TemperatureAlarm UnderTemperature feature directly on the cabinet endpoint.
+    refrigeratorTopCabinet.createDefaultTemperatureAlarmClusterServer(20_00, 5_00);
+    const freezerBottomCabinet = refrigerator.addCabinet('Freezer Bottom', {
       tagList: [
         { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: 'Freezer Bottom' },
         { mfgCode: null, namespaceId: RefrigeratorTag.Freezer.namespaceId, tag: RefrigeratorTag.Freezer.tag, label: RefrigeratorTag.Freezer.label },
       ],
       targetTemperature: -18 * 100,
-      minTemperature: -30 * 100,
+      minTemperature: -25 * 100,
       maxTemperature: -10 * 100,
       step: 1 * 100,
       currentTemperature: -1800,
     });
+    // Enable the TemperatureAlarm UnderTemperature feature directly on the cabinet endpoint.
+    freezerBottomCabinet.createDefaultTemperatureAlarmClusterServer(-5_00, -30_00);
     this.refrigerator = await this.addDevice(refrigerator);
 
     // *********************** Create a airConditioner device ***********************
