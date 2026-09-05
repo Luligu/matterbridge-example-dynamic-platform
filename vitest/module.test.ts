@@ -327,6 +327,15 @@ describe('TestPlatform', () => {
           userType: DoorLock.UserType.ScheduleRestrictedUser,
           credentialRule: DoorLock.CredentialRule.Single,
         });
+        await device.invokeBehaviorCommand(DoorLock, 'setUser', {
+          operationType: DoorLock.DataOperationType.Add,
+          userIndex: 2,
+          userName: 'Temporary Guest',
+          userUniqueId: 101,
+          userStatus: DoorLock.UserStatus.OccupiedEnabled,
+          userType: DoorLock.UserType.ExpiringUser,
+          credentialRule: DoorLock.CredentialRule.Single,
+        });
         await device.invokeBehaviorCommand(DoorLock, 'setWeekDaySchedule', {
           weekDayIndex: 1,
           userIndex: 1,
@@ -349,6 +358,10 @@ describe('TestPlatform', () => {
         });
         await device.invokeBehaviorCommand(DoorLock, 'getHolidaySchedule', { holidayIndex: 1 });
         await device.invokeBehaviorCommand(DoorLock, 'clearHolidaySchedule', { holidayIndex: 1 });
+        // Restore the value right back to 10: a later test relies on the 10 minute expiringUserTimeout configured
+        // on this cluster to arm the ExpiringUser countdown it advances fake timers past.
+        await device.setAttribute(DoorLock, 'expiringUserTimeout', 15);
+        await device.setAttribute(DoorLock, 'expiringUserTimeout', 10);
       }
 
       if (device.hasClusterServer(FanControl)) {
@@ -441,6 +454,71 @@ describe('TestPlatform', () => {
       }
     }
   }, 60000);
+
+  it('should expire a ScheduleLock ExpiringUser credential after its first use', async () => {
+    const scheduleLock = dynamicPlatform.getDeviceByName('Lock with Schedules');
+    expect(scheduleLock).toBeDefined();
+    if (!scheduleLock) return;
+
+    const logInfoSpy = vi.spyOn(scheduleLock.log, 'info');
+
+    // The demo timer that runs the expiry countdown is a real (unref'd) setTimeout; fake timers let us advance
+    // past its 10 minute expiringUserTimeout instantly instead of waiting on wall-clock time.
+    vi.useFakeTimers();
+    try {
+      // userIndex 2 was provisioned as ExpiringUser by the previous test; its first UnlockDoor arms the countdown.
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'unlockDoor', {});
+      expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Temporary Guest (userIndex:2) used its credential for the first time'));
+
+      // A second unlock before expiry must not re-arm an already-running countdown.
+      logInfoSpy.mockClear();
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'unlockDoor', {});
+      expect(logInfoSpy).not.toHaveBeenCalledWith(expect.stringContaining('used its credential for the first time'));
+
+      // Advance past the 10 minute expiringUserTimeout configured on this cluster.
+      await vi.advanceTimersByTimeAsync(10 * 60 * 1000 + 100);
+      expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Temporary Guest (userIndex:2) credential expired; userStatus set to OccupiedDisabled'));
+
+      // GetUser now reports the expired ExpiringUser as OccupiedDisabled (Matter 1.6.0 § 5.2.6.18.8).
+      const expiredUser = await scheduleLock.executeCommandHandler('DoorLock.getUser', { userIndex: 2 }, 'doorLock', {} as never, scheduleLock);
+      expect(expiredUser).toMatchObject({
+        userIndex: 2,
+        userName: 'Temporary Guest',
+        userStatus: DoorLock.UserStatus.OccupiedDisabled,
+        userType: DoorLock.UserType.ExpiringUser,
+      });
+
+      // A userIndex this demo doesn't track (or isn't expired) falls back to MatterbridgeDoorLockServer's own user database.
+      const untrackedUser = await scheduleLock.executeCommandHandler('DoorLock.getUser', { userIndex: 1 }, 'doorLock', {} as never, scheduleLock);
+      expect(untrackedUser).toBeUndefined();
+
+      // Clearing a pending ExpiringUser cancels its countdown instead of leaking the timer.
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'setUser', {
+        operationType: DoorLock.DataOperationType.Add,
+        userIndex: 3,
+        userName: 'Second Guest',
+        userUniqueId: 102,
+        userStatus: DoorLock.UserStatus.OccupiedEnabled,
+        userType: DoorLock.UserType.ExpiringUser,
+        credentialRule: DoorLock.CredentialRule.Single,
+      });
+      logInfoSpy.mockClear();
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'unlockDoor', {});
+      expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Second Guest (userIndex:3) used its credential for the first time'));
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'clearUser', { userIndex: 3 });
+      logInfoSpy.mockClear();
+      await vi.advanceTimersByTimeAsync(10 * 60 * 1000 + 100);
+      expect(logInfoSpy).not.toHaveBeenCalledWith(expect.stringContaining('userIndex:3'));
+
+      // ClearUser with the 0xFFFE "clear all users" sentinel (matched by @matter/node's own DoorLockServer) drops
+      // every tracked ExpiringUser, not just the one addressed by a specific userIndex.
+      await scheduleLock.invokeBehaviorCommand(DoorLock, 'clearUser', { userIndex: 0xfffe });
+      const clearedUser = await scheduleLock.executeCommandHandler('DoorLock.getUser', { userIndex: 2 }, 'doorLock', {} as never, scheduleLock);
+      expect(clearedUser).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
   it('should set percent current to 50 when percent setting is null', async () => {
     const percentSettingSubscribers = [dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner];
