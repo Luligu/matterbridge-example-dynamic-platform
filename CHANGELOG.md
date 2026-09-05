@@ -37,7 +37,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
-- [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets: `criticalOverTemperatureThreshold` on the Oven's Upper Cabinet, `criticalUnderTemperatureThreshold` on the Refrigerator's Freezer Bottom cabinet. Requires the matterbridge `TemperatureAlarm` support (not yet released).
+- [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
