@@ -42,6 +42,16 @@ If you like this project and find it useful, please consider giving it a star on
   - `CredentialOverTheAirAccess` is disabled for every Matterbridge `DoorLock` at the `MatterbridgeDoorLockServer` class level (not something a plugin can turn back on per endpoint), because some controllers never send `PinCode` even when the cluster requires it for remote operations. Not every controller is equally affected — e.g. Home Assistant's Matter integration is known to send `PinCode` correctly for locks that do declare the feature — but that path is unreachable through this plugin's locks either way, since the feature is off for all of them regardless of controller.
 - [platform]: Add `RfidLock` device: a door lock with the User, PinCredential, and RfidCredential (RID) features, testing the `numberOfRfidUsersSupported` parameter of `createUserPinDoorLockClusterServer()` (Matter 1.6.0 § 5.2.4). `SetCredential`, `GetCredentialStatus`, and `ClearCredential` already handle `DoorLock.CredentialType.Rfid` generically in `MatterbridgeDoorLockServer`, so no RFID-specific command handlers were needed for this device.
   - Requires the `numberOfRfidUsersSupported` support added by Luligu in [`110fd13`](https://github.com/Luligu/matterbridge/commit/110fd133bdcc1db07d407f2c30992a28a3604013) ([PR #630](https://github.com/Luligu/matterbridge/pull/630)), now merged into `matterbridge` `dev`, until it lands in a v.3.10.8 (or later) release.
+- [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
+
+### Changed
+
+- [package]: Upgrade package.
+- [package]: Update dependencies.
+- [package]: Bump `@types/node` to v.26.4.1.
+- [package]: Bump `@vitest/coverage-v8` and `vitest` to v.5.0.0.
+- [package]: Bump `oxfmt` to v.0.66.0.
+- [package]: Bump `oxlint` to v.1.81.0.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
