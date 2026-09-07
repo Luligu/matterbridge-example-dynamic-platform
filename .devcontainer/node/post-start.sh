@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# .devcontainer/node/post-start.sh v.2.0.0
+# .devcontainer/node/post-start.sh v.2.1.0
 
 # This script runs after the Dev Container is started to set up the dev container environment.
 
@@ -21,23 +21,23 @@ echo "Npm version: $(npm -v)"
 echo "Npm cache: $(npm config get cache)"
 echo ""
 
-echo "1.post-start - Installing the plugin dependencies..."
-npm ci --no-fund --no-audit
+echo $'\033[36m'"[$(date '+%Y-%m-%d %H:%M:%S')]"$'\033[0m' "1.post-start - Installing the plugin dependencies..."
+npm install --no-fund --no-audit
 
-echo "2.post-start - Linking Matterbridge..."
+echo $'\033[36m'"[$(date '+%Y-%m-%d %H:%M:%S')]"$'\033[0m' "2.post-start - Linking Matterbridge..."
 if ! npm link matterbridge --no-fund --no-audit; then
 	echo "Retrying link with elevated permissions..."
 	sudo npm link matterbridge --no-fund --no-audit
 	sudo chown -R node:node ./node_modules
 fi
 
-echo "3.post-start - Building the plugin..."
+echo $'\033[36m'"[$(date '+%Y-%m-%d %H:%M:%S')]"$'\033[0m' "3.post-start - Building the plugin..."
 npm run build
 
-echo "4.post-start - Checking for the plugin frontend..."
+echo $'\033[36m'"[$(date '+%Y-%m-%d %H:%M:%S')]"$'\033[0m' "4.post-start - Checking for the plugin frontend..."
 if [ -f apps/frontend/package.json ]; then
-	echo "4.post-start - Building the plugin frontend..."
-	cd apps/frontend && npm ci --no-fund --no-audit && npm run build && cd ../..
+	echo $'\033[36m'"[$(date '+%Y-%m-%d %H:%M:%S')]"$'\033[0m' "4.post-start - Building the plugin frontend..."
+	cd apps/frontend && npm install --no-fund --no-audit && npm run build && cd ../..
 fi
 
-echo "5.post-start - Post start setup completed!"
+echo $'\033[36m'"[$(date '+%Y-%m-%d %H:%M:%S')]"$'\033[0m' "5.post-start - Post start setup completed!"
