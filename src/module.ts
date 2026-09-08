@@ -2441,19 +2441,19 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       await switch4.addFixedLabel('room', 'Living Room');
       await switch4.addFixedLabel('switch', 'Switch 4');
       await switch4.addFixedLabel('button', 'Button 4');
-      await switch4.addFixedLabel('ha_entitylabel', 'DIY');
+      await switch4.addFixedLabel('ha_entitylabel', 'Switch 4');
 
       await switch5.addFixedLabel('name', 'Switch 5');
       await switch5.addFixedLabel('room', 'Living Room');
       await switch5.addFixedLabel('switch', 'Switch 5');
       await switch5.addFixedLabel('button', 'Button 5');
-      await switch5.addFixedLabel('ha_entitylabel', 'DIY');
+      await switch5.addFixedLabel('ha_entitylabel', 'Switch 5');
 
       await switch6.addFixedLabel('name', 'Switch 6');
       await switch6.addFixedLabel('room', 'Living Room');
       await switch6.addFixedLabel('switch', 'Switch 6');
       await switch6.addFixedLabel('button', 'Button 6');
-      await switch6.addFixedLabel('ha_entitylabel', 'DIY');
+      await switch6.addFixedLabel('ha_entitylabel', 'Switch 6');
     }
 
     // *********************** Create a latching switch *****************************/
