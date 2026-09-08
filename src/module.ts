@@ -2436,7 +2436,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.momentarySwitch = await this.addDevice(this.momentarySwitch);
 
     if (this.momentarySwitch) {
-      // This is just a test. No effect so far on any controller
+      // 'name', 'room', 'switch', and 'button' are just tests: no controller currently reads them.
+      // 'ha_entitylabel' is different: Home Assistant's Matter integration reads it to override the entity name,
+      // for bridged devices whose (vendorId, productId) is in its allowlist (see the Momentary switch productId above).
       await switch4.addFixedLabel('name', 'Switch 4');
       await switch4.addFixedLabel('room', 'Living Room');
       await switch4.addFixedLabel('switch', 'Switch 4');
