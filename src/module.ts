@@ -2339,7 +2339,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a momentary switch ***********************
     this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Momentary switch composed' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Momentary switch', 'MOS00041', 0xfff1, 'Matterbridge', 'Matterbridge Momentary Switch')
+      // Report productId 0x8000 (Matter test ProductId, paired with the default vendorId 0xfff1) so Home Assistant's (vendorId, productId) allowlist can match the ha_entitylabel FixedLabels below.
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Momentary switch',
+        'MOS00041',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Momentary Switch',
+        1,
+        '1.0.0',
+        1,
+        '1.0.0',
+        'Matter Bridged Endpoint',
+        'https://matterbridge.io',
+        1,
+        0x8000,
+      )
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
     fireAndForget(this.momentarySwitch.addFixedLabel('composed', 'Compound device'), this.log, `Failed to add fixed label`);
 
