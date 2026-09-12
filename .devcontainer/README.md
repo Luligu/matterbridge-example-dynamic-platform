@@ -14,7 +14,7 @@ Node and Bun configurations for Matterbridge plugins, aligned with Matterbridgeâ
 - The host bootstrap uses only Docker: network inspection/creation and an unconditional image pull run in parallel. No host Bash, Node or Bun installation is needed. Everything else runs inside the container.
 - Repository source remains bind-mounted. Runtime-specific named volumes hold node_modules; a shared repository volume holds .cache.
 - Both runtimes share the vscode-extensions volume, plus package caches, Bash history and agent state. The images seed home volume ownership with UID/GID 1000; workspace volume ownership is checked during creation.
-- Creation prepares ownership and installs/builds Matterbridge from the dev branch into the shared runtime-specific /matterbridge volume, then links it globally.
+- Creation prepares ownership and installs/builds Matterbridge from the dev branch into the shared runtime-specific /workspaces/matterbridge volume, then links it globally.
 - Creation also installs plugin dependencies, links Matterbridge, builds the plugin and its optional apps/frontend, registers the plugin with Matterbridge, and checks for outdated packages.
 - Each start installs plugin dependencies, links Matterbridge, and builds the plugin and its optional apps/frontend.
 - Frontend dependencies and Matterbridge runtime state also use named volumes. Port 8283 exposes the Matterbridge frontend over IPv4 and IPv6.

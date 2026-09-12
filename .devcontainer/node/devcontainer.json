@@ -54,7 +54,7 @@ Dev containers have networking limitations depending on the host OS and Docker s
     // Dev container shared volumes for vscode extensions, matterbridge, npm cache, bun cache, bash history, claude, codex, gemini and agents to improve performance
     // Shared with the bun variant: both images create /home/<user>/.vscode-server/extensions owned by UID/GID 1000, so the volume seeds correctly for either
     "source=vscode-extensions,target=/home/node/.vscode-server/extensions,type=volume",
-    "source=matterbridge-node-plugin-dev-container,target=/matterbridge,type=volume",
+    "source=matterbridge-node-plugin-dev-container,target=/workspaces/matterbridge,type=volume",
     "source=npm-cache,target=/home/node/.npm,type=volume",
     "source=bun-cache,target=/home/node/.bun/install/cache,type=volume",
     "source=bash-cache,target=/home/node/.bash-cache,type=volume",
@@ -118,7 +118,8 @@ Dev containers have networking limitations depending on the host OS and Docker s
         "github.copilot-chat",
         "github.vscode-github-actions",
         "github.vscode-pull-request-github",
-        "openai.chatgpt"
+        "openai.chatgpt",
+        "google.google-antigravity"
       ],
       // Settings for the VS Code environment specific to the dev container (overrides user and workspace settings)
       "settings": {

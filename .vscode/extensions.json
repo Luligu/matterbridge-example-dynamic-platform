@@ -9,7 +9,8 @@
     "github.copilot-chat",
     "github.vscode-github-actions",
     "github.vscode-pull-request-github",
-    "openai.chatgpt"
+    "openai.chatgpt",
+    "google.google-antigravity"
   ],
   "unwantedRecommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "firsttris.vscode-jest-runner"]
 }
