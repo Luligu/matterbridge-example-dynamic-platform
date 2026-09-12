@@ -33,13 +33,14 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Breaking changes
 
-- [matterbridge]: Require matterbridge v.3.10.8 with matter v.1.6.0.
+- [matterbridge]: Require matterbridge v.3.10.10 with matter v.1.6.0.
 
 ### Added
 
 - [platform]: Add `RfidLock` device: a door lock with the User, PinCredential, and RfidCredential (RID) features, testing the `numberOfRfidUsersSupported` parameter of `createUserPinDoorLockClusterServer()` (Matter 1.6.0 § 5.2.4). `SetCredential`, `GetCredentialStatus`, and `ClearCredential` already handle `DoorLock.CredentialType.Rfid` generically in `MatterbridgeDoorLockServer`, so no RFID-specific command handlers were needed for this device.
 - [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
 - [devcontainer]: Upgrade the `Dev Container` to v.2.1.0, using the Node.js and Bun stack.
+- [Momentary switch]: Report `productId` `0x8000` on the composed `Momentary switch` bridged device, so Home Assistant's `(vendorId, productId)` allowlist can match the `ha_entitylabel` FixedLabels on `switch4`/`switch5`/`switch6` (requires matterbridge's `createDefaultBridgedDeviceBasicInformationClusterServer()` optional `productId` parameter).
 
 ### Changed
 

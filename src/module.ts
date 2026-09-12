@@ -270,9 +270,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.8')) {
+    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.10')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.10.8". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.10.10". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
@@ -2339,7 +2339,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a momentary switch ***********************
     this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Momentary switch composed' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Momentary switch', 'MOS00041', 0xfff1, 'Matterbridge', 'Matterbridge Momentary Switch')
+      // Report productId 0x8000 (Matter test ProductId, paired with the default vendorId 0xfff1) so Home Assistant's (vendorId, productId) allowlist can match the ha_entitylabel FixedLabels below.
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Momentary switch',
+        'MOS00041',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Momentary Switch',
+        1,
+        '1.0.0',
+        1,
+        '1.0.0',
+        'Matter Bridged Endpoint',
+        'https://matterbridge.io',
+        1,
+        0x8000,
+      )
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
     fireAndForget(this.momentarySwitch.addFixedLabel('composed', 'Compound device'), this.log, `Failed to add fixed label`);
 
@@ -2421,24 +2436,26 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.momentarySwitch = await this.addDevice(this.momentarySwitch);
 
     if (this.momentarySwitch) {
-      // This is just a test. No effect so far on any controller
+      // 'name', 'room', 'switch', and 'button' are just tests: no controller currently reads them.
+      // 'ha_entitylabel' is different: Home Assistant's Matter integration reads it to override the entity name,
+      // for bridged devices whose (vendorId, productId) is in its allowlist (see the Momentary switch productId above).
       await switch4.addFixedLabel('name', 'Switch 4');
       await switch4.addFixedLabel('room', 'Living Room');
       await switch4.addFixedLabel('switch', 'Switch 4');
       await switch4.addFixedLabel('button', 'Button 4');
-      await switch4.addFixedLabel('ha_entitylabel', 'DIY');
+      await switch4.addFixedLabel('ha_entitylabel', 'Switch 4');
 
       await switch5.addFixedLabel('name', 'Switch 5');
       await switch5.addFixedLabel('room', 'Living Room');
       await switch5.addFixedLabel('switch', 'Switch 5');
       await switch5.addFixedLabel('button', 'Button 5');
-      await switch5.addFixedLabel('ha_entitylabel', 'DIY');
+      await switch5.addFixedLabel('ha_entitylabel', 'Switch 5');
 
       await switch6.addFixedLabel('name', 'Switch 6');
       await switch6.addFixedLabel('room', 'Living Room');
       await switch6.addFixedLabel('switch', 'Switch 6');
       await switch6.addFixedLabel('button', 'Button 6');
-      await switch6.addFixedLabel('ha_entitylabel', 'DIY');
+      await switch6.addFixedLabel('ha_entitylabel', 'Switch 6');
     }
 
     // *********************** Create a latching switch *****************************/
