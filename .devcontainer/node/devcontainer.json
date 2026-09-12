@@ -1,4 +1,4 @@
-// .devcontainer/node/devcontainer.json v.2.1.0
+// .devcontainer/node/devcontainer.json v.2.2.0
 
 // This file defines the node development container configuration for a Matterbridge Plugin.
 
@@ -51,15 +51,16 @@ Dev containers have networking limitations depending on the host OS and Docker s
     "source=${localWorkspaceFolderBasename}-plugins,target=/home/node/Matterbridge,type=volume",
     "source=${localWorkspaceFolderBasename}-storage,target=/home/node/.matterbridge,type=volume",
     "source=${localWorkspaceFolderBasename}-cert,target=/home/node/.mattercert,type=volume",
-    // Shared by Node and Bun: both images seed extensions with UID/GID 1000.
+    // Dev container shared volumes for vscode extensions, matterbridge, npm cache, bun cache, bash history, claude, codex, gemini and agents to improve performance
+    // Shared with the bun variant: both images create /home/<user>/.vscode-server/extensions owned by UID/GID 1000, so the volume seeds correctly for either
     "source=vscode-extensions,target=/home/node/.vscode-server/extensions,type=volume",
-    // Dev container shared volumes for matterbridge, npm cache, bun cache, bash history, claude, codex and agents to improve performance
     "source=matterbridge-node-plugin-dev-container,target=/matterbridge,type=volume",
     "source=npm-cache,target=/home/node/.npm,type=volume",
     "source=bun-cache,target=/home/node/.bun/install/cache,type=volume",
     "source=bash-cache,target=/home/node/.bash-cache,type=volume",
     "source=claude,target=/home/node/.claude,type=volume",
     "source=codex,target=/home/node/.codex,type=volume",
+    "source=gemini,target=/home/node/.gemini,type=volume",
     "source=agents,target=/home/node/.agents,type=volume"
   ],
   // Set up the Docker environment (runs on the host before the container starts).
@@ -75,10 +76,11 @@ Dev containers have networking limitations depending on the host OS and Docker s
     "network": "docker network inspect matterbridge --format ok || docker network create --ipv6 matterbridge",
     "pull": "docker pull luligu/matterbridge:node-dev-container"
   },
-  // On create, prepare directories, install Matterbridge, and install, link, build and register the plugin
-  "postCreateCommand": "bash .devcontainer/node/post-create.sh",
+  // On create, prepare directories, install Matterbridge, and install, link, build and register the plugin (runs inside the container)
+  // Matterbridge is installed from the dev branch; append --main to install the stable branch instead
+  "postCreateCommand": "post-create.sh --node --plugin --dev",
   // On start, install and build the plugin (runs inside the container)
-  "postStartCommand": "bash .devcontainer/node/post-start.sh",
+  "postStartCommand": "post-start.sh --node --plugin",
   "runArgs": [
     // Give the Docker container the same name as the repository (must be unique on host)
     "--name",
