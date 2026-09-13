@@ -102,7 +102,7 @@ describe('TestPlatform', () => {
   it('should initialize platform with config name and set the default config', () => {
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
     addMatterbridge(dynamicPlatform);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Initializing platform ${config.name}...`);
     expect(config.whiteList).toEqual([]);
     expect(config.blackList).toEqual([]);
     expect(config.useInterval).toBe(true);
@@ -112,7 +112,7 @@ describe('TestPlatform', () => {
   it('should call onShutdown with reason and remove the devices', async () => {
     config.unregisterOnShutdown = true;
     await dynamicPlatform.onShutdown('Test reason');
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Shutting down platform ${config.name} with reason: Test reason...`);
     expect(dynamicPlatform.getDevices()).toHaveLength(0);
     config.unregisterOnShutdown = false;
   });
@@ -120,26 +120,26 @@ describe('TestPlatform', () => {
   it('should initialize platform with config name', () => {
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
     addMatterbridge(dynamicPlatform);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Initializing platform ${config.name}...`);
   });
 
   it('should call onStart without reason and add no devices', async () => {
     config.whiteList = ['No devices'];
     config.blackList = [];
     await dynamicPlatform.onStart();
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'none');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Starting platform ${config.name} with reason: no reason provided...`);
     expect(dynamicPlatform.getDevices()).toHaveLength(0);
   });
 
   it('should call onShutdown with reason and cleanup the interval', async () => {
     await dynamicPlatform.onShutdown('Test reason');
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Shutting down platform ${config.name} with reason: Test reason...`);
   });
 
   it('should reinitialize platform with config name', () => {
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
     addMatterbridge(dynamicPlatform);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Initializing platform ${config.name}...`);
   });
 
   it('should call onStart with reason and add all the devices', async () => {
@@ -148,7 +148,7 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(dynamicPlatform.getDevices()).toHaveLength(78);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Starting platform ${config.name} with reason: Test reason...`);
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.FATAL, expect.anything());
@@ -873,7 +873,7 @@ describe('TestPlatform', () => {
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
     expect(dynamicPlatform.getDevices()).toHaveLength(78);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Configuring platform ${config.name}...`);
 
     await dynamicPlatform.executeIntervals(26, 10);
 
@@ -903,6 +903,6 @@ describe('TestPlatform', () => {
   it('should call onShutdown with reason', async () => {
     await dynamicPlatform.onShutdown('Test reason');
     expect(dynamicPlatform.getDevices()).toHaveLength(0);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Shutting down platform ${config.name} with reason: Test reason...`);
   }, 60000);
 });

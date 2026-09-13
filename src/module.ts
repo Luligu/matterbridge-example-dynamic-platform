@@ -276,11 +276,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       );
     }
 
-    this.log.info('Initializing platform:', this.config.name);
+    this.log.info(`Initializing platform ${this.config.name}...`);
   }
 
   override async onStart(reason?: string): Promise<void> {
-    this.log.info('onStart called with reason:', reason ?? 'none');
+    this.log.info(`Starting platform ${this.config.name} with reason: ${reason ?? 'no reason provided'}...`);
 
     // Wait for the platform to start
     await this.ready;
@@ -2863,7 +2863,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
   override async onConfigure(): Promise<void> {
     await super.onConfigure();
-    this.log.info('onConfigure called');
+    this.log.info(`Configuring platform ${this.config.name}...`);
 
     // Use interval for appliances animation
     if (this.config.useInterval) {
@@ -3684,7 +3684,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   override async onShutdown(reason?: string): Promise<void> {
     this.clearIntervals();
     await super.onShutdown(reason);
-    this.log.info('onShutdown called with reason:', reason ?? 'none');
+    this.log.info(`Shutting down platform ${this.config.name} with reason: ${reason ?? 'no reason provided'}...`);
     if (this.config.unregisterOnShutdown) await this.unregisterAllDevices(500);
   }
 
