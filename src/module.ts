@@ -1041,28 +1041,28 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         id: 'Plug1',
         tagList: [getSemtag(CommonNumberTag.One)],
       })
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 1', 'BOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug TV', 'BOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 2', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug2',
         tagList: [getSemtag(CommonNumberTag.Two)],
       })
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 2', 'BOU00064-2', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug Speaker', 'BOU00064-2', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 3', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug3',
         tagList: [getSemtag(CommonNumberTag.Three)],
       })
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 3', 'BOU00064-3', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug Satellite', 'BOU00064-3', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 4', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug4',
         tagList: [getSemtag(CommonNumberTag.Four)],
       })
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 4', 'BOU00064-4', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug Netflix', 'BOU00064-4', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
 
     this.smartBridgedOutlet = await this.addDevice(this.smartBridgedOutlet);
