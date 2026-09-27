@@ -3865,18 +3865,24 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     if (this.config.useInterval) {
       // Manage water heater HeatDemand based on BoostState
-      // HeatDemand is a WaterHeaterHeatSourceBitmap:
-      // - Bit 0: ImmersionElement1 (primary heating stage)
-      // - Bit 1: ImmersionElement2 (secondary heating stage / boost)
+      // HeatDemand is a WaterHeaterHeatSourceBitmap object with properties:
+      // - immersionElement1: primary heating stage
+      // - immersionElement2: secondary heating stage / boost
       this.addInterval(
         async () => {
           if (this.waterHeater?.hasAttributeServer(WaterHeaterManagement.id, 'boostState')) {
             const boostState = this.waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', this.waterHeater.log);
             if (isValidNumber(boostState, 0, 1)) {
-              const heatDemand = boostState === 1 ? 0x03 : 0x01;
+              const heatDemand = {
+                immersionElement1: true,
+                immersionElement2: boostState === 1,
+                heatPump: false,
+                boiler: false,
+                other: false,
+              };
               await this.waterHeater?.setAttribute(WaterHeaterManagement.id, 'heatDemand', heatDemand, this.waterHeater.log);
-              const stageInfo = boostState === 1 ? 'ImmersionElement1 + ImmersionElement2 (boost)' : 'ImmersionElement1 (normal)';
-              this.waterHeater?.log.info(`BoostState: ${boostState}, HeatDemand: 0x${heatDemand.toString(16)} (${stageInfo})`);
+              const stageInfo = boostState === 1 ? 'ImmersionElement1 + ImmersionElement2 (boost)' : 'ImmersionElement1 only (normal)';
+              this.waterHeater?.log.info(`BoostState: ${boostState}, HeatDemand: ${stageInfo}`);
             }
           }
         },

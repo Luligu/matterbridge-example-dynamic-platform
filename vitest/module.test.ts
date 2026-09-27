@@ -960,12 +960,13 @@ describe('TestPlatform', () => {
     expect(waterHeater).toBeDefined();
     expect(waterHeater?.hasClusterServer(WaterHeaterManagement.id)).toBe(true);
 
-    // Initial state: BoostState = Inactive (0), HeatDemand should be 0x01 (ImmersionElement1 only)
+    // Initial state: BoostState = Inactive (0), HeatDemand should have immersionElement1=true, immersionElement2=false
     let boostState = waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', waterHeater.log);
     let heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
     expect(boostState).toBeDefined();
     expect(heatDemand).toBeDefined();
-    expect(heatDemand).toBe(0x01);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(false);
 
     // Set BoostState to Active (1)
     await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 1, waterHeater.log);
@@ -973,11 +974,12 @@ describe('TestPlatform', () => {
     // Execute intervals to trigger HeatDemand update logic
     await dynamicPlatform.executeIntervals(1, 100);
 
-    // HeatDemand should now be 0x03 (ImmersionElement1 + ImmersionElement2)
+    // HeatDemand should now have both stages: immersionElement1=true, immersionElement2=true
     heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
-    expect(heatDemand).toBe(0x03);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(true);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 1'));
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('0x3'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('boost'));
 
     // Set BoostState back to Inactive (0)
     await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 0, waterHeater.log);
@@ -985,11 +987,12 @@ describe('TestPlatform', () => {
     // Execute intervals to trigger HeatDemand update logic
     await dynamicPlatform.executeIntervals(1, 100);
 
-    // HeatDemand should be back to 0x01
+    // HeatDemand should be back to normal: immersionElement1=true, immersionElement2=false
     heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
-    expect(heatDemand).toBe(0x01);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(false);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 0'));
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('0x1'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('normal'));
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
