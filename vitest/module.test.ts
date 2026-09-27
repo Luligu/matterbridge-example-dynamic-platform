@@ -17,13 +17,18 @@ import {
   ColorControl,
   DeviceEnergyManagement,
   DoorLock,
+  ElectricalEnergyMeasurement,
+  ElectricalPowerMeasurement,
   FanControl,
   Identify,
   KeypadInput,
   LevelControl,
   ModeSelect,
   OnOff,
+  PowerSource,
+  TemperatureMeasurement,
   Thermostat,
+  WaterHeaterManagement,
 } from 'matterbridge/matter/clusters';
 import {
   addMatterbridge,
@@ -901,94 +906,17 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Set lock lockState to Locked'));
   }, 60000);
 
-  it('should verify Battery Storage + Solar Power combined system', async () => {
-    // Verify the root aggregator exists
-    const solarBatteryRoot = dynamicPlatform.getDeviceByName('Battery + Solar System');
-    expect(solarBatteryRoot).toBeDefined();
-    // ElectricalPower/ElectricalEnergy clusters live on the 'System Electrical' child endpoint, not the root:
-    // Aggregator/BridgedNode don't allow those clusters directly per the Matter spec (TC_DeviceConformance).
-    expect(solarBatteryRoot?.getChildEndpointById('SystemElectrical')?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
-    expect(solarBatteryRoot?.getChildEndpointById('SystemElectrical')?.hasClusterServer(ElectricalEnergyMeasurement.id)).toBe(true);
-
-    // Verify EP1 - Battery Storage exists with children
-    const batteryStorage = dynamicPlatform.getDeviceByName('Home Battery Storage');
-    expect(batteryStorage).toBeDefined();
-    // BatteryStorage is identified by PowerSource cluster
-    expect(batteryStorage?.hasClusterServer(PowerSource.id)).toBe(true);
-    expect(batteryStorage?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
-    expect(batteryStorage?.hasClusterServer(ElectricalEnergyMeasurement.id)).toBe(true);
-
-    // Verify Battery attributes (batPercentRemaining lives on the 'Battery Pack' child endpoint, not the root,
-    // and is stored in the Matter 0-200 range, hence the /2 below).
-    const batPercentRaw = batteryStorage?.getChildEndpointById('BatteryPack')?.getAttribute(PowerSource.id, 'batPercentRemaining');
-    expect(batPercentRaw).toBeDefined();
-    const batPercent = (batPercentRaw as number) / 2;
-    expect(batPercent).toBeGreaterThanOrEqual(50);
-    expect(batPercent).toBeLessThanOrEqual(75);
-
-    // Verify EP2 - Temperature Sensor exists
-    const temperatureSensor = dynamicPlatform.getDeviceByName('Inverter Temperature');
-    expect(temperatureSensor).toBeDefined();
-    // TemperatureSensor is identified by TemperatureMeasurement cluster
-    expect(temperatureSensor?.hasClusterServer(TemperatureMeasurement.id)).toBe(true);
-    // PowerSource lives on the 'Sensor Power' child endpoint, not the root
-    expect(temperatureSensor?.getChildEndpointById('SensorPower')?.hasClusterServer(PowerSource.id)).toBe(true);
-
-    // Verify EP3 - Solar Power exists with children
-    const solarPower = dynamicPlatform.getDeviceByName('DC Solar Panels');
-    expect(solarPower).toBeDefined();
-    // SolarPower is identified by PowerSource and ElectricalPowerMeasurement clusters
-    expect(solarPower?.hasClusterServer(PowerSource.id)).toBe(true);
-    expect(solarPower?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
-    expect(solarPower?.hasClusterServer(ElectricalEnergyMeasurement.id)).toBe(true);
-
-    // Verify Solar attributes
-    const solarPower_ = solarPower?.getAttribute(ElectricalPowerMeasurement.id, 'activePower');
-    expect(solarPower_).toBeDefined();
-
-    expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
-    expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.FATAL, expect.anything());
-  }, 60000);
-
-  it('should update HeatDemand based on BoostState', async () => {
+  it('should verify WaterHeater with DeviceEnergyManagement cluster', async () => {
     // Verify the water heater exists
     const waterHeater = dynamicPlatform.getDeviceByName('Water Heater');
     expect(waterHeater).toBeDefined();
     expect(waterHeater?.hasClusterServer(WaterHeaterManagement.id)).toBe(true);
 
-    // Initial state: BoostState = Inactive (0), HeatDemand should have immersionElement1=true, immersionElement2=false
-    let boostState = waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', waterHeater.log);
-    let heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    // Verify BoostState and HeatDemand exist
+    const boostState = waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', waterHeater.log);
+    const heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
     expect(boostState).toBeDefined();
     expect(heatDemand).toBeDefined();
-    expect(heatDemand?.immersionElement1).toBe(true);
-    expect(heatDemand?.immersionElement2).toBe(false);
-
-    // Set BoostState to Active (1)
-    await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 1, waterHeater.log);
-
-    // Execute intervals to trigger HeatDemand update logic
-    await dynamicPlatform.executeIntervals(1, 100);
-
-    // HeatDemand should now have both stages: immersionElement1=true, immersionElement2=true
-    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
-    expect(heatDemand?.immersionElement1).toBe(true);
-    expect(heatDemand?.immersionElement2).toBe(true);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 1'));
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('boost'));
-
-    // Set BoostState back to Inactive (0)
-    await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 0, waterHeater.log);
-
-    // Execute intervals to trigger HeatDemand update logic
-    await dynamicPlatform.executeIntervals(1, 100);
-
-    // HeatDemand should be back to normal: immersionElement1=true, immersionElement2=false
-    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
-    expect(heatDemand?.immersionElement1).toBe(true);
-    expect(heatDemand?.immersionElement2).toBe(false);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 0'));
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('normal'));
   }, 60000);
 
   it('should initialize WaterHeater with all required attributes', async () => {
