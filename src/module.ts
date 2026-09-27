@@ -146,6 +146,7 @@ import {
   TemperatureMeasurement,
   Thermostat,
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
+  WaterHeaterManagement,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
 import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString, luxToMatter, matterToLux, parseVersionString } from 'matterbridge/utils';
@@ -3859,6 +3860,23 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
           // console.error('Exiting generic switch interval triggered', this.genericSwitchLastEvent);
         },
         60 * 1000 + 1900,
+      );
+    }
+
+    if (this.config.useInterval) {
+      // Manage water heater HeatDemand based on BoostState
+      this.addInterval(
+        async () => {
+          if (this.waterHeater?.hasAttributeServer(WaterHeaterManagement.id, 'boostState')) {
+            const boostState = this.waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', this.waterHeater.log);
+            if (isValidBoolean(boostState)) {
+              const heatDemand = boostState ? 200 : 50;
+              await this.waterHeater?.setAttribute(WaterHeaterManagement.id, 'heatDemand', heatDemand, this.waterHeater.log);
+              this.waterHeater?.log.info(`BoostState: ${boostState}, HeatDemand set to ${heatDemand}%`);
+            }
+          }
+        },
+        30 * 1000,
       );
     }
   }

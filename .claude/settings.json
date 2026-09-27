@@ -1,7 +1,26 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment": "Claude settings v.1.0.8",
   "permissions": {
+    "allow": [
+      "Read",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run format:*)",
+      "Bash(bun test:*)",
+      "Bash(grep:*)",
+      "Bash(cd:*)",
+      "Bash(tail:*)",
+      "Bash(find:*)",
+      "Bash(echo:*)",
+      "Bash(head:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(xargs grep -l \"setAttribute\")",
+      "Bash(npm run *)",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")"
+    ],
     "deny": [
       "Read(.env)",
       "Read(.env.*)",
@@ -47,23 +66,7 @@
       "PowerShell(Invoke-WebRequest:*)",
       "Bash(docker pull:*)",
       "Bash(docker run:*)"
-    ],
-    "allow": [
-      "Read",
-      "Bash(npm run typecheck:*)",
-      "Bash(npm run build:*)",
-      "Bash(npm run test:*)",
-      "Bash(npm run lint:*)",
-      "Bash(npm run format:*)",
-      "Bash(bun test:*)",
-      "Bash(grep:*)",
-      "Bash(cd:*)",
-      "Bash(tail:*)",
-      "Bash(find:*)",
-      "Bash(echo:*)",
-      "Bash(head:*)",
-      "Bash(cat:*)",
-      "Bash(ls:*)"
     ]
-  }
+  },
+  "_comment": "Claude settings v.1.0.8"
 }

@@ -73,62 +73,62 @@
     {
       "name": "VenetianBlind Lift ClosureDimension attributes",
       "test": "TC_CLDIM_2_1.py",
-      "args": ["--endpoint 19"]
+      "args": ["--endpoint 21"]
     },
     {
       "name": "VenetianBlind Tilt ClosureDimension attributes",
       "test": "TC_CLDIM_2_1.py",
-      "args": ["--endpoint 20"]
+      "args": ["--endpoint 22"]
     },
     {
       "name": "VenetianBlind Lift ClosureDimension setTarget positioning",
       "test": "TC_CLDIM_3_1.py",
-      "args": ["--endpoint 19"]
+      "args": ["--endpoint 21"]
     },
     {
       "name": "VenetianBlind Tilt ClosureDimension setTarget positioning",
       "test": "TC_CLDIM_3_1.py",
-      "args": ["--endpoint 20"]
+      "args": ["--endpoint 22"]
     },
     {
       "name": "VenetianBlind Lift ClosureDimension setTarget latching",
       "test": "TC_CLDIM_3_2.py",
-      "args": ["--endpoint 19"]
+      "args": ["--endpoint 21"]
     },
     {
       "name": "VenetianBlind Tilt ClosureDimension setTarget latching",
       "test": "TC_CLDIM_3_2.py",
-      "args": ["--endpoint 20"]
+      "args": ["--endpoint 22"]
     },
     {
       "name": "VenetianBlind Lift ClosureDimension setTarget field sanity check",
       "test": "TC_CLDIM_3_3.py",
-      "args": ["--endpoint 19"]
+      "args": ["--endpoint 21"]
     },
     {
       "name": "VenetianBlind Tilt ClosureDimension setTarget field sanity check",
       "test": "TC_CLDIM_3_3.py",
-      "args": ["--endpoint 20"]
+      "args": ["--endpoint 22"]
     },
     {
       "name": "VenetianBlind Lift ClosureDimension step command",
       "test": "TC_CLDIM_4_1.py",
-      "args": ["--endpoint 19"]
+      "args": ["--endpoint 21"]
     },
     {
       "name": "VenetianBlind Tilt ClosureDimension step command",
       "test": "TC_CLDIM_4_1.py",
-      "args": ["--endpoint 20"]
+      "args": ["--endpoint 22"]
     },
     {
       "name": "VenetianBlind Lift ClosureDimension step input sanity check",
       "test": "TC_CLDIM_4_2.py",
-      "args": ["--endpoint 19"]
+      "args": ["--endpoint 21"]
     },
     {
       "name": "VenetianBlind Tilt ClosureDimension step input sanity check",
       "test": "TC_CLDIM_4_2.py",
-      "args": ["--endpoint 20"]
+      "args": ["--endpoint 22"]
     }
   ]
 }
