@@ -27,6 +27,7 @@ import {
   PowerSource,
   TemperatureMeasurement,
   Thermostat,
+  WaterHeaterManagement,
 } from 'matterbridge/matter/clusters';
 import {
   addMatterbridge,
@@ -951,6 +952,44 @@ describe('TestPlatform', () => {
 
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.FATAL, expect.anything());
+  }, 60000);
+
+  it('should update HeatDemand based on BoostState', async () => {
+    // Verify the water heater exists
+    const waterHeater = dynamicPlatform.getDeviceByName('Water Heater');
+    expect(waterHeater).toBeDefined();
+    expect(waterHeater?.hasClusterServer(WaterHeaterManagement.id)).toBe(true);
+
+    // Initial state: BoostState = Inactive (0), HeatDemand should be 0x01 (ImmersionElement1 only)
+    let boostState = waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', waterHeater.log);
+    let heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(boostState).toBeDefined();
+    expect(heatDemand).toBeDefined();
+    expect(heatDemand).toBe(0x01);
+
+    // Set BoostState to Active (1)
+    await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 1, waterHeater.log);
+
+    // Execute intervals to trigger HeatDemand update logic
+    await dynamicPlatform.executeIntervals(1, 100);
+
+    // HeatDemand should now be 0x03 (ImmersionElement1 + ImmersionElement2)
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand).toBe(0x03);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 1'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('0x3'));
+
+    // Set BoostState back to Inactive (0)
+    await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 0, waterHeater.log);
+
+    // Execute intervals to trigger HeatDemand update logic
+    await dynamicPlatform.executeIntervals(1, 100);
+
+    // HeatDemand should be back to 0x01
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand).toBe(0x01);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 0'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('0x1'));
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
