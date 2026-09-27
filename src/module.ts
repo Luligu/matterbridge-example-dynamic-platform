@@ -2548,6 +2548,10 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMinPower: 500_000,
       absMaxPower: 3_000_000,
     });
+    // Add DeviceEnergyManagement cluster support
+    if (this.waterHeater.createDefaultDeviceEnergyManagementClusterServer) {
+      this.waterHeater.createDefaultDeviceEnergyManagementClusterServer();
+    }
     this.waterHeater = await this.addDevice(this.waterHeater);
 
     // *********************** Create an Evse ***************************
@@ -3047,6 +3051,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.OptOut, this.heatPump.log);
           if (optOutState === DeviceEnergyManagement.OptOutState.OptOut)
             await this.heatPump?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.NoOptOut, this.heatPump.log);
+        }
+
+        if (this.waterHeater) {
+          const optOutState = this.waterHeater?.getAttribute('DeviceEnergyManagement', 'optOutState', this.waterHeater.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.NoOptOut)
+            await this.waterHeater?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.LocalOptOut, this.waterHeater.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.LocalOptOut)
+            await this.waterHeater?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.GridOptOut, this.waterHeater.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.GridOptOut)
+            await this.waterHeater?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.OptOut, this.waterHeater.log);
+          if (optOutState === DeviceEnergyManagement.OptOutState.OptOut)
+            await this.waterHeater?.setAttribute('DeviceEnergyManagement', 'optOutState', DeviceEnergyManagement.OptOutState.NoOptOut, this.waterHeater.log);
         }
 
         if (this.refrigerator) {

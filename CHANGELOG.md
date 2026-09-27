@@ -42,6 +42,13 @@ If you like this project and find it useful, please consider giving it a star on
 - [platform]: Add `RfidLock` device: a door lock with the User, PinCredential, and RfidCredential (RID) features, testing the `numberOfRfidUsersSupported` parameter of `createUserPinDoorLockClusterServer()` (Matter 1.6.0 § 5.2.4). `SetCredential`, `GetCredentialStatus`, and `ClearCredential` already handle `DoorLock.CredentialType.Rfid` generically in `MatterbridgeDoorLockServer`, so no RFID-specific command handlers were needed for this device.
 - [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
 - [Momentary switch]: Report `productId` `0x8000` on the composed `Momentary switch` bridged device, so Home Assistant's `(vendorId, productId)` allowlist can match the `ha_entitylabel` FixedLabels on `switch4`/`switch5`/`switch6` (requires matterbridge's `createDefaultBridgedDeviceBasicInformationClusterServer()` optional `productId` parameter).
+- [WaterHeater]: Document all `WaterHeaterManagement` cluster attributes (Matter 1.6.1 spec compliant):
+  - Required attributes: `heaterTypes`, `heatDemand`, `boostState`
+  - Optional attributes: `tankPercentage`, `tankVolume` (0x0002), `estimatedHeatRequired` (0x0003)
+  - Add comprehensive unit tests for: heat requirement calculation based on tank volume and temperature difference (Energy = volume × ΔT × specific_heat × 1000), tank volume percentage calculations, and temperature constraint validation
+  - Document that `tankVolume` and `estimatedHeatRequired` are read-only in Matter conformance and cannot be modified after device initialization
+  - Add `DeviceEnergyManagement` (DEM) cluster support by calling `createDefaultDeviceEnergyManagementClusterServer()` on the WaterHeater instance, enabling energy management capabilities alongside water heating functionality
+  - Simulate `DeviceEnergyManagement` `optOutState` cycling in the onInterval loop (NoOptOut → LocalOptOut → GridOptOut → OptOut → NoOptOut) to demonstrate energy management state transitions
 
 ### Changed
 

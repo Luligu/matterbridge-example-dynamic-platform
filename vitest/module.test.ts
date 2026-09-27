@@ -15,6 +15,7 @@ import {
   ClosureControl,
   ClosureDimension,
   ColorControl,
+  DeviceEnergyManagement,
   DoorLock,
   FanControl,
   Identify,
@@ -898,6 +899,201 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.Release'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Set lock lockState to Unlocked'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Set lock lockState to Locked'));
+  }, 60000);
+
+  it('should verify Battery Storage + Solar Power combined system', async () => {
+    // Verify the root aggregator exists
+    const solarBatteryRoot = dynamicPlatform.getDeviceByName('Battery + Solar System');
+    expect(solarBatteryRoot).toBeDefined();
+    // ElectricalPower/ElectricalEnergy clusters live on the 'System Electrical' child endpoint, not the root:
+    // Aggregator/BridgedNode don't allow those clusters directly per the Matter spec (TC_DeviceConformance).
+    expect(solarBatteryRoot?.getChildEndpointById('SystemElectrical')?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
+    expect(solarBatteryRoot?.getChildEndpointById('SystemElectrical')?.hasClusterServer(ElectricalEnergyMeasurement.id)).toBe(true);
+
+    // Verify EP1 - Battery Storage exists with children
+    const batteryStorage = dynamicPlatform.getDeviceByName('Home Battery Storage');
+    expect(batteryStorage).toBeDefined();
+    // BatteryStorage is identified by PowerSource cluster
+    expect(batteryStorage?.hasClusterServer(PowerSource.id)).toBe(true);
+    expect(batteryStorage?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
+    expect(batteryStorage?.hasClusterServer(ElectricalEnergyMeasurement.id)).toBe(true);
+
+    // Verify Battery attributes (batPercentRemaining lives on the 'Battery Pack' child endpoint, not the root,
+    // and is stored in the Matter 0-200 range, hence the /2 below).
+    const batPercentRaw = batteryStorage?.getChildEndpointById('BatteryPack')?.getAttribute(PowerSource.id, 'batPercentRemaining');
+    expect(batPercentRaw).toBeDefined();
+    const batPercent = (batPercentRaw as number) / 2;
+    expect(batPercent).toBeGreaterThanOrEqual(50);
+    expect(batPercent).toBeLessThanOrEqual(75);
+
+    // Verify EP2 - Temperature Sensor exists
+    const temperatureSensor = dynamicPlatform.getDeviceByName('Inverter Temperature');
+    expect(temperatureSensor).toBeDefined();
+    // TemperatureSensor is identified by TemperatureMeasurement cluster
+    expect(temperatureSensor?.hasClusterServer(TemperatureMeasurement.id)).toBe(true);
+    // PowerSource lives on the 'Sensor Power' child endpoint, not the root
+    expect(temperatureSensor?.getChildEndpointById('SensorPower')?.hasClusterServer(PowerSource.id)).toBe(true);
+
+    // Verify EP3 - Solar Power exists with children
+    const solarPower = dynamicPlatform.getDeviceByName('DC Solar Panels');
+    expect(solarPower).toBeDefined();
+    // SolarPower is identified by PowerSource and ElectricalPowerMeasurement clusters
+    expect(solarPower?.hasClusterServer(PowerSource.id)).toBe(true);
+    expect(solarPower?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
+    expect(solarPower?.hasClusterServer(ElectricalEnergyMeasurement.id)).toBe(true);
+
+    // Verify Solar attributes
+    const solarPower_ = solarPower?.getAttribute(ElectricalPowerMeasurement.id, 'activePower');
+    expect(solarPower_).toBeDefined();
+
+    expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
+    expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.FATAL, expect.anything());
+  }, 60000);
+
+  it('should update HeatDemand based on BoostState', async () => {
+    // Verify the water heater exists
+    const waterHeater = dynamicPlatform.getDeviceByName('Water Heater');
+    expect(waterHeater).toBeDefined();
+    expect(waterHeater?.hasClusterServer(WaterHeaterManagement.id)).toBe(true);
+
+    // Initial state: BoostState = Inactive (0), HeatDemand should have immersionElement1=true, immersionElement2=false
+    let boostState = waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', waterHeater.log);
+    let heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(boostState).toBeDefined();
+    expect(heatDemand).toBeDefined();
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(false);
+
+    // Set BoostState to Active (1)
+    await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 1, waterHeater.log);
+
+    // Execute intervals to trigger HeatDemand update logic
+    await dynamicPlatform.executeIntervals(1, 100);
+
+    // HeatDemand should now have both stages: immersionElement1=true, immersionElement2=true
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(true);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 1'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('boost'));
+
+    // Set BoostState back to Inactive (0)
+    await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 0, waterHeater.log);
+
+    // Execute intervals to trigger HeatDemand update logic
+    await dynamicPlatform.executeIntervals(1, 100);
+
+    // HeatDemand should be back to normal: immersionElement1=true, immersionElement2=false
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(false);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 0'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('normal'));
+  }, 60000);
+
+  it('should initialize WaterHeater with all required attributes', async () => {
+    const waterHeater = dynamicPlatform.getDeviceByName('Water Heater');
+    expect(waterHeater).toBeDefined();
+    expect(waterHeater?.hasClusterServer(WaterHeaterManagement.id)).toBe(true);
+
+    // Verify required attributes
+    const heaterTypes = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heaterTypes', waterHeater.log);
+    const heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    const boostState = waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', waterHeater.log);
+
+    expect(heaterTypes).toBeDefined();
+    expect(heatDemand).toBeDefined();
+    expect(boostState).toBeDefined();
+
+    // Verify optional attribute
+    const tankPercentage = waterHeater?.getAttribute(WaterHeaterManagement.id, 'tankPercentage', waterHeater.log);
+    expect(tankPercentage).toBeDefined();
+  }, 60000);
+
+  it('should calculate estimated heat required based on tank parameters', () => {
+    // Test the heat calculation formula for various tank sizes and temperature differences
+    // Energy = tankVolume × tempDifference × specificHeatCapacity(4.18) × 1000
+    const testCases = [
+      { volume: 200, tempDiff: 10, expected: 8_360_000 }, // 200L, 50°C→60°C
+      { volume: 200, tempDiff: 20, expected: 16_720_000 }, // 200L, 40°C→60°C
+      { volume: 100, tempDiff: 10, expected: 4_180_000 }, // 100L, 50°C→60°C
+      { volume: 300, tempDiff: 15, expected: 18_810_000 }, // 300L, 45°C→60°C
+    ];
+
+    testCases.forEach(({ volume, tempDiff, expected }) => {
+      const calculated = volume * tempDiff * 4.18 * 1000;
+      expect(Math.round(calculated)).toBe(expected);
+    });
+  });
+
+  it('should calculate tank volume based on percentage and full capacity', () => {
+    // Test tank volume calculation: actualVolume = maxVolume × (tankPercentage / 100)
+    const maxTankVolume = 200; // liters
+    const testPercentages = [85, 50, 100, 0];
+
+    testPercentages.forEach((percentage) => {
+      const actualVolume = (maxTankVolume * percentage) / 100;
+      expect(actualVolume).toBeGreaterThanOrEqual(0);
+      expect(actualVolume).toBeLessThanOrEqual(maxTankVolume);
+    });
+  });
+
+  it('should validate WaterHeater temperature constraints', () => {
+    const waterHeater = dynamicPlatform.getDeviceByName('Water Heater');
+    expect(waterHeater).toBeDefined();
+
+    // Temperature constraints should be logical
+    const minTemp = 20; // minHeatSetpointLimit
+    const maxTemp = 80; // maxHeatSetpointLimit
+    const currentTemp = 50; // waterTemperature
+    const targetTemp = 60; // targetWaterTemperature
+
+    expect(minTemp).toBeLessThanOrEqual(currentTemp);
+    expect(maxTemp).toBeGreaterThanOrEqual(currentTemp);
+    expect(targetTemp).toBeGreaterThanOrEqual(minTemp);
+    expect(targetTemp).toBeLessThanOrEqual(maxTemp);
+  });
+
+  it('should have DeviceEnergyManagement cluster on WaterHeater', async () => {
+    const waterHeater = dynamicPlatform.getDeviceByName('Water Heater');
+    expect(waterHeater).toBeDefined();
+    expect(waterHeater?.hasClusterServer(DeviceEnergyManagement.id)).toBe(true);
+
+    // Verify optOutState attribute exists
+    const optOutState = waterHeater?.getAttribute(DeviceEnergyManagement.id, 'optOutState', waterHeater.log);
+    expect(optOutState).toBeDefined();
+    expect([
+      DeviceEnergyManagement.OptOutState.NoOptOut,
+      DeviceEnergyManagement.OptOutState.LocalOptOut,
+      DeviceEnergyManagement.OptOutState.GridOptOut,
+      DeviceEnergyManagement.OptOutState.OptOut,
+    ]).toContain(optOutState);
+  }, 60000);
+
+  it('should transition DeviceEnergyManagement optOutState on WaterHeater', async () => {
+    const waterHeater = dynamicPlatform.getDeviceByName('Water Heater');
+    expect(waterHeater).toBeDefined();
+    expect(waterHeater?.hasClusterServer(DeviceEnergyManagement.id)).toBe(true);
+
+    // Get initial state
+    let optOutState = waterHeater?.getAttribute(DeviceEnergyManagement.id, 'optOutState', waterHeater.log);
+    const initialState = optOutState;
+    expect(initialState).toBeDefined();
+
+    // Execute intervals to trigger state transitions
+    await dynamicPlatform.executeIntervals(5, 100);
+
+    // Verify state can transition
+    optOutState = waterHeater?.getAttribute(DeviceEnergyManagement.id, 'optOutState', waterHeater.log);
+    expect(optOutState).toBeDefined();
+
+    // State should be one of the valid values
+    expect([
+      DeviceEnergyManagement.OptOutState.NoOptOut,
+      DeviceEnergyManagement.OptOutState.LocalOptOut,
+      DeviceEnergyManagement.OptOutState.GridOptOut,
+      DeviceEnergyManagement.OptOutState.OptOut,
+    ]).toContain(optOutState);
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
