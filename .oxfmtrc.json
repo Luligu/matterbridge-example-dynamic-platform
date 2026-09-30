@@ -17,6 +17,7 @@
     "**/node_modules/**",
     "**/out/**",
     "**/screenshots/**",
+    "**/scripts/**",
     "vendor/**",
     "**/package-lock.json",
     "**/bun.lock"

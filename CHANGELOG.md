@@ -46,6 +46,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
+- [oxc]: Exclude `scripts` directories from lint and format checks.
 - [vscode]: Update `.vscode/settings.json` to v.1.0.13: point the Copilot "Generate Commit Message" button to `.github/commit-message-instructions.md`.
 - [styleguide]: Update [`STYLEGUIDE.md`](STYLEGUIDE.md) to v.1.1.0: align it with the lint and format config and add the Commit Messages and Changelog sections.
 - [scripts]: Update `scripts/clean.mjs` and `scripts/deep-clean.mjs` to v.1.3.0: log every removed path, add `--help` and `--version` and reject unknown arguments.
