@@ -29,6 +29,7 @@
  */
 
 /* oxlint-disable no-console */
+/* oxlint-disable typescript/prefer-nullish-coalescing */
 
 import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
