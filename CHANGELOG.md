@@ -51,15 +51,12 @@ If you like this project and find it useful, please consider giving it a star on
 - [styleguide]: Update [`STYLEGUIDE.md`](STYLEGUIDE.md) to v.1.1.0: align it with the lint and format config and add the Commit Messages and Changelog sections.
 - [scripts]: Update `scripts/clean.mjs` and `scripts/deep-clean.mjs` to v.1.3.0: log every removed path, add `--help` and `--version` and reject unknown arguments.
 - [package]: Upgrade package.
-- [package]: Bump `node-ansi-logger` to v.3.3.1.
-- [package]: Bump `node-persist-manager` to v.2.1.1.
 - [package]: Bump `oxfmt` to v.0.71.0.
 - [package]: Bump `oxlint` to v.1.86.0.
 - [package]: Bump `oxlint-tsgolint` to v.7.0.2003.
-- [package]: Bump `vitest` to v.5.0.2.
-- [package]: Bump `@vitest/coverage-v8` to v.5.0.2.
+- [package]: Bump `vitest` to v.5.0.3.
+- [package]: Bump `@vitest/coverage-v8` to v.5.0.3.
 - [package]: Bump `@types/node` to v.26.6.3.
-- [package]: Bump `typescript` to v.7.0.2.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
