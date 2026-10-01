@@ -22,6 +22,7 @@ import {
   LevelControl,
   ModeSelect,
   OnOff,
+  OvenMode,
   Thermostat,
 } from 'matterbridge/matter/clusters';
 import {
@@ -148,6 +149,11 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(dynamicPlatform.getDevices()).toHaveLength(78);
+    const lowerCabinet = dynamicPlatform.oven?.getChildEndpointById('LowerCabinet');
+    expect(lowerCabinet).toBeDefined();
+    expect(lowerCabinet?.getAttribute(OvenMode.id, 'supportedModes')).toEqual(
+      expect.arrayContaining([expect.objectContaining({ mode: 4, modeTags: expect.arrayContaining([expect.objectContaining({ value: OvenMode.ModeTag.Bake })]) })]),
+    );
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Starting platform ${config.name} with reason: Test reason...`);
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -395,11 +401,12 @@ describe('TestPlatform', () => {
             lowestOff: false,
           });
         }
-        await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Off);
-        await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Low);
         const sequence = device.getAttribute(FanControl.id, 'fanModeSequence');
-        if (sequence === FanControl.FanModeSequence.OffLowMedHigh || sequence === FanControl.FanModeSequence.OffLowMedHighAuto)
-          await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Medium);
+        const supportsMedium = sequence === FanControl.FanModeSequence.OffLowMedHigh || sequence === FanControl.FanModeSequence.OffLowMedHighAuto;
+        const supportsLow = supportsMedium || sequence === FanControl.FanModeSequence.OffLowHigh || sequence === FanControl.FanModeSequence.OffLowHighAuto;
+        await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Off);
+        if (supportsLow) await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Low);
+        if (supportsMedium) await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Medium);
         await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.High);
         // oxlint-disable-next-line typescript/no-deprecated
         await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.On);
@@ -411,8 +418,8 @@ describe('TestPlatform', () => {
         await device.setAttribute(FanControl.id, 'percentSetting', 10);
 
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Off, FanControl.FanMode.Off);
-        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Low, FanControl.FanMode.Low);
-        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Medium, FanControl.FanMode.Medium);
+        if (supportsLow) await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Low, FanControl.FanMode.Low);
+        if (supportsMedium) await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Medium, FanControl.FanMode.Medium);
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.High, FanControl.FanMode.High);
         // oxlint-disable-next-line typescript/no-deprecated
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.On, FanControl.FanMode.On);

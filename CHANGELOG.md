@@ -44,6 +44,10 @@ If you like this project and find it useful, please consider giving it a star on
 - [Momentary switch]: Report `productId` `0x8000` on the composed `Momentary switch` bridged device, so Home Assistant's `(vendorId, productId)` allowlist can match the `ha_entitylabel` FixedLabels on `switch4`/`switch5`/`switch6` (requires matterbridge's `createDefaultBridgedDeviceBasicInformationClusterServer()` optional `productId` parameter).
 - [agents]: Add [`commit message instructions`](.github/commit-message-instructions.md) v.1.0.0 for the VS Code Copilot "Generate Commit Message" button (Conventional Commits).
 
+### Fixed
+
+- [Oven]: Add the required Bake mode to the lower cabinet so Oven Mode initializes successfully.
+
 ### Changed
 
 - [oxc]: Exclude `scripts` directories from lint and format checks.
