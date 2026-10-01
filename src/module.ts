@@ -37,6 +37,7 @@ import {
   mountedDimmableLoadControl,
   dimmablePlugInUnit,
   doorLock,
+  deviceEnergyManagement,
   electricalSensor,
   extendedColorLight,
   fan,
@@ -60,6 +61,7 @@ import {
   pump,
   rainSensor,
   smokeCoAlarm,
+  solarPower,
   temperatureSensor,
   thermostat,
   waterFreezeDetector,
@@ -99,6 +101,7 @@ import {
   CommonLocationTag,
   CommonNumberTag,
   CommonPositionTag,
+  PowerSourceTag,
   RefrigeratorTag,
   SwitchesTag,
   UINT16_MAX,
@@ -243,13 +246,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   solarPower: SolarPower | undefined;
   batteryStorage: MatterbridgeEndpoint | undefined;
   // ***** Battery + Solar Combined System (Figure 22, Matter 1.6.1 specs compliant) *****
-  solarBatteryRoot: MatterbridgeEndpoint | undefined;
   batteryStorageCombined: BatteryStorage | undefined;
-  temperatureSensorCombined: MatterbridgeEndpoint | undefined;
-  solarPowerCombined: SolarPower | undefined;
   solarBatterySimulationPhase: number = 0;
   solarBatteryBatteryPhase: number = 0;
-  solarBatteryTempPhase: number = 0;
 
   heatPump: MatterbridgeEndpoint | undefined;
   microwaveOven: MatterbridgeEndpoint | undefined;
@@ -2611,34 +2610,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.batteryStorage = await this.addDevice(this.batteryStorage);
 
     // *********************** Create a Combined Battery Storage + Solar Power System *****
-    // Implements Figure 22 from Matter Device Library Specification (23-27351)
-    // This is a Battery Storage device (0x0018) with DC-connected Solar Power device (0x0017)
-    // Per Matter 1.6.1 specs sections 14.3 (Solar Power) and 14.4 (Battery Storage)
+    // Implements Figure 22 ("Example of a Battery Storage device with DC-connected Solar Power device") from
+    // the Matter 1.6.1 Device Library Specification §14.4.1. The figure is a single composed Battery Storage
+    // device (EP1) that carries several device types on the same endpoint and has the Temperature Sensor (EP2)
+    // and Solar Power (EP3) endpoints *underneath* it:
+    //
+    //   EP1 — Battery Storage   DeviceTypeList: [BatteryStorage, PowerSource, ElectricalSensor, DeviceEnergyManagement]
+    //    ├── EP2 — Temperature Sensor  DeviceTypeList: [TemperatureSensor, PowerSource, ElectricalSensor]
+    //    └── EP3 — Solar Power          DeviceTypeList: [SolarPower, PowerSource, ElectricalSensor, DeviceEnergyManagement]
+    //
+    // EP0 (Root Node) is supplied by the Matterbridge bridge, so it is not created here; endpoint numbers
+    // naturally differ once exposed through the bridge. The multiple device types listed within a single
+    // endpoint in the figure share that one endpoint — they are not additional child endpoints.
 
-    // EP0 - Root Node (Aggregator)
-    this.solarBatteryRoot = new MatterbridgeEndpoint([aggregator, bridgedNode], { id: 'BatterySolarSystem' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer(
-        'Battery + Solar System',
-        'BSS00049',
-        0xfff1,
-        'Matterbridge',
-        'Matter 1.6.1 compliant Battery Storage with DC-connected Solar Power',
-      )
-      .addRequiredClusterServers();
-
-    // EP0 child: Electrical Sensor for overall system measurement. ElectricalEnergyMeasurement/
-    // ElectricalPowerMeasurement are not in the Aggregator's or BridgedNode's allowed server cluster list, so
-    // TC_DeviceConformance flags them as extra clusters when attached directly on the root; move them onto a
-    // child endpoint typed ElectricalSensor instead, matching the pattern used by the other sensor children
-    // below (e.g. AC Output Sensor, DC Battery Sensor).
-    this.solarBatteryRoot
-      .addChildDeviceType('System Electrical', electricalSensor)
-      .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
-      .createDefaultElectricalPowerMeasurementClusterServer(230_000, 0, 0, 10_000)
-      .addRequiredClusterServers();
-
-    // EP1 - Battery Storage (0x0018) with child endpoints
-    this.batteryStorageCombined = new BatteryStorage('Home Battery Storage', 'BSC00050', {
+    // EP1 — Battery Storage. The class already types the endpoint as
+    // [batteryStorage, powerSource, electricalSensor, deviceEnergyManagement] and adds the internal 'Battery' child.
+    this.batteryStorageCombined = new BatteryStorage('Battery + Solar System', 'BSC00050', {
       batPercentRemaining: 75,
       batChargeLevel: PowerSource.BatChargeLevel.Ok,
       voltage: 48_000, // 48V DC nominal
@@ -2650,136 +2637,60 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 6_000_000, // +6 kW charge
     });
 
-    // EP1 child 1: Power Source DC (MANDATORY per spec 14.4.6 revision 2)
-    this.batteryStorageCombined.addChildDeviceType('Grid Power Source', powerSource).createDefaultPowerSourceWiredClusterServer().addRequiredClusterServers();
-
-    // EP1 child 2: Electrical Sensor AC (MANDATORY per spec 14.4.6)
+    // EP2 — Temperature Sensor, child of the Battery Storage endpoint. It shares the endpoint with the
+    // PowerSource and ElectricalSensor device types, matching the figure's DeviceTypeList
+    // [TemperatureSensor, PowerSource, ElectricalSensor]. BasicInformation/BridgedDeviceBasicInformation are
+    // only valid on top-level endpoints, so they must not be created on this nested child.
     this.batteryStorageCombined
-      .addChildDeviceType('AC Output Sensor', electricalSensor)
-      .createDefaultElectricalPowerMeasurementClusterServer(230_000, 0, 0, 5_000)
-      .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
-      .addRequiredClusterServers();
-
-    // EP1 child 3: Power Source Battery (MANDATORY per spec 14.4.6 revision 2)
-    // Rechargeable (not Replaceable): batTimeToFullCharge/batChargingCurrent below require the [RECHG] feature.
-    this.batteryStorageCombined
-      .addChildDeviceType('Battery Pack', powerSource)
-      .createDefaultPowerSourceRechargeableBatteryClusterServer(75, PowerSource.BatChargeLevel.Ok, 3600, PowerSource.BatReplaceability.UserReplaceable)
-      .addRequiredClusterServers();
-
-    // EP1 child 4: Electrical Sensor DC (MANDATORY per spec 14.4.6 revision 2)
-    this.batteryStorageCombined
-      .addChildDeviceType('DC Battery Sensor', electricalSensor)
-      .createDefaultElectricalPowerMeasurementClusterServer(48_000, 0, 0, 3_000)
-      .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
-      .addRequiredClusterServers();
-
-    // EP1 child 5: Temperature Sensor (OPTIONAL per spec 14.4.6)
-    // Device Energy Management (MANDATORY per spec 14.4.6) is already exposed on the root BatteryStorage
-    // endpoint by the class itself; BridgedDeviceBasicInformation/BridgedNode are only valid on top-level
-    // bridged endpoints, so it must not be duplicated on a nested child here.
-    this.batteryStorageCombined
-      .addChildDeviceType('Battery Temperature', temperatureSensor)
-      .createDefaultTemperatureMeasurementClusterServer(2500, -1000, 6000)
-      .addRequiredClusterServers();
-
-    this.batteryStorageCombined = await this.addDevice(this.batteryStorageCombined);
-
-    // Set mandatory battery attributes per spec 14.4.6.2 on the Battery Pack child endpoint
-    // (the root only has the wired PowerSource feature; the Battery feature lives on this child).
-    // This must run after addDevice() activates the endpoint tree, otherwise setAttribute fails.
-    const batteryPack = this.batteryStorageCombined?.getChildEndpointById('BatteryPack');
-    void batteryPack?.setAttribute(PowerSource, 'batVoltage', 48_000, batteryPack?.log);
-    void batteryPack?.setAttribute(PowerSource, 'batCapacity', 100_000, batteryPack?.log);
-    void batteryPack?.setAttribute(PowerSource, 'batTimeToFullCharge', 3600, batteryPack?.log);
-    void batteryPack?.setAttribute(PowerSource, 'batChargingCurrent', 27_000, batteryPack?.log);
-
-    // EP2 - Temperature Sensor (OPTIONAL system monitoring)
-    this.temperatureSensorCombined = new MatterbridgeEndpoint([temperatureSensor, bridgedNode], { id: 'InverterTemperatureSensor' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Inverter Temperature', 'ITS00051', 0xfff1, 'Matterbridge', 'Temperature monitoring of system inverter')
-      .createDefaultTemperatureMeasurementClusterServer(2200, 0, 8000)
-      .addRequiredClusterServers();
-
-    this.temperatureSensorCombined
-      .addChildDeviceType('Sensor Power', powerSource)
-      .createDefaultPowerSourceReplaceableBatteryClusterServer(85, PowerSource.BatChargeLevel.Ok, 2850, 'AAA', 2, PowerSource.BatReplaceability.UserReplaceable)
-      .addRequiredClusterServers();
-
-    this.temperatureSensorCombined
-      .addChildDeviceType('Sensor Electrical', electricalSensor)
+      .addChildDeviceType('Temperature Sensor', [temperatureSensor, powerSource, electricalSensor])
+      .createDefaultTemperatureMeasurementClusterServer(2200, -1000, 8000)
+      .createDefaultPowerSourceWiredClusterServer()
       .createDefaultElectricalPowerMeasurementClusterServer(3_300, 0, 0, 50)
       .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
       .addRequiredClusterServers();
 
-    this.temperatureSensorCombined = await this.addDevice(this.temperatureSensorCombined);
-
-    // EP3 - Solar Power (0x0017) DC-connected per Figure 22
-    this.solarPowerCombined = new SolarPower('DC Solar Panels', 'SP00052', {
-      voltage: 400_000, // 400V DC nominal
-      current: 15_000, // 15A maximum
-      power: 6_000_000, // 6 kW max
-      energyExported: 2_200_000, // 2.2 kWh
-      absMinPower: 0,
-      absMaxPower: 6_000_000,
-    });
-
-    // EP3 child 1: Power Source DC (MANDATORY per spec 14.3.6)
-    this.solarPowerCombined.addChildDeviceType('DC Input Power Source', powerSource).createDefaultPowerSourceWiredClusterServer().addRequiredClusterServers();
-
-    // EP3 child 2: Electrical Sensor DC (MANDATORY per spec 14.3.6, DirectCurrent feature)
-    this.solarPowerCombined
-      .addChildDeviceType('DC Solar Output', electricalSensor)
-      .createDefaultElectricalPowerMeasurementClusterServer(400_000, 0, 0, 6_000)
-      .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
+    // EP3 — Solar Power, DC-connected child of the Battery Storage endpoint. It shares the endpoint with the
+    // PowerSource, ElectricalSensor and DeviceEnergyManagement device types, matching the figure's
+    // DeviceTypeList [SolarPower, PowerSource, ElectricalSensor, DeviceEnergyManagement]. This mirrors the
+    // cluster set of the SolarPower single-class device, minus BasicInformation (top-level only).
+    this.batteryStorageCombined
+      .addChildDeviceType('Solar Power', [solarPower, powerSource, electricalSensor, deviceEnergyManagement], { tagList: [getSemtag(PowerSourceTag.Solar)] })
+      .createDefaultPowerSourceWiredClusterServer()
+      .createDefaultElectricalPowerMeasurementClusterServer(400_000, 0, 0, 6_000) // 400V DC nominal, 6 kW max
+      .createDefaultElectricalEnergyMeasurementClusterServer(0, 2_200_000) // 2.2 kWh exported
+      .createDefaultDeviceEnergyManagementClusterServer(DeviceEnergyManagement.EsaType.SolarPv, true, DeviceEnergyManagement.EsaState.Online, 0, 6_000_000)
+      .createDefaultDeviceEnergyManagementModeClusterServer()
       .addRequiredClusterServers();
 
-    // EP3 child 3: Temperature Sensor (OPTIONAL per spec 14.3.6)
-    // Device Energy Management (OPTIONAL per spec 14.3.6.1) is already exposed on the root SolarPower
-    // endpoint by the class itself; BridgedDeviceBasicInformation/BridgedNode are only valid on top-level
-    // bridged endpoints, so it must not be duplicated on a nested child here.
-    this.solarPowerCombined
-      .addChildDeviceType('Solar Temperature', temperatureSensor)
-      .createDefaultTemperatureMeasurementClusterServer(2500, -2000, 8000)
-      .addRequiredClusterServers();
-
-    this.solarPowerCombined = await this.addDevice(this.solarPowerCombined);
-
-    // Register aggregator root
-    if (this.solarBatteryRoot) {
-      this.solarBatteryRoot = await this.addDevice(this.solarBatteryRoot);
-    }
+    this.batteryStorageCombined = await this.addDevice(this.batteryStorageCombined);
 
     // Simulate energy flows if useInterval is enabled
     if (this.config.useInterval) {
       this.addInterval(async () => {
         this.solarBatterySimulationPhase += 0.1;
         this.solarBatteryBatteryPhase += 0.05;
-        this.solarBatteryTempPhase += 0.02;
 
-        // Simulate solar generation (0-6000W daily curve)
+        const solarPowerChild = this.batteryStorageCombined?.getChildEndpointById('SolarPower');
+        const batteryChild = this.batteryStorageCombined?.getChildEndpointById('Battery');
+        const temperatureChild = this.batteryStorageCombined?.getChildEndpointById('TemperatureSensor');
+
+        // Simulate solar generation (0-6000W daily curve) on the Solar Power endpoint.
         const solarOutput = Math.floor(3000 * (1 + Math.sin(this.solarBatterySimulationPhase)));
         const solarCurrent = Math.floor((solarOutput / 400) * 1000);
-        await this.solarPowerCombined?.setAttribute(ElectricalPowerMeasurement, 'activePower', solarOutput, this.solarPowerCombined?.log);
-        await this.solarPowerCombined?.setAttribute(ElectricalPowerMeasurement, 'activeCurrent', solarCurrent, this.solarPowerCombined?.log);
+        await solarPowerChild?.setAttribute(ElectricalPowerMeasurement, 'activePower', solarOutput, solarPowerChild.log);
+        await solarPowerChild?.setAttribute(ElectricalPowerMeasurement, 'activeCurrent', solarCurrent, solarPowerChild.log);
 
-        // Simulate battery charge/discharge
-        // batPercentRemaining lives on the 'Battery Pack' child endpoint (root only has the wired PowerSource feature)
-        // and is stored in the Matter 0-200 range, so the 0-100 percent value must be doubled.
+        // Simulate battery charge/discharge. batPercentRemaining lives on the class's internal 'Battery' child
+        // and is stored in the Matter 0-200 range, so the 0-100 percent value must be doubled. The charge
+        // current is reported on the Battery Storage endpoint's own ElectricalPowerMeasurement cluster.
         const batteryPercent = Math.floor(50 + 25 * Math.sin(this.solarBatteryBatteryPhase));
         const chargeCurrent = Math.floor(27000 * Math.max(0, Math.sin(this.solarBatterySimulationPhase)));
-        await this.batteryStorageCombined
-          ?.getChildEndpointById('BatteryPack')
-          ?.setAttribute(PowerSource, 'batPercentRemaining', batteryPercent * 2, this.batteryStorageCombined?.log);
-        await this.batteryStorageCombined?.setAttribute(ElectricalPowerMeasurement, 'activeCurrent', chargeCurrent, this.batteryStorageCombined?.log);
+        await batteryChild?.setAttribute(PowerSource, 'batPercentRemaining', batteryPercent * 2, batteryChild.log);
+        await this.batteryStorageCombined?.setAttribute(ElectricalPowerMeasurement, 'activeCurrent', chargeCurrent, this.batteryStorageCombined.log);
 
-        // Simulate temperature variations
-        const batteryTempC = 27.5 + 7.5 * Math.sin(this.solarBatteryBatteryPhase);
-        await this.batteryStorageCombined
-          ?.getChildEndpointById('BatteryTemperature')
-          ?.setAttribute(TemperatureMeasurement, 'measuredValue', Math.floor(batteryTempC * 100), this.batteryStorageCombined?.log);
-
-        const inverterTempC = 30 + 15 * Math.sin(this.solarBatterySimulationPhase);
-        await this.temperatureSensorCombined?.setAttribute(TemperatureMeasurement, 'measuredValue', Math.floor(inverterTempC * 100), this.temperatureSensorCombined?.log);
+        // Simulate system temperature variations on the Temperature Sensor endpoint.
+        const systemTempC = 30 + 15 * Math.sin(this.solarBatterySimulationPhase);
+        await temperatureChild?.setAttribute(TemperatureMeasurement, 'measuredValue', Math.floor(systemTempC * 100), temperatureChild.log);
       }, 5000);
     }
 

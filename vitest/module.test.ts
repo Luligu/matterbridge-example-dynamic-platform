@@ -15,6 +15,7 @@ import {
   ClosureControl,
   ClosureDimension,
   ColorControl,
+  DeviceEnergyManagement,
   DoorLock,
   ElectricalEnergyMeasurement,
   ElectricalPowerMeasurement,
@@ -151,7 +152,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(82); // +4 for Battery+Solar system
+    expect(dynamicPlatform.getDevices()).toHaveLength(79); // +1 for the composed Battery+Solar system
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Starting platform ${config.name} with reason: Test reason...`);
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
@@ -159,7 +160,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(82); // +4 for Battery+Solar system
+    expect(dynamicPlatform.getDevices()).toHaveLength(79); // +1 for the composed Battery+Solar system
     const percentSettingSubscribers = new Set([dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner]);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
@@ -876,7 +877,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(82); // +4 for Battery+Solar system
+    expect(dynamicPlatform.getDevices()).toHaveLength(79); // +1 for the composed Battery+Solar system
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Configuring platform ${config.name}...`);
 
     await dynamicPlatform.executeIntervals(26, 10);
@@ -905,49 +906,46 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should verify Battery Storage + Solar Power combined system', async () => {
-    // Verify the root aggregator exists
-    const solarBatteryRoot = dynamicPlatform.getDeviceByName('Battery + Solar System');
-    expect(solarBatteryRoot).toBeDefined();
-    // ElectricalPower/ElectricalEnergy clusters live on the 'System Electrical' child endpoint, not the root:
-    // Aggregator/BridgedNode don't allow those clusters directly per the Matter spec (TC_DeviceConformance).
-    expect(solarBatteryRoot?.getChildEndpointById('SystemElectrical')?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
-    expect(solarBatteryRoot?.getChildEndpointById('SystemElectrical')?.hasClusterServer(ElectricalEnergyMeasurement.id)).toBe(true);
-
-    // Verify EP1 - Battery Storage exists with children
-    const batteryStorage = dynamicPlatform.getDeviceByName('Home Battery Storage');
+    // Figure 22 is a single composed Battery Storage device (EP1) with the Temperature Sensor (EP2) and
+    // Solar Power (EP3) endpoints underneath it, not separate top-level devices. EP0 (Root Node) is the
+    // Matterbridge bridge itself.
+    const batteryStorage = dynamicPlatform.getDeviceByName('Battery + Solar System');
     expect(batteryStorage).toBeDefined();
-    // BatteryStorage is identified by PowerSource cluster
+
+    // EP1 - Battery Storage endpoint carries PowerSource, ElectricalSensor and DeviceEnergyManagement device types.
     expect(batteryStorage?.hasClusterServer(PowerSource.id)).toBe(true);
     expect(batteryStorage?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
     expect(batteryStorage?.hasClusterServer(ElectricalEnergyMeasurement.id)).toBe(true);
+    expect(batteryStorage?.hasClusterServer(DeviceEnergyManagement.id)).toBe(true);
 
-    // Verify Battery attributes (batPercentRemaining lives on the 'Battery Pack' child endpoint, not the root,
-    // and is stored in the Matter 0-200 range, hence the /2 below).
-    const batPercentRaw = batteryStorage?.getChildEndpointById('BatteryPack')?.getAttribute(PowerSource.id, 'batPercentRemaining');
+    // Battery attributes live on the class's internal 'Battery' child endpoint and are stored in the Matter
+    // 0-200 range, hence the /2 below.
+    const batPercentRaw = batteryStorage?.getChildEndpointById('Battery')?.getAttribute(PowerSource.id, 'batPercentRemaining');
     expect(batPercentRaw).toBeDefined();
     const batPercent = (batPercentRaw as number) / 2;
     expect(batPercent).toBeGreaterThanOrEqual(50);
     expect(batPercent).toBeLessThanOrEqual(75);
 
-    // Verify EP2 - Temperature Sensor exists
-    const temperatureSensor = dynamicPlatform.getDeviceByName('Inverter Temperature');
+    // EP2 - Temperature Sensor is a child of the Battery Storage endpoint, sharing it with PowerSource and
+    // ElectricalSensor device types.
+    const temperatureSensor = batteryStorage?.getChildEndpointById('TemperatureSensor');
     expect(temperatureSensor).toBeDefined();
-    // TemperatureSensor is identified by TemperatureMeasurement cluster
     expect(temperatureSensor?.hasClusterServer(TemperatureMeasurement.id)).toBe(true);
-    // PowerSource lives on the 'Sensor Power' child endpoint, not the root
-    expect(temperatureSensor?.getChildEndpointById('SensorPower')?.hasClusterServer(PowerSource.id)).toBe(true);
+    expect(temperatureSensor?.hasClusterServer(PowerSource.id)).toBe(true);
+    expect(temperatureSensor?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
 
-    // Verify EP3 - Solar Power exists with children
-    const solarPower = dynamicPlatform.getDeviceByName('DC Solar Panels');
+    // EP3 - Solar Power is a child of the Battery Storage endpoint, sharing it with PowerSource,
+    // ElectricalSensor and DeviceEnergyManagement device types.
+    const solarPower = batteryStorage?.getChildEndpointById('SolarPower');
     expect(solarPower).toBeDefined();
-    // SolarPower is identified by PowerSource and ElectricalPowerMeasurement clusters
     expect(solarPower?.hasClusterServer(PowerSource.id)).toBe(true);
     expect(solarPower?.hasClusterServer(ElectricalPowerMeasurement.id)).toBe(true);
     expect(solarPower?.hasClusterServer(ElectricalEnergyMeasurement.id)).toBe(true);
+    expect(solarPower?.hasClusterServer(DeviceEnergyManagement.id)).toBe(true);
 
     // Verify Solar attributes
-    const solarPower_ = solarPower?.getAttribute(ElectricalPowerMeasurement.id, 'activePower');
-    expect(solarPower_).toBeDefined();
+    const solarActivePower = solarPower?.getAttribute(ElectricalPowerMeasurement.id, 'activePower');
+    expect(solarActivePower).toBeDefined();
 
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.FATAL, expect.anything());
