@@ -3701,9 +3701,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             // Resolve whether the water heater is currently in its Off mode by matching the Off mode tag.
             const currentMode = this.waterHeater?.getAttribute(WaterHeaterMode.id, 'currentMode', this.waterHeater.log);
             const supportedModes = this.waterHeater?.getAttribute(WaterHeaterMode.id, 'supportedModes', this.waterHeater.log);
-            const offMode = Array.isArray(supportedModes)
-              ? supportedModes.find((mode) => mode.modeTags?.some((tag: { value: number }) => tag.value === (WaterHeaterMode.ModeTag.Off as number)))?.mode
-              : undefined;
+            const offMode = (Array.isArray(supportedModes) ? supportedModes : []).find((mode) =>
+              mode.modeTags?.some((tag: { value: number }) => tag.value === (WaterHeaterMode.ModeTag.Off as number)),
+            )?.mode;
             const isOff = isValidNumber(currentMode) && isValidNumber(offMode) && currentMode === offMode;
 
             // Heating is only called for when the water is below its target setpoint.
