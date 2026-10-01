@@ -24,6 +24,7 @@ import {
   OnOff,
   Thermostat,
   WaterHeaterManagement,
+  WaterHeaterMode,
 } from 'matterbridge/matter/clusters';
 import {
   addMatterbridge,
@@ -940,6 +941,24 @@ describe('TestPlatform', () => {
     expect(heatDemand?.immersionElement2).toBe(false);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 0'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('normal'));
+
+    // With boost inactive and the mode set to Off, no heat source should be reported (Matter 1.6 §9.5.7.2).
+    const supportedModes = waterHeater?.getAttribute(WaterHeaterMode.id, 'supportedModes', waterHeater.log) as { mode: number; modeTags: { value: number }[] }[];
+    const offModeOption = supportedModes.find((mode) => mode.modeTags.some((tag) => tag.value === (WaterHeaterMode.ModeTag.Off as number)));
+    expect(offModeOption).toBeDefined();
+    const offMode = offModeOption?.mode ?? 0;
+    await waterHeater?.setAttribute(WaterHeaterMode.id, 'currentMode', offMode, waterHeater.log);
+    await dynamicPlatform.executeIntervals(1, 100);
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand?.immersionElement1).toBe(false);
+    expect(heatDemand?.immersionElement2).toBe(false);
+
+    // §9.5.8.2.1: restoring an active mode resumes mode-controlled heating (water is still below the target setpoint).
+    await waterHeater?.setAttribute(WaterHeaterMode.id, 'currentMode', 1, waterHeater.log);
+    await dynamicPlatform.executeIntervals(1, 100);
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(false);
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
