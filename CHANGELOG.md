@@ -42,19 +42,25 @@ If you like this project and find it useful, please consider giving it a star on
 - [platform]: Add `RfidLock` device: a door lock with the User, PinCredential, and RfidCredential (RID) features, testing the `numberOfRfidUsersSupported` parameter of `createUserPinDoorLockClusterServer()` (Matter 1.6.0 § 5.2.4). `SetCredential`, `GetCredentialStatus`, and `ClearCredential` already handle `DoorLock.CredentialType.Rfid` generically in `MatterbridgeDoorLockServer`, so no RFID-specific command handlers were needed for this device.
 - [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
 - [Momentary switch]: Report `productId` `0x8000` on the composed `Momentary switch` bridged device, so Home Assistant's `(vendorId, productId)` allowlist can match the `ha_entitylabel` FixedLabels on `switch4`/`switch5`/`switch6` (requires matterbridge's `createDefaultBridgedDeviceBasicInformationClusterServer()` optional `productId` parameter).
+- [agents]: Add [`commit message instructions`](.github/commit-message-instructions.md) v.1.0.0 for the VS Code Copilot "Generate Commit Message" button (Conventional Commits).
+
+### Fixed
+
+- [Oven]: Add the required Bake mode to the lower cabinet so Oven Mode initializes successfully.
 
 ### Changed
 
+- [oxc]: Exclude `scripts` directories from lint and format checks.
+- [vscode]: Update `.vscode/settings.json` to v.1.0.13: point the Copilot "Generate Commit Message" button to `.github/commit-message-instructions.md`.
+- [styleguide]: Update [`STYLEGUIDE.md`](STYLEGUIDE.md) to v.1.1.0: align it with the lint and format config and add the Commit Messages and Changelog sections.
+- [scripts]: Update `scripts/clean.mjs` and `scripts/deep-clean.mjs` to v.1.3.0: log every removed path, add `--help` and `--version` and reject unknown arguments.
 - [package]: Upgrade package.
-- [package]: Bump `node-ansi-logger` to v.3.3.1.
-- [package]: Bump `node-persist-manager` to v.2.1.1.
-- [package]: Bump `oxfmt` to v.0.68.0.
-- [package]: Bump `oxlint` to v.1.83.0.
-- [package]: Bump `oxlint-tsgolint` to v.7.0.2002.
-- [package]: Bump `vitest` to v.5.0.1.
-- [package]: Bump `@vitest/coverage-v8` to v.5.0.1.
-- [package]: Bump `@types/node` to v.26.6.2.
-- [package]: Bump `typescript` to v.7.0.2.
+- [package]: Bump `oxfmt` to v.0.71.0.
+- [package]: Bump `oxlint` to v.1.86.0.
+- [package]: Bump `oxlint-tsgolint` to v.7.0.2003.
+- [package]: Bump `vitest` to v.5.0.3.
+- [package]: Bump `@vitest/coverage-v8` to v.5.0.3.
+- [package]: Bump `@types/node` to v.26.6.3.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 

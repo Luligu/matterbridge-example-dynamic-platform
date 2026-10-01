@@ -86,7 +86,7 @@ It exposes 78 virtual devices:
 - a laundry Dryer device (supported by SmartThings, Alexa and Home Assistant)
 - a dishwasher device (supported by SmartThings, Alexa and Home Assistant)
 - a refrigerator device (supported by SmartThings, Alexa and Home Assistant)
-- an oven device (supported by SmartThings, Alexa and Home Assistant)
+- an oven device with upper and lower cabinets, each including the required Bake mode (supported by SmartThings, Alexa and Home Assistant)
 - a microwave Oven device (supported by SmartThings, Alexa and Home Assistant)
 - an extractor Hood device (supported by SmartThings, Alexa and Home Assistant)
 - a cooktop device (supported by SmartThings, Alexa and Home Assistant)
