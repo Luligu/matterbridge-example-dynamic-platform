@@ -2672,6 +2672,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         { label: 'Convection', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
         { label: 'Clean', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Clean }] },
         { label: 'Steam', mode: 3, modeTags: [{ value: OvenMode.ModeTag.Steam }] },
+        { label: 'Bake', mode: 4, modeTags: [{ value: OvenMode.ModeTag.Bake }] },
       ],
       targetTemperature: 200 * 100,
       minTemperature: 100 * 100,
