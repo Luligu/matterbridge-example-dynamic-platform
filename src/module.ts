@@ -150,6 +150,7 @@ import {
   Thermostat,
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
   WindowCovering,
+  PowerTopology,
 } from 'matterbridge/matter/clusters';
 import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString, luxToMatter, matterToLux, parseVersionString } from 'matterbridge/utils';
 
@@ -2642,12 +2643,13 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     // [TemperatureSensor, PowerSource, ElectricalSensor]. BasicInformation/BridgedDeviceBasicInformation are
     // only valid on top-level endpoints, so they must not be created on this nested child.
     this.batteryStorageCombined
-      .addChildDeviceType('Temperature Sensor', [temperatureSensor, powerSource, electricalSensor])
+      .addChildDeviceType('Temperature Sensor', [temperatureSensor, powerSource, electricalSensor], { tagList: [getSemtag(PowerSourceTag.Battery)] })
       .createDefaultTemperatureMeasurementClusterServer(2200, -1000, 8000)
-      .createDefaultPowerSourceWiredClusterServer()
+      .createDefaultPowerSourceRechargeableBatteryClusterServer(70, PowerSource.BatChargeLevel.Ok, 12000, PowerSource.BatReplaceability.FactoryReplaceable)
+      .createDefaultPowerTopologyClusterServer(PowerTopology.Feature.TreeTopology)
       .createDefaultElectricalPowerMeasurementClusterServer(3_300, 0, 0, 50)
       .createDefaultElectricalEnergyMeasurementClusterServer(0, 0)
-      .addRequiredClusterServers();
+      .addRequiredClusters();
 
     // EP3 — Solar Power, DC-connected child of the Battery Storage endpoint. It shares the endpoint with the
     // PowerSource, ElectricalSensor and DeviceEnergyManagement device types, matching the figure's
@@ -2656,11 +2658,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.batteryStorageCombined
       .addChildDeviceType('Solar Power', [solarPower, powerSource, electricalSensor, deviceEnergyManagement], { tagList: [getSemtag(PowerSourceTag.Solar)] })
       .createDefaultPowerSourceWiredClusterServer()
+      .createDefaultPowerTopologyClusterServer(PowerTopology.Feature.TreeTopology)
       .createDefaultElectricalPowerMeasurementClusterServer(400_000, 0, 0, 6_000) // 400V DC nominal, 6 kW max
-      .createDefaultElectricalEnergyMeasurementClusterServer(0, 2_200_000) // 2.2 kWh exported
+      .createExportedElectricalEnergyMeasurementClusterServer(2_200_000) // 2.2 kWh exported
       .createDefaultDeviceEnergyManagementClusterServer(DeviceEnergyManagement.EsaType.SolarPv, true, DeviceEnergyManagement.EsaState.Online, 0, 6_000_000)
       .createDefaultDeviceEnergyManagementModeClusterServer()
-      .addRequiredClusterServers();
+      .addRequiredClusters();
 
     this.batteryStorageCombined = await this.addDevice(this.batteryStorageCombined);
 
