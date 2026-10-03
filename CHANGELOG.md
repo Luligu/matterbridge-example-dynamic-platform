@@ -43,6 +43,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
 - [Momentary switch]: Report `productId` `0x8000` on the composed `Momentary switch` bridged device, so Home Assistant's `(vendorId, productId)` allowlist can match the `ha_entitylabel` FixedLabels on `switch4`/`switch5`/`switch6` (requires matterbridge's `createDefaultBridgedDeviceBasicInformationClusterServer()` optional `productId` parameter).
 - [agents]: Add [`commit message instructions`](.github/commit-message-instructions.md) v.1.0.0 for the VS Code Copilot "Generate Commit Message" button (Conventional Commits).
+- [scripts]: Add `scripts/bun-bundle.mjs` for Bun JavaScript and declaration bundles with workspace, production, watch and dry-run support.
 
 ### Fixed
 
@@ -50,9 +51,14 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
-- [vscode]: Update `.vscode/settings.json` to v.1.0.14: point the Copilot "Generate Commit Message" button to `.github/commit-message-instructions.md`.
 - [styleguide]: Update [`STYLEGUIDE.md`](STYLEGUIDE.md) to v.1.1.0: align it with the lint and format config and add the Commit Messages and Changelog sections.
 - [scripts]: Update `scripts` to v.2.0.0.
+- [vscode]: Update `.vscode/settings.json` to v.1.0.15: configure commit message instructions, exclude templates from Vitest discovery and refine terminal command approvals.
+- [gitignore]: Update `.gitignore` to v.1.0.5: ignore `tmp/`, `.DS_Store` and Windows `Zone.Identifier` files.
+- [lint]: Update `.oxlintrc.json` and `.oxfmtrc.json` to v.1.1.0: align shared ignore patterns.
+- [vitest]: Replace `vite.config.ts` with `vitest.config.ts` v.2.0.8 and update test and coverage exclusions.
+- [agents]: Update `.antigravity/settings.json` to v.1.0.5: allow read-only Git commands.
+- [package]: Remove unsupported npm flags from `bun link` in `softReset:bun`.
 - [package]: Upgrade package.
 - [package]: Bump `oxfmt` to v.0.71.0.
 - [package]: Bump `oxlint` to v.1.86.0.
