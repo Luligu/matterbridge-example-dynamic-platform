@@ -24,6 +24,8 @@ import {
   OnOff,
   OvenMode,
   Thermostat,
+  WaterHeaterManagement,
+  WaterHeaterMode,
 } from 'matterbridge/matter/clusters';
 import {
   addMatterbridge,
@@ -905,6 +907,65 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Switch.Release'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Set lock lockState to Unlocked'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('Set lock lockState to Locked'));
+  }, 60000);
+
+  it('should update HeatDemand based on BoostState', async () => {
+    // Verify the water heater exists
+    const waterHeater = dynamicPlatform.getDeviceByName('Water Heater');
+    expect(waterHeater).toBeDefined();
+    expect(waterHeater?.hasClusterServer(WaterHeaterManagement.id)).toBe(true);
+
+    // Initial state: BoostState = Inactive (0), HeatDemand should have immersionElement1=true, immersionElement2=false
+    let boostState = waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', waterHeater.log);
+    let heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(boostState).toBeDefined();
+    expect(heatDemand).toBeDefined();
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(false);
+
+    // Set BoostState to Active (1)
+    await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 1, waterHeater.log);
+
+    // Execute intervals to trigger HeatDemand update logic
+    await dynamicPlatform.executeIntervals(1, 100);
+
+    // HeatDemand should now have both stages: immersionElement1=true, immersionElement2=true
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(true);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 1'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('boost'));
+
+    // Set BoostState back to Inactive (0)
+    await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 0, waterHeater.log);
+
+    // Execute intervals to trigger HeatDemand update logic
+    await dynamicPlatform.executeIntervals(1, 100);
+
+    // HeatDemand should be back to normal: immersionElement1=true, immersionElement2=false
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(false);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 0'));
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('normal'));
+
+    // With boost inactive and the mode set to Off, no heat source should be reported (Matter 1.6 §9.5.7.2).
+    const supportedModes = waterHeater?.getAttribute(WaterHeaterMode.id, 'supportedModes', waterHeater.log) as { mode: number; modeTags: { value: number }[] }[];
+    const offModeOption = supportedModes.find((mode) => mode.modeTags.some((tag) => tag.value === (WaterHeaterMode.ModeTag.Off as number)));
+    expect(offModeOption).toBeDefined();
+    const offMode = offModeOption?.mode ?? 0;
+    await waterHeater?.setAttribute(WaterHeaterMode.id, 'currentMode', offMode, waterHeater.log);
+    await dynamicPlatform.executeIntervals(1, 100);
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand?.immersionElement1).toBe(false);
+    expect(heatDemand?.immersionElement2).toBe(false);
+
+    // §9.5.8.2.1: restoring an active mode resumes mode-controlled heating (water is still below the target setpoint).
+    await waterHeater?.setAttribute(WaterHeaterMode.id, 'currentMode', 1, waterHeater.log);
+    await dynamicPlatform.executeIntervals(1, 100);
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(false);
   }, 60000);
 
   it('should call onShutdown with reason', async () => {

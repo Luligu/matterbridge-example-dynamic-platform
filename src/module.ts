@@ -146,6 +146,8 @@ import {
   TemperatureMeasurement,
   Thermostat,
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
+  WaterHeaterManagement,
+  WaterHeaterMode,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
 import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString, luxToMatter, matterToLux, parseVersionString } from 'matterbridge/utils';
@@ -2540,6 +2542,9 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       targetWaterTemperature: 60,
       minHeatSetpointLimit: 20,
       maxHeatSetpointLimit: 80,
+      // HeaterTypes is a fixed attribute advertising the heat sources the water heater can call on.
+      // Both immersion elements are declared because the simulation below drives immersionElement2 during boost.
+      heaterTypes: { immersionElement1: true, immersionElement2: true },
       tankPercentage: 85,
       voltage: 220_000,
       current: 1_000,
@@ -3679,6 +3684,53 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         },
         60 * 1000 + 1900,
       );
+    }
+
+    if (this.config.useInterval) {
+      // Manage water heater HeatDemand based on the active mode, the water temperature and the boost state.
+      // Per Matter 1.6 §9.5.7.2, HeatDemand reports the heat sources that are *actually* heating right now, so it
+      // must reflect the current mode and temperature, not just advertise a stage unconditionally:
+      // - immersionElement1: primary heating stage, engaged while heating is called for
+      // - immersionElement2: secondary stage, engaged only during an active boost (§9.5.8)
+      // When the mode is Off and no boost is active, no heat source is reported.
+      this.addInterval(async () => {
+        if (this.waterHeater?.hasAttributeServer(WaterHeaterManagement.id, 'boostState')) {
+          const boostState = this.waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', this.waterHeater.log);
+          if (isValidNumber(boostState, 0, 1)) {
+            const boostActive = boostState === (WaterHeaterManagement.BoostState.Active as number);
+
+            // Resolve whether the water heater is currently in its Off mode by matching the Off mode tag.
+            const currentMode = this.waterHeater?.getAttribute(WaterHeaterMode.id, 'currentMode', this.waterHeater.log);
+            const supportedModes = this.waterHeater?.getAttribute(WaterHeaterMode.id, 'supportedModes', this.waterHeater.log);
+            const offMode = (Array.isArray(supportedModes) ? supportedModes : []).find((mode) =>
+              mode.modeTags?.some((tag: { value: number }) => tag.value === (WaterHeaterMode.ModeTag.Off as number)),
+            )?.mode;
+            const isOff = isValidNumber(currentMode) && isValidNumber(offMode) && currentMode === offMode;
+
+            // Heating is only called for when the water is below its target setpoint.
+            const localTemperature = this.waterHeater?.getAttribute(Thermostat.id, 'localTemperature', this.waterHeater.log);
+            const occupiedHeatingSetpoint = this.waterHeater?.getAttribute(Thermostat.id, 'occupiedHeatingSetpoint', this.waterHeater.log);
+            const belowTarget = isValidNumber(localTemperature) && isValidNumber(occupiedHeatingSetpoint) ? localTemperature < occupiedHeatingSetpoint : true;
+
+            // A boost always heats (even in Off, §9.5.8); otherwise heating runs only when the mode is active and below target.
+            const heating = boostActive || (!isOff && belowTarget);
+            const heatDemand = {
+              immersionElement1: heating,
+              immersionElement2: boostActive,
+              heatPump: false,
+              boiler: false,
+              other: false,
+            };
+            await this.waterHeater?.setAttribute(WaterHeaterManagement.id, 'heatDemand', heatDemand, this.waterHeater.log);
+            const stageInfo = heatDemand.immersionElement2
+              ? 'ImmersionElement1 + ImmersionElement2 (boost)'
+              : heatDemand.immersionElement1
+                ? 'ImmersionElement1 only (normal)'
+                : 'none (idle)';
+            this.waterHeater?.log.info(`BoostState: ${boostState}, Mode: ${currentMode}${isOff ? ' (Off)' : ''}, HeatDemand: ${stageInfo}`);
+          }
+        }
+      }, 30 * 1000);
     }
   }
 
