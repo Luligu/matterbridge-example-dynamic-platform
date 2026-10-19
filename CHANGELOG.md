@@ -51,6 +51,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
+- [package]: Update the `package.json` description to "Matterbridge example dynamic plugin".
 - [styleguide]: Update [`STYLEGUIDE.md`](STYLEGUIDE.md) to v.1.1.0: align it with the lint and format config and add the Commit Messages and Changelog sections.
 - [scripts]: Update `scripts` to v.2.0.0.
 - [vscode]: Update `.vscode/settings.json` to v.1.0.15: configure commit message instructions, exclude templates from Vitest discovery and refine terminal command approvals.
