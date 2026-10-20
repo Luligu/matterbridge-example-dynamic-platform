@@ -64,7 +64,7 @@ describe('TestPlatform', () => {
 
   beforeAll(async () => {
     // Setup the Matter test environment
-    await createTestEnvironment();
+    await createTestEnvironment('warn');
 
     // Create the server node and aggregator
     await createServerNode(MATTER_PORT);
