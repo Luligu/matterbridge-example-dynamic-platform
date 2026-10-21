@@ -33,7 +33,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Breaking changes
 
-- [matterbridge]: Require matterbridge v.3.10.10 with matter v.1.6.0.
+- [matterbridge]: Require matterbridge v.3.11.0 with matter v.1.6.1.
 
 ### Added
 
@@ -51,6 +51,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
+- [workflows]: Build and test against the matterbridge `dev` branch (`automator.workflow`).
 - [package]: Update the `package.json` description to "Matterbridge example dynamic plugin".
 - [styleguide]: Update [`STYLEGUIDE.md`](STYLEGUIDE.md) to v.1.1.0: align it with the lint and format config and add the Commit Messages and Changelog sections.
 - [scripts]: Update `scripts` to v.2.0.0.
