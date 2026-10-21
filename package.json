@@ -76,6 +76,7 @@
     "git": false,
     "version": false,
     "publish": false,
+    "workflow": "dev",
     "chip": true,
     "coverage": {
       "lines": 100,
