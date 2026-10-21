@@ -71,9 +71,8 @@ describe('TestPlatform', () => {
 
     // Start the server node if not in create-only mode
     if (!MATTER_CREATE_ONLY) await startServerNode();
-    matterbridge = getMatterbridge();
     // Bridge mode adds bridgedNode to the bridged devices, so devices of the same type under the aggregator need no tagList
-    Object.assign(matterbridge, { bridgeMode: 'bridge' });
+    matterbridge = getMatterbridge('bridge');
   });
 
   beforeEach(() => {
