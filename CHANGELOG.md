@@ -29,7 +29,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
-## [3.0.4] - Dev branch
+## [3.1.0] - 2026-10-23
 
 ### Breaking changes
 
@@ -51,7 +51,6 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
-- [workflows]: Build and test against the matterbridge `dev` branch (`automator.workflow`).
 - [tsconfig]: Remove `**/__test__/*` from the `tsconfig.build.json` and `tsconfig.build.production.json` exclusions.
 - [workflows]: Update `build.yml` and `codecov.yml` to v.2.0.8 and `publish.yml` to v.2.0.7.
 - [package]: Remove `--disable-nested-config` from the `lint` and `lint:fix` scripts.
