@@ -149,7 +149,7 @@ describe('TestPlatform', () => {
     config.blackList = [];
 
     await dynamicPlatform.onStart('Test reason');
-    expect(dynamicPlatform.getDevices()).toHaveLength(78);
+    expect(dynamicPlatform.getDevices()).toHaveLength(79);
     const lowerCabinet = dynamicPlatform.oven?.getChildEndpointById('LowerCabinet');
     expect(lowerCabinet).toBeDefined();
     expect(lowerCabinet?.getAttribute(OvenMode.id, 'supportedModes')).toEqual(
@@ -162,7 +162,7 @@ describe('TestPlatform', () => {
   }, 60000);
 
   it('should execute the commandHandlers', async () => {
-    expect(dynamicPlatform.getDevices()).toHaveLength(78);
+    expect(dynamicPlatform.getDevices()).toHaveLength(79);
     const percentSettingSubscribers = new Set([dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner]);
     // Invoke command handlers
     for (const device of dynamicPlatform.getDevices()) {
@@ -880,7 +880,7 @@ describe('TestPlatform', () => {
 
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
-    expect(dynamicPlatform.getDevices()).toHaveLength(78);
+    expect(dynamicPlatform.getDevices()).toHaveLength(79);
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Configuring platform ${config.name}...`);
 
     await dynamicPlatform.executeIntervals(26, 10);

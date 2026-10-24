@@ -89,6 +89,7 @@ import {
   Speaker,
   WaterHeater,
 } from 'matterbridge/devices';
+import { Doorbell } from 'matterbridge/devices/camera';
 import { type AnsiLogger, debugStringify } from 'matterbridge/logger';
 import {
   ClosureCoveringTag,
@@ -232,6 +233,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   valve: MatterbridgeEndpoint | undefined;
   momentarySwitch: MatterbridgeEndpoint | undefined;
   latchingSwitch: MatterbridgeEndpoint | undefined;
+  doorbell: MatterbridgeEndpoint | undefined;
   vacuum: MatterbridgeEndpoint | undefined;
   roboticVacuum: MatterbridgeEndpoint | undefined;
   waterHeater: MatterbridgeEndpoint | undefined;
@@ -2467,6 +2469,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.latchingSwitch = await this.addDevice(this.latchingSwitch);
 
+    // *********************** Create a doorbell *****************************/
+    // The Doorbell class wires the required Identify and MomentarySwitch servers and registers the required Chime
+    // client cluster automatically (addDevice() then adds the BridgedDeviceBasicInformation cluster and the
+    // bridgedNode device type since the device is registered in bridge mode).
+    this.doorbell = new Doorbell('Doorbell', 'DOB00071', { powerSourceType: 'Replaceable' });
+
+    this.doorbell = await this.addDevice(this.doorbell);
+
     // *********************** Create a vacuum *****************************
     /*
     The RVC is supported correctly by the Home app (all commands work).
@@ -3658,6 +3668,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch4')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch5')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch6')?.triggerSwitchEvent('Single', this.momentarySwitch?.log);
+            await this.doorbell?.triggerSwitchEvent('Single', this.doorbell?.log);
           } else if (this.genericSwitchLastEvent === 'Single') {
             this.genericSwitchLastEvent = 'Double';
             await this.momentarySwitch?.getChildEndpointById('Momentaryswitch1')?.triggerSwitchEvent('Double', this.momentarySwitch?.log);
