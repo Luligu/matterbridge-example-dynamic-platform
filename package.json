@@ -1,7 +1,7 @@
 {
   "name": "matterbridge-example-dynamic-platform",
-  "version": "3.0.4",
-  "description": "Matterbridge dynamic plugin",
+  "version": "3.1.1",
+  "description": "Matterbridge example dynamic plugin",
   "author": "https://github.com/Luligu",
   "license": "Apache-2.0",
   "homepage": "https://www.npmjs.com/package/matterbridge-example-dynamic-platform",
@@ -57,7 +57,7 @@
     "gladysassistant"
   ],
   "engines": {
-    "node": ">=20.19.0 <21.0.0 || >=22.13.0 <23.0.0 || >=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+    "node": ">=22.13.0 <23.0.0 || >=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
   },
   "files": [
     "bin",
@@ -102,8 +102,8 @@
     "test:watch": "vitest watch",
     "test:verbose": "vitest run --reporter verbose",
     "test:coverage": "vitest run --coverage --coverage.thresholds.lines=100 --coverage.thresholds.functions=100",
-    "lint": "oxlint --disable-nested-config",
-    "lint:fix": "oxlint --disable-nested-config --fix",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "chip:start": "node scripts/run-chip-tests.mjs --start",
@@ -111,9 +111,8 @@
     "chip:stop": "node scripts/run-chip-tests.mjs --stop",
     "reset": "npm run deepClean && npm run softReset",
     "softReset": "npm install --no-fund --no-audit && npm prune --no-fund --no-audit && npm link --no-fund --no-audit matterbridge && npm run build && npm run typecheck",
-    "softReset:bun": "bun install && bun prune && bun link matterbridge && bun run build && bun run typecheck",
-    "checkDependencies": "npm install --no-fund --no-audit --no-save npm-check-updates && ncu && npm run softReset",
-    "updateDependencies": "npm install --no-fund --no-audit --no-save npm-check-updates && ncu -u && npm run softReset",
+    "checkDependencies": "npx --yes --package npm-check-updates@latest ncu",
+    "updateDependencies": "npx --yes --package npm-check-updates@latest ncu -u && npm run softReset",
     "runMeBeforePublish": "npm run cleanBuild && npm run format && npm run lint && npm run build && npm run typecheck && npm run test:coverage",
     "prepublishOnly": "npm run cleanBuildProduction && npm pkg delete devDependencies scripts automator && node scripts/prepublish-clean.mjs && npm install --no-fund --no-audit --omit=dev && npm shrinkwrap --omit=dev"
   },
@@ -122,12 +121,12 @@
     "node-persist-manager": "2.1.1"
   },
   "devDependencies": {
-    "@types/node": "26.6.4",
-    "@vitest/coverage-v8": "5.0.3",
-    "oxfmt": "0.71.0",
-    "oxlint": "1.86.0",
-    "oxlint-tsgolint": "7.0.2003",
+    "@types/node": "26.6.5",
+    "@vitest/coverage-v8": "5.0.5",
+    "oxfmt": "0.74.0",
+    "oxlint": "1.89.0",
+    "oxlint-tsgolint": "7.0.2004",
     "typescript": "7.0.2",
-    "vitest": "5.0.3"
+    "vitest": "5.0.5"
   }
 }

@@ -76,7 +76,8 @@ describe('TestPlatform', () => {
 
     // Start the server node if not in create-only mode
     if (!MATTER_CREATE_ONLY) await startServerNode();
-    matterbridge = getMatterbridge();
+    // Bridge mode adds bridgedNode to the bridged devices, so devices of the same type under the aggregator need no tagList
+    matterbridge = getMatterbridge('bridge');
   });
 
   beforeEach(() => {
@@ -101,7 +102,7 @@ describe('TestPlatform', () => {
 
   it('should throw error in load when version is not valid', () => {
     expect(() => initializePlugin({ ...matterbridge, matterbridgeVersion: '1.5.0' }, log, config)).toThrow(
-      'This plugin requires Matterbridge version >= "3.10.10". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.11.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
   });
 
