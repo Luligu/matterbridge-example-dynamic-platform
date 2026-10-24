@@ -22,6 +22,7 @@ import {
   LevelControl,
   ModeSelect,
   OnOff,
+  OvenMode,
   Thermostat,
 } from 'matterbridge/matter/clusters';
 import {
@@ -70,7 +71,8 @@ describe('TestPlatform', () => {
 
     // Start the server node if not in create-only mode
     if (!MATTER_CREATE_ONLY) await startServerNode();
-    matterbridge = getMatterbridge();
+    // Bridge mode adds bridgedNode to the bridged devices, so devices of the same type under the aggregator need no tagList
+    matterbridge = getMatterbridge('bridge');
   });
 
   beforeEach(() => {
@@ -95,14 +97,14 @@ describe('TestPlatform', () => {
 
   it('should throw error in load when version is not valid', () => {
     expect(() => initializePlugin({ ...matterbridge, matterbridgeVersion: '1.5.0' }, log, config)).toThrow(
-      'This plugin requires Matterbridge version >= "3.10.8". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.11.0". Please update Matterbridge from 1.5.0 to the latest version in the frontend.',
     );
   });
 
   it('should initialize platform with config name and set the default config', () => {
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
     addMatterbridge(dynamicPlatform);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Initializing platform ${config.name}...`);
     expect(config.whiteList).toEqual([]);
     expect(config.blackList).toEqual([]);
     expect(config.useInterval).toBe(true);
@@ -112,7 +114,7 @@ describe('TestPlatform', () => {
   it('should call onShutdown with reason and remove the devices', async () => {
     config.unregisterOnShutdown = true;
     await dynamicPlatform.onShutdown('Test reason');
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Shutting down platform ${config.name} with reason: Test reason...`);
     expect(dynamicPlatform.getDevices()).toHaveLength(0);
     config.unregisterOnShutdown = false;
   });
@@ -120,26 +122,26 @@ describe('TestPlatform', () => {
   it('should initialize platform with config name', () => {
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
     addMatterbridge(dynamicPlatform);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Initializing platform ${config.name}...`);
   });
 
   it('should call onStart without reason and add no devices', async () => {
     config.whiteList = ['No devices'];
     config.blackList = [];
     await dynamicPlatform.onStart();
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'none');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Starting platform ${config.name} with reason: no reason provided...`);
     expect(dynamicPlatform.getDevices()).toHaveLength(0);
   });
 
   it('should call onShutdown with reason and cleanup the interval', async () => {
     await dynamicPlatform.onShutdown('Test reason');
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Shutting down platform ${config.name} with reason: Test reason...`);
   });
 
   it('should reinitialize platform with config name', () => {
     dynamicPlatform = new ExampleMatterbridgeDynamicPlatform(matterbridge, log, config);
     addMatterbridge(dynamicPlatform);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Initializing platform ${config.name}...`);
   });
 
   it('should call onStart with reason and add all the devices', async () => {
@@ -148,7 +150,12 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(dynamicPlatform.getDevices()).toHaveLength(78);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
+    const lowerCabinet = dynamicPlatform.oven?.getChildEndpointById('LowerCabinet');
+    expect(lowerCabinet).toBeDefined();
+    expect(lowerCabinet?.getAttribute(OvenMode.id, 'supportedModes')).toEqual(
+      expect.arrayContaining([expect.objectContaining({ mode: 4, modeTags: expect.arrayContaining([expect.objectContaining({ value: OvenMode.ModeTag.Bake })]) })]),
+    );
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Starting platform ${config.name} with reason: Test reason...`);
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.WARN, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.ERROR, expect.anything());
     expect(loggerLogSpy).not.toHaveBeenCalledWith(LogLevel.FATAL, expect.anything());
@@ -408,11 +415,12 @@ describe('TestPlatform', () => {
             lowestOff: false,
           });
         }
-        await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Off);
-        await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Low);
         const sequence = device.getAttribute(FanControl.id, 'fanModeSequence');
-        if (sequence === FanControl.FanModeSequence.OffLowMedHigh || sequence === FanControl.FanModeSequence.OffLowMedHighAuto)
-          await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Medium);
+        const supportsMedium = sequence === FanControl.FanModeSequence.OffLowMedHigh || sequence === FanControl.FanModeSequence.OffLowMedHighAuto;
+        const supportsLow = supportsMedium || sequence === FanControl.FanModeSequence.OffLowHigh || sequence === FanControl.FanModeSequence.OffLowHighAuto;
+        await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Off);
+        if (supportsLow) await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Low);
+        if (supportsMedium) await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.Medium);
         await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.High);
         // oxlint-disable-next-line typescript/no-deprecated
         await device.setAttribute(FanControl.id, 'fanMode', FanControl.FanMode.On);
@@ -424,8 +432,8 @@ describe('TestPlatform', () => {
         await device.setAttribute(FanControl.id, 'percentSetting', 10);
 
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Off, FanControl.FanMode.Off);
-        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Low, FanControl.FanMode.Low);
-        await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Medium, FanControl.FanMode.Medium);
+        if (supportsLow) await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Low, FanControl.FanMode.Low);
+        if (supportsMedium) await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.Medium, FanControl.FanMode.Medium);
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.High, FanControl.FanMode.High);
         // oxlint-disable-next-line typescript/no-deprecated
         await invokeSubscribeHandler(device, 'fanControl', 'fanMode', FanControl.FanMode.On, FanControl.FanMode.On);
@@ -951,7 +959,7 @@ describe('TestPlatform', () => {
   it('should call onConfigure', async () => {
     await dynamicPlatform.onConfigure();
     expect(dynamicPlatform.getDevices()).toHaveLength(78);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Configuring platform ${config.name}...`);
 
     await dynamicPlatform.executeIntervals(26, 10);
 
@@ -981,6 +989,6 @@ describe('TestPlatform', () => {
   it('should call onShutdown with reason', async () => {
     await dynamicPlatform.onShutdown('Test reason');
     expect(dynamicPlatform.getDevices()).toHaveLength(0);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Shutting down platform ${config.name} with reason: Test reason...`);
   }, 60000);
 });

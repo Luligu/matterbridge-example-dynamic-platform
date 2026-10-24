@@ -270,17 +270,17 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.8')) {
+    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.11.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.10.8". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
+        `This plugin requires Matterbridge version >= "3.11.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend.`,
       );
     }
 
-    this.log.info('Initializing platform:', this.config.name);
+    this.log.info(`Initializing platform ${this.config.name}...`);
   }
 
   override async onStart(reason?: string): Promise<void> {
-    this.log.info('onStart called with reason:', reason ?? 'none');
+    this.log.info(`Starting platform ${this.config.name} with reason: ${reason ?? 'no reason provided'}...`);
 
     // Wait for the platform to start
     await this.ready;
@@ -1041,28 +1041,28 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         id: 'Plug1',
         tagList: [getSemtag(CommonNumberTag.One)],
       })
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 1', 'BOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug TV', 'BOU00064-1', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 2', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug2',
         tagList: [getSemtag(CommonNumberTag.Two)],
       })
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 2', 'BOU00064-2', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug Speaker', 'BOU00064-2', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 3', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug3',
         tagList: [getSemtag(CommonNumberTag.Three)],
       })
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 3', 'BOU00064-3', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug Satellite', 'BOU00064-3', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
     this.smartBridgedOutlet
       .addChildDeviceTypeWithClusterServer('Plug 4', [onOffPlugInUnit, bridgedNode], [OnOff.id], {
         id: 'Plug4',
         tagList: [getSemtag(CommonNumberTag.Four)],
       })
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug 4', 'BOU00064-4', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
+      .createDefaultBridgedDeviceBasicInformationClusterServer('Plug Netflix', 'BOU00064-4', 0xfff1, 'Matterbridge', 'Matterbridge Bridged Outlet')
       .addRequiredClusterServers();
 
     this.smartBridgedOutlet = await this.addDevice(this.smartBridgedOutlet);
@@ -2447,7 +2447,22 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     // *********************** Create a momentary switch ***********************
     this.momentarySwitch = new MatterbridgeEndpoint([bridgedNode, powerSource], { id: 'Momentary switch composed' }, this.config.debug)
-      .createDefaultBridgedDeviceBasicInformationClusterServer('Momentary switch', 'MOS00041', 0xfff1, 'Matterbridge', 'Matterbridge Momentary Switch')
+      // Report productId 0x8000 (Matter test ProductId, paired with the default vendorId 0xfff1) so Home Assistant's (vendorId, productId) allowlist can match the ha_entitylabel FixedLabels below.
+      .createDefaultBridgedDeviceBasicInformationClusterServer(
+        'Momentary switch',
+        'MOS00041',
+        0xfff1,
+        'Matterbridge',
+        'Matterbridge Momentary Switch',
+        1,
+        '1.0.0',
+        1,
+        '1.0.0',
+        'Matter Bridged Endpoint',
+        'https://matterbridge.io',
+        1,
+        0x8000,
+      )
       .createDefaultPowerSourceReplaceableBatteryClusterServer(50, PowerSource.BatChargeLevel.Ok, 2900, 'CR2450', 1);
     fireAndForget(this.momentarySwitch.addFixedLabel('composed', 'Compound device'), this.log, `Failed to add fixed label`);
 
@@ -2529,19 +2544,26 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.momentarySwitch = await this.addDevice(this.momentarySwitch);
 
     if (this.momentarySwitch) {
-      // This is just a test. No effect so far on any controller
+      // 'name', 'room', 'switch', and 'button' are just tests: no controller currently reads them.
+      // 'ha_entitylabel' is different: Home Assistant's Matter integration reads it to override the entity name,
+      // for bridged devices whose (vendorId, productId) is in its allowlist (see the Momentary switch productId above).
       await switch4.addFixedLabel('name', 'Switch 4');
       await switch4.addFixedLabel('room', 'Living Room');
       await switch4.addFixedLabel('switch', 'Switch 4');
       await switch4.addFixedLabel('button', 'Button 4');
+      await switch4.addFixedLabel('ha_entitylabel', 'Switch 4');
+
       await switch5.addFixedLabel('name', 'Switch 5');
       await switch5.addFixedLabel('room', 'Living Room');
       await switch5.addFixedLabel('switch', 'Switch 5');
       await switch5.addFixedLabel('button', 'Button 5');
+      await switch5.addFixedLabel('ha_entitylabel', 'Switch 5');
+
       await switch6.addFixedLabel('name', 'Switch 6');
       await switch6.addFixedLabel('room', 'Living Room');
       await switch6.addFixedLabel('switch', 'Switch 6');
       await switch6.addFixedLabel('button', 'Button 6');
+      await switch6.addFixedLabel('ha_entitylabel', 'Switch 6');
     }
 
     // *********************** Create a latching switch *****************************/
@@ -2753,6 +2775,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         { label: 'Convection', mode: 1, modeTags: [{ value: OvenMode.ModeTag.Convection }] },
         { label: 'Clean', mode: 2, modeTags: [{ value: OvenMode.ModeTag.Clean }] },
         { label: 'Steam', mode: 3, modeTags: [{ value: OvenMode.ModeTag.Steam }] },
+        { label: 'Bake', mode: 4, modeTags: [{ value: OvenMode.ModeTag.Bake }] },
       ],
       targetTemperature: 200 * 100,
       minTemperature: 100 * 100,
@@ -2949,7 +2972,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
   override async onConfigure(): Promise<void> {
     await super.onConfigure();
-    this.log.info('onConfigure called');
+    this.log.info(`Configuring platform ${this.config.name}...`);
 
     // Use interval for appliances animation
     if (this.config.useInterval) {
@@ -3770,7 +3793,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
   override async onShutdown(reason?: string): Promise<void> {
     this.clearIntervals();
     await super.onShutdown(reason);
-    this.log.info('onShutdown called with reason:', reason ?? 'none');
+    this.log.info(`Shutting down platform ${this.config.name} with reason: ${reason ?? 'no reason provided'}...`);
     if (this.config.unregisterOnShutdown) await this.unregisterAllDevices(500);
   }
 

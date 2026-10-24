@@ -29,28 +29,58 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
-## [3.0.4] - Dev branch
+## [3.1.1] - Dev branch
+
+<a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
+
+## [3.1.0] - 2026-10-23
 
 ### Breaking changes
 
-- [matterbridge]: Require matterbridge v.3.10.8 with matter v.1.6.0.
+- [matterbridge]: Require matterbridge v.3.11.0 with matter v.1.6.1.
+- [node]: Drop Node.js 20 support, matching matterbridge v.3.11.0. Supported versions are Node.js 22.13, 24 and 26.
 
 ### Added
 
 - [platform]: `ScheduleLock` now sets the `expiringUserTimeout` parameter of `createUserPinDoorLockClusterServer()`, creating the `ExpiringUserTimeout` attribute (Matter 1.6.0 § 5.2.6.18.8), and implements the `DoorLock.UserType.ExpiringUser` business logic: the first `UnlockDoor` after a user is provisioned as `ExpiringUser` arms a countdown of `expiringUserTimeout` minutes, after which `GetUser` reports that user's `UserStatus` as `OccupiedDisabled`. Verified live against a real chip-tool client (`SetUser` → `UnlockDoor` → wait out the countdown → `GetUser`).
   - This is reporting only, not access enforcement: the expiry updates this plugin's own tracking and `GetUser`'s response, not `@matter/node`'s user/credential database. Verified live with chip-tool, `PINCode` included: `ScheduleLock` has `DoorLock.Feature.CredentialOverTheAirAccess` disabled, so a `PinCode` sent with `UnlockDoor` is rejected at the conformance layer before it can reach `@matter/node`'s PIN check — remote Lock/Unlock is never actually gated by a credential on this endpoint, expired `ExpiringUser` or not. The same applies to the existing WeekDay/YearDay/Holiday access schedules: both this plugin and `@matter/node`'s `DoorLockServer` store and return schedules as-is and never check the current time against them before validating a PIN.
   - `CredentialOverTheAirAccess` is disabled for every Matterbridge `DoorLock` at the `MatterbridgeDoorLockServer` class level (not something a plugin can turn back on per endpoint), because some controllers never send `PinCode` even when the cluster requires it for remote operations. Not every controller is equally affected — e.g. Home Assistant's Matter integration is known to send `PinCode` correctly for locks that do declare the feature — but that path is unreachable through this plugin's locks either way, since the feature is off for all of them regardless of controller.
+- [devcontainer]: Add [`Dev Container`](.devcontainer/README.md) v.2.2.0 with dual Node and Bun runtime support.
+- [agents]: Add a [`shared setup`](.agents/README.md) for all agents: OpenAI Codex, Claude Code, GitHub Copilot and Google Gemini / Antigravity.
 - [platform]: Add `RfidLock` device: a door lock with the User, PinCredential, and RfidCredential (RID) features, testing the `numberOfRfidUsersSupported` parameter of `createUserPinDoorLockClusterServer()` (Matter 1.6.0 § 5.2.4). `SetCredential`, `GetCredentialStatus`, and `ClearCredential` already handle `DoorLock.CredentialType.Rfid` generically in `MatterbridgeDoorLockServer`, so no RFID-specific command handlers were needed for this device.
 - [Oven]/[Refrigerator]: Add a `TemperatureAlarm` example to the demo cabinets.
+- [Momentary switch]: Report `productId` `0x8000` on the composed `Momentary switch` bridged device, so Home Assistant's `(vendorId, productId)` allowlist can match the `ha_entitylabel` FixedLabels on `switch4`/`switch5`/`switch6` (requires matterbridge's `createDefaultBridgedDeviceBasicInformationClusterServer()` optional `productId` parameter).
+- [agents]: Add [`commit message instructions`](.github/commit-message-instructions.md) v.1.0.0 for the VS Code Copilot "Generate Commit Message" button (Conventional Commits).
+- [agents]: Add the Copilot `Matterbridge` custom agent (`.github/agents/matterbridge.agent.md`) that works without subagents.
+
+### Fixed
+
+- [Oven]: Add the required Bake mode to the lower cabinet so Oven Mode initializes successfully.
 
 ### Changed
 
+- [tsconfig]: Remove `**/__test__/*` from the `tsconfig.build.json` and `tsconfig.build.production.json` exclusions.
+- [workflows]: Update `build.yml` and `codecov.yml` to v.2.0.8 and `publish.yml` to v.2.0.7.
+- [package]: Remove `--disable-nested-config` from the `lint` and `lint:fix` scripts.
+- [package]: Run `checkDependencies` and `updateDependencies` with `npx npm-check-updates@latest`.
+- [package]: Update the `package.json` description to "Matterbridge example dynamic plugin".
+- [styleguide]: Update [`STYLEGUIDE.md`](STYLEGUIDE.md) to v.1.1.0: align it with the lint and format config and add the Commit Messages and Changelog sections.
+- [scripts]: Update `scripts` to v.2.0.0.
+- [scripts]: Update `scripts/deep-clean.mjs` and `scripts/prepublish-clean.mjs` to v.2.1.0: also remove `tmp/` and `bun.lock`.
+- [vscode]: Update `.vscode/settings.json` to v.1.0.16: configure commit message instructions, exclude templates from Vitest discovery and refine terminal command approvals.
+- [vscode]: Add Bundle, Minify, Obfuscate, Pack and Docker install tasks to `.vscode/tasks.json`.
+- [gitignore]: Update `.gitignore` to v.1.0.5: ignore `tmp/`, `.DS_Store` and Windows `Zone.Identifier` files.
+- [lint]: Update `.oxlintrc.json` and `.oxfmtrc.json` to v.1.2.0: align shared ignore patterns.
+- [vitest]: Replace `vite.config.ts` with `vitest.config.ts` v.2.0.9 and update test and coverage exclusions.
+- [agents]: Update `.claude/settings.json` to v.1.0.9, `.antigravity/settings.json` to v.1.0.6 and `.codex/rules/default.rules` to v.1.0.7.
+- [package]: Remove the `softReset:bun` script.
 - [package]: Upgrade package.
-- [package]: Update dependencies.
-- [package]: Bump `@types/node` to v.26.4.1.
-- [package]: Bump `@vitest/coverage-v8` and `vitest` to v.5.0.0.
-- [package]: Bump `oxfmt` to v.0.66.0.
-- [package]: Bump `oxlint` to v.1.81.0.
+- [package]: Bump `oxfmt` to v.0.74.0.
+- [package]: Bump `oxlint` to v.1.89.0.
+- [package]: Bump `oxlint-tsgolint` to v.7.0.2004.
+- [package]: Bump `vitest` to v.5.0.5.
+- [package]: Bump `@vitest/coverage-v8` to v.5.0.5.
+- [package]: Bump `@types/node` to v.26.6.5.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
