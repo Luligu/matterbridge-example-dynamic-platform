@@ -937,6 +937,16 @@ describe('TestPlatform', () => {
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('BoostState: 1'));
     expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, expect.stringContaining('boost'));
 
+    // An active boost stops both elements at or above the target and resumes heating when the water cools.
+    for (const temperature of [6000, 6100, 5000]) {
+      await waterHeater?.setAttribute(Thermostat.id, 'localTemperature', temperature, waterHeater.log);
+      await dynamicPlatform.executeIntervals(1, 100);
+      heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+      expect(heatDemand?.immersionElement1).toBe(temperature < 6000);
+      expect(heatDemand?.immersionElement2).toBe(temperature < 6000);
+      expect(waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', waterHeater.log)).toBe(WaterHeaterManagement.BoostState.Active);
+    }
+
     // Set BoostState back to Inactive (0)
     await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 0, waterHeater.log);
 

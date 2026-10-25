@@ -31,6 +31,10 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [3.1.1] - Dev branch
 
+### Added
+
+- [WaterHeater]: Simulate heat demand based on mode, water temperature and boost state, with a second heating element during boost.
+
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
 ## [3.1.0] - 2026-10-23

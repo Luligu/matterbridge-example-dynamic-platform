@@ -3691,7 +3691,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       // Per Matter 1.6 §9.5.7.2, HeatDemand reports the heat sources that are *actually* heating right now, so it
       // must reflect the current mode and temperature, not just advertise a stage unconditionally:
       // - immersionElement1: primary heating stage, engaged while heating is called for
-      // - immersionElement2: secondary stage, engaged only during an active boost (§9.5.8)
+      // - immersionElement2: secondary stage, engaged during an active boost while below target (§9.5.8)
       // When the mode is Off and no boost is active, no heat source is reported.
       this.addInterval(async () => {
         if (this.waterHeater?.hasAttributeServer(WaterHeaterManagement.id, 'boostState')) {
@@ -3712,11 +3712,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
             const occupiedHeatingSetpoint = this.waterHeater?.getAttribute(Thermostat.id, 'occupiedHeatingSetpoint', this.waterHeater.log);
             const belowTarget = isValidNumber(localTemperature) && isValidNumber(occupiedHeatingSetpoint) ? localTemperature < occupiedHeatingSetpoint : true;
 
-            // A boost always heats (even in Off, §9.5.8); otherwise heating runs only when the mode is active and below target.
-            const heating = boostActive || (!isOff && belowTarget);
+            // A boost overrides Off mode (§9.5.8), but both stages stop heating at the target setpoint.
+            const heating = belowTarget && (boostActive || !isOff);
             const heatDemand = {
               immersionElement1: heating,
-              immersionElement2: boostActive,
+              immersionElement2: heating && boostActive,
               heatPump: false,
               boiler: false,
               other: false,
