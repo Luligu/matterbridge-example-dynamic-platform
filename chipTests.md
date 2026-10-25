@@ -29,7 +29,7 @@ docker exec -it chip-test bash
 In the shell:
 
 ```bash
-# Generic device composition and conformance (see Known Issues below for TC_DeviceBasicComposition)
+# Generic device composition and conformance
 python3 src/python_testing/TC_DeviceBasicComposition.py
 python3 src/python_testing/TC_DeviceConformance.py
 python3 src/python_testing/TC_DefaultWarnings.py --bool-arg pixit_allow_default_vendor_id:true
@@ -40,3 +40,5 @@ python3 src/python_testing/TC_DefaultWarnings.py --bool-arg pixit_allow_default_
 ```shell
 node scripts/run-chip-tests.mjs --stop
 ```
+
+### Known Issues
