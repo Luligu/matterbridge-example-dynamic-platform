@@ -173,7 +173,7 @@ describe('TestPlatform', () => {
       if (device.hasClusterServer(Identify)) {
         vi.clearAllMocks();
         await device.invokeBehaviorCommand(Identify, 'identify', { identifyTime: 5 });
-        await device.invokeBehaviorCommand(Identify, 'triggerEffect', { effectIdentifier: 0, effectVariant: 0 });
+        await device.invokeBehaviorCommand(Identify, 'triggerEffect', { effectIdentifier: Identify.EffectIdentifier.Blink, effectVariant: Identify.EffectVariant.Default });
       }
 
       if (device.hasClusterServer(OnOff)) {

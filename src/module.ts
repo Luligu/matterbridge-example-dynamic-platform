@@ -3640,6 +3640,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         async () => {
           let value = this.airQuality?.getAttribute(AirQuality, 'airQuality', this.airQuality?.log);
           if (isValidNumber(value, AirQuality.AirQualityEnum.Good, AirQuality.AirQualityEnum.ExtremelyPoor)) {
+            // oxlint-disable-next-line typescript/no-unsafe-enum-assignment
             value = value >= AirQuality.AirQualityEnum.ExtremelyPoor ? AirQuality.AirQualityEnum.Good : value + 1;
             await this.airQuality?.setAttribute(AirQuality, 'airQuality', value, this.airQuality.log);
             this.airQuality?.log.info(`Set air quality to ${value}`);
