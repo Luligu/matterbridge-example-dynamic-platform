@@ -2620,6 +2620,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 3_000_000, // 3 kWh
     });
     this.heatPump = await this.addDevice(this.heatPump);
+    await this.heatPump?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.heatPump.log);
 
     // *********************** Create a LaundryWasher **************************
     this.laundryWasher = new LaundryWasher('Laundry Washer', 'LWA00049');
