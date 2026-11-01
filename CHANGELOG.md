@@ -60,6 +60,9 @@ If you like this project and find it useful, please consider giving it a star on
 - [config]: Update `vitest/module.test.ts`.
 - [config]: Add `SHARED-AGENTS.md`.
 - [config]: Add `TOOLCHAIN.md` v.1.0.1.
+- [agents]: Update `.antigravity/settings.json` to v.1.0.6.
+- [agents]: Update `.claude/settings.json` to v.1.0.9.
+- [codex]: Update `.codex/rules/default.rules` to v.1.0.7.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
