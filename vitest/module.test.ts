@@ -153,6 +153,8 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(dynamicPlatform.getDevices()).toHaveLength(78);
+    expect(dynamicPlatform.waterHeater?.getAttribute(WaterHeaterManagement.id, 'tankVolume')).toBe(200);
+    expect(dynamicPlatform.waterHeater?.getAttribute(WaterHeaterManagement.id, 'estimatedHeatRequired')).toBe(2_500_000);
     for (const endpoint of [
       dynamicPlatform.waterHeater?.getChildEndpointById('ElectricalSensor'),
       dynamicPlatform.evse?.getChildEndpointById('ElectricalSensor'),
@@ -934,6 +936,16 @@ describe('TestPlatform', () => {
     expect(heatDemand?.immersionElement1).toBe(true);
     expect(heatDemand?.immersionElement2).toBe(false);
 
+    // Verify a full cycle starting from the current simulation phase.
+    const estimatedHeatValues = [2_500_000, 2_000_000, 1_500_000];
+    const initialEnergy = waterHeater?.getAttribute(WaterHeaterManagement.id, 'estimatedHeatRequired');
+    const initialIndex = estimatedHeatValues.findIndex((value) => value === initialEnergy);
+    expect(initialIndex).toBeGreaterThanOrEqual(0);
+    for (let step = 1; step <= estimatedHeatValues.length; step++) {
+      await dynamicPlatform.executeIntervals(1, 100);
+      expect(waterHeater?.getAttribute(WaterHeaterManagement.id, 'estimatedHeatRequired')).toBe(estimatedHeatValues[(initialIndex + step) % estimatedHeatValues.length]);
+    }
+
     // Set BoostState to Active (1)
     await waterHeater?.setAttribute(WaterHeaterManagement.id, 'boostState', 1, waterHeater.log);
 
@@ -952,6 +964,8 @@ describe('TestPlatform', () => {
       await waterHeater?.setAttribute(Thermostat.id, 'localTemperature', temperature, waterHeater.log);
       await dynamicPlatform.executeIntervals(1, 100);
       heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+      const estimatedHeatRequired = waterHeater?.getAttribute(WaterHeaterManagement.id, 'estimatedHeatRequired');
+      expect(temperature < 6000 ? estimatedHeatValues : [0]).toContain(estimatedHeatRequired);
       expect(heatDemand?.immersionElement1).toBe(temperature < 6000);
       expect(heatDemand?.immersionElement2).toBe(temperature < 6000);
       expect(waterHeater?.getAttribute(WaterHeaterManagement.id, 'boostState', waterHeater.log)).toBe(WaterHeaterManagement.BoostState.Active);
