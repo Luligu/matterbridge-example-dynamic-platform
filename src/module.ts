@@ -2564,7 +2564,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 3_000_000,
     });
     this.waterHeater = await this.addDevice(this.waterHeater);
-    await this.waterHeater?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.waterHeater.log);
+    await this.waterHeater?.getChildEndpointById('ElectricalSensor')?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.waterHeater.log);
 
     // *********************** Create an Evse ***************************
     this.evse = new Evse('Evse', 'EVS00045', {
@@ -2586,7 +2586,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 32_000_000, // 32 kWh
     });
     this.evse = await this.addDevice(this.evse);
-    await this.evse?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.evse.log);
+    await this.evse?.getChildEndpointById('ElectricalSensor')?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.evse.log);
 
     // *********************** Create a SolarPower **************************
     this.solarPower = new SolarPower('Solar Power', 'SOL00046', {
