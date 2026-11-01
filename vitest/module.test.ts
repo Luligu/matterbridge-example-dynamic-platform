@@ -977,6 +977,14 @@ describe('TestPlatform', () => {
     heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
     expect(heatDemand?.immersionElement1).toBe(true);
     expect(heatDemand?.immersionElement2).toBe(false);
+
+    // Invalid local temperature: belowTarget defaults to true.
+    await waterHeater?.setAttribute(Thermostat.id, 'localTemperature', Number.NaN, waterHeater.log);
+    await dynamicPlatform.executeIntervals(1, 100);
+
+    heatDemand = waterHeater?.getAttribute(WaterHeaterManagement.id, 'heatDemand', waterHeater.log);
+    expect(heatDemand?.immersionElement1).toBe(true);
+    expect(heatDemand?.immersionElement2).toBe(false);
   }, 60000);
 
   it('should call onShutdown with reason', async () => {
