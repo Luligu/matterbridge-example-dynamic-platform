@@ -11,6 +11,7 @@ const MATTER_CREATE_ONLY = true;
 import { featuresFor, invokeSubscribeHandler, type PlatformMatterbridge } from 'matterbridge';
 import { MatterbridgeClosureControlServer } from 'matterbridge/devices';
 import { LogLevel } from 'matterbridge/logger';
+import { CommonAreaNamespaceTag, CommonNumberTag } from 'matterbridge/matter';
 import {
   ClosureControl,
   ClosureDimension,
@@ -152,6 +153,27 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(dynamicPlatform.getDevices()).toHaveLength(78);
+    const heatPumpThermostats = [
+      {
+        endpoint: dynamicPlatform.heatPump?.getChildEndpointById('LivingThermostat'),
+        numberTag: CommonNumberTag.One,
+        areaTag: CommonAreaNamespaceTag.LivingRoom,
+        room: 'Living Room',
+      },
+      { endpoint: dynamicPlatform.heatPump?.getChildEndpointById('BedroomThermostat'), numberTag: CommonNumberTag.Two, areaTag: CommonAreaNamespaceTag.Bedroom, room: 'Bedroom' },
+    ];
+    for (const { endpoint, numberTag, areaTag, room } of heatPumpThermostats) {
+      expect(endpoint).toBeDefined();
+      if (!endpoint) continue;
+      expect(endpoint.getAttribute('Descriptor', 'tagList')).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ namespaceId: numberTag.namespaceId, tag: numberTag.tag }),
+          expect.objectContaining({ namespaceId: areaTag.namespaceId, tag: areaTag.tag }),
+        ]),
+      );
+      expect(endpoint.hasClusterServer('UserLabel')).toBe(true);
+      expect(endpoint.getAttribute('UserLabel', 'labelList')).toContainEqual({ label: 'room', value: room });
+    }
     const lowerCabinet = dynamicPlatform.oven?.getChildEndpointById('LowerCabinet');
     expect(lowerCabinet).toBeDefined();
     expect(lowerCabinet?.getAttribute(OvenMode.id, 'supportedModes')).toEqual(

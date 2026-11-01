@@ -34,6 +34,7 @@ If you like this project and find it useful, please consider giving it a star on
 ### Added
 
 - [WaterHeater]: Simulate heat demand based on mode, water temperature and boost state, with a second heating element during boost.
+- [HeatPump]: Verify the semantic tags and room User Labels required on its thermostat components.
 
 ### Changed
 
