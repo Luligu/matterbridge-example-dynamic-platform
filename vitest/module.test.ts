@@ -16,6 +16,7 @@ import {
   ClosureDimension,
   ColorControl,
   DoorLock,
+  ElectricalPowerMeasurement,
   FanControl,
   Identify,
   KeypadInput,
@@ -152,6 +153,15 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(dynamicPlatform.getDevices()).toHaveLength(78);
+    for (const endpoint of [
+      dynamicPlatform.waterHeater?.getChildEndpointById('ElectricalSensor'),
+      dynamicPlatform.evse?.getChildEndpointById('ElectricalSensor'),
+      dynamicPlatform.solarPower,
+      dynamicPlatform.batteryStorage,
+      dynamicPlatform.heatPump,
+    ]) {
+      expect(endpoint?.getAttribute(ElectricalPowerMeasurement.id, 'frequency')).toBe(50_000);
+    }
     const lowerCabinet = dynamicPlatform.oven?.getChildEndpointById('LowerCabinet');
     expect(lowerCabinet).toBeDefined();
     expect(lowerCabinet?.getAttribute(OvenMode.id, 'supportedModes')).toEqual(

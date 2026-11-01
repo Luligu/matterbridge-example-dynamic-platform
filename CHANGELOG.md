@@ -33,6 +33,7 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
+- [Energy]: Add 50 Hz frequency values to the WaterHeater, Evse, SolarPower, BatteryStorage and HeatPump examples.
 - [WaterHeater]: Simulate heat demand based on mode, water temperature and boost state, with a second heating element during boost.
 
 ### Changed
