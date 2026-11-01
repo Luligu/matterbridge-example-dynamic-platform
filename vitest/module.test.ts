@@ -16,6 +16,7 @@ import {
   ClosureControl,
   ClosureDimension,
   ColorControl,
+  Descriptor,
   DoorLock,
   FanControl,
   Identify,
@@ -165,6 +166,8 @@ describe('TestPlatform', () => {
     for (const { endpoint, numberTag, areaTag, room } of heatPumpThermostats) {
       expect(endpoint).toBeDefined();
       if (!endpoint) continue;
+      // Matter 1.6.1 Device Library §14.5.6.2 requires the TagList feature on thermostat components.
+      expect(featuresFor(endpoint, Descriptor).tagList).toBe(true);
       expect(endpoint.getAttribute('Descriptor', 'tagList')).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ namespaceId: numberTag.namespaceId, tag: numberTag.tag }),
