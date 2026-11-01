@@ -11,10 +11,12 @@ const MATTER_CREATE_ONLY = true;
 import { featuresFor, invokeSubscribeHandler, type PlatformMatterbridge } from 'matterbridge';
 import { MatterbridgeClosureControlServer } from 'matterbridge/devices';
 import { LogLevel } from 'matterbridge/logger';
+import { CommonAreaNamespaceTag, CommonNumberTag } from 'matterbridge/matter';
 import {
   ClosureControl,
   ClosureDimension,
   ColorControl,
+  Descriptor,
   DoorLock,
   ElectricalPowerMeasurement,
   FanControl,
@@ -153,6 +155,29 @@ describe('TestPlatform', () => {
 
     await dynamicPlatform.onStart('Test reason');
     expect(dynamicPlatform.getDevices()).toHaveLength(78);
+    const heatPumpThermostats = [
+      {
+        endpoint: dynamicPlatform.heatPump?.getChildEndpointById('LivingThermostat'),
+        numberTag: CommonNumberTag.One,
+        areaTag: CommonAreaNamespaceTag.LivingRoom,
+        room: 'Living Room',
+      },
+      { endpoint: dynamicPlatform.heatPump?.getChildEndpointById('BedroomThermostat'), numberTag: CommonNumberTag.Two, areaTag: CommonAreaNamespaceTag.Bedroom, room: 'Bedroom' },
+    ];
+    for (const { endpoint, numberTag, areaTag, room } of heatPumpThermostats) {
+      expect(endpoint).toBeDefined();
+      if (!endpoint) continue;
+      // Matter 1.6.1 Device Library §14.5.6.2 requires the TagList feature on thermostat components.
+      expect(featuresFor(endpoint, Descriptor).tagList).toBe(true);
+      expect(endpoint.getAttribute('Descriptor', 'tagList')).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ namespaceId: numberTag.namespaceId, tag: numberTag.tag }),
+          expect.objectContaining({ namespaceId: areaTag.namespaceId, tag: areaTag.tag }),
+        ]),
+      );
+      expect(endpoint.hasClusterServer('UserLabel')).toBe(true);
+      expect(endpoint.getAttribute('UserLabel', 'labelList')).toContainEqual({ label: 'room', value: room });
+    }
     expect(dynamicPlatform.waterHeater?.getAttribute(WaterHeaterManagement.id, 'tankVolume')).toBe(200);
     expect(dynamicPlatform.waterHeater?.getAttribute(WaterHeaterManagement.id, 'estimatedHeatRequired')).toBe(2_500_000);
     for (const endpoint of [
