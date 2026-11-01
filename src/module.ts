@@ -2559,6 +2559,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 3_000_000,
     });
     this.waterHeater = await this.addDevice(this.waterHeater);
+    await this.waterHeater?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.waterHeater.log);
 
     // *********************** Create an Evse ***************************
     this.evse = new Evse('Evse', 'EVS00045', {
@@ -2580,6 +2581,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 32_000_000, // 32 kWh
     });
     this.evse = await this.addDevice(this.evse);
+    await this.evse?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.evse.log);
 
     // *********************** Create a SolarPower **************************
     this.solarPower = new SolarPower('Solar Power', 'SOL00046', {
@@ -2596,6 +2598,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.solarPower.addPanel('Panel 4', CommonNumberTag.Four);
 
     this.solarPower = await this.addDevice(this.solarPower);
+    await this.solarPower?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.solarPower.log);
 
     // *********************** Create a BatteryStorage **************************
     this.batteryStorage = new BatteryStorage('Battery Storage', 'BST00047', {
@@ -2610,6 +2613,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 3_000_000, // 3 kWh
     });
     this.batteryStorage = await this.addDevice(this.batteryStorage);
+    await this.batteryStorage?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.batteryStorage.log);
 
     // *********************** Create an HeatPump **************************
     this.heatPump = new HeatPump('Heat Pump', 'HPU00048', {
@@ -2621,6 +2625,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 3_000_000, // 3 kWh
     });
     this.heatPump = await this.addDevice(this.heatPump);
+    await this.heatPump?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.heatPump.log);
 
     // *********************** Create a LaundryWasher **************************
     this.laundryWasher = new LaundryWasher('Laundry Washer', 'LWA00049');
@@ -3283,6 +3288,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.id, 'voltage', 220_000, this.outletEnergy.log);
     await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.id, 'activeCurrent', 0, this.outletEnergy.log);
     await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.id, 'activePower', 0, this.outletEnergy.log);
+    await this.outletEnergy?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.outletEnergy.log);
 
     this.outletEnergyApparent?.log.info('Set outlet initial onOff to false and apparent energy/power to 0');
     await this.outletEnergyApparent?.setAttribute(OnOff.id, 'onOff', false, this.outletEnergyApparent.log);
@@ -3290,6 +3296,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.id, 'voltage', 220_000, this.outletEnergyApparent.log);
     await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.id, 'apparentCurrent', 0, this.outletEnergyApparent.log);
     await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.id, 'apparentPower', 0, this.outletEnergyApparent.log);
+    await this.outletEnergyApparent?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.outletEnergyApparent.log);
 
     if (this.config.useInterval) {
       // Toggle outlet onOff every minute
