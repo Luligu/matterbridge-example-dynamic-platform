@@ -33,6 +33,9 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Added
 
+- [WaterHeater]: Add a 200 L tank and simulated estimated heat required, reporting zero at or above the target temperature.
+
+- [Energy]: Add 50 Hz frequency values to the WaterHeater, Evse, SolarPower, BatteryStorage and HeatPump examples.
 - [WaterHeater]: Simulate heat demand based on mode, water temperature and boost state, with a second heating element during boost.
 - [HeatPump]: Add regression tests for thermostat TagList support, semantic tags, User Label servers and example room labels.
 
