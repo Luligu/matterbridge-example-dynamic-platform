@@ -50,7 +50,7 @@ If you like this project and find it useful, please consider giving it a star on
 - [agents]: Update `.github/commit-message-instructions.md` to v.1.0.1.
 - [vscode]: Update `.vscode/settings.json` to v.1.0.17.
 - [vscode]: Update `.vscode/tasks.json`.
-- [agents]: Update `AGENTS.md` to v.1.0.8.
+- [agents]: Update `AGENTS.md` to v.1.0.9.
 - [config]: Update `CODE_OF_CONDUCT.md` to v.1.0.0.
 - [config]: Update `CONTRIBUTING.md` to v.1.0.1.
 - [scripts]: Update `scripts/downloads.mjs`.
@@ -63,6 +63,16 @@ If you like this project and find it useful, please consider giving it a star on
 - [agents]: Update `.antigravity/settings.json` to v.1.0.6.
 - [agents]: Update `.claude/settings.json` to v.1.0.9.
 - [codex]: Update `.codex/rules/default.rules` to v.1.0.7.
+- [package]: Bump `@vitest/coverage-v8` to v.5.1.0.
+- [package]: Bump `vitest` to v.5.1.0.
+- [workflows]: Update `.github/workflows/build.yml` to v.2.0.8.
+- [workflows]: Update `.github/workflows/codecov.yml` to v.2.0.8.
+- [workflows]: Update `.github/workflows/codeql.yml` to v.2.0.0.
+- [workflows]: Update `.github/workflows/publish.yml` to v.2.0.7.
+- [config]: Update `.gitignore` to v.1.0.5.
+- [config]: Update `.oxfmtrc.json` to v.1.2.0.
+- [config]: Update `.oxlintrc.json` to v.1.2.0.
+- [config]: Update `vitest.config.ts` to v.2.0.9.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
