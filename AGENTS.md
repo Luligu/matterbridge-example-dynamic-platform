@@ -1,4 +1,4 @@
-# Matterbridge Agents Instructions (v.1.0.7)
+# Matterbridge Agents Instructions (v.1.0.9)
 
 ## Style And Formatting
 
@@ -14,6 +14,14 @@
 - Preserve cross-platform behavior. Changes must work on Windows, macOS, and Linux, especially for paths, shell commands, environment variables, and networking behavior.
 - Maintain compatibility with the supported Node.js versions in this repository: 22.13, 24 and 26.
 
+## Context And Reading
+
+- Read only the files the request needs. Start from the files the user names or the obvious entry point, and widen the search only when the task requires it.
+- Prefer targeted searches (grep / glob) and partial reads (line ranges) over reading whole large files or scanning the whole repository.
+- Do not read generated or vendored content unless the task is about it: `node_modules/`, `dist/`, `build/`, `coverage/`, `temp/`, lockfiles (`package-lock.json`, `bun.lock`), and `*.tsbuildinfo`.
+- Read `.agents/rules/*` files and skills only when the task matches their topic, not up front.
+- For a question or a small change, do not explore unrelated areas, run the full test suite, or summarize the project unasked.
+
 ## Project Architecture
 
 - This repository uses TypeScript and ESM. Follow existing project patterns for imports, exports, build configuration, and test setup.
@@ -28,6 +36,11 @@
 ## Documentation
 
 - When behavior changes, update the relevant tests and documentation.
+
+## Git Commits
+
+- Do not manually add a `Signed-off-by:` trailer to commit messages. VS Code’s Git interface adds it through `git.alwaysSignOff`; when committing through a terminal, always use `git commit -s`.
+- Never write a personal email address or any sensitive data into commit messages, trailers, or any generated text.
 
 ## Additional Agent Guidance
 

@@ -146,6 +146,8 @@ import {
   TemperatureMeasurement,
   Thermostat,
   TotalVolatileOrganicCompoundsConcentrationMeasurement,
+  WaterHeaterManagement,
+  WaterHeaterMode,
   WindowCovering,
 } from 'matterbridge/matter/clusters';
 import { fireAndForget, getEnumDescription, isValidBoolean, isValidNumber, isValidObject, isValidString, luxToMatter, matterToLux, parseVersionString } from 'matterbridge/utils';
@@ -2648,7 +2650,12 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       targetWaterTemperature: 60,
       minHeatSetpointLimit: 20,
       maxHeatSetpointLimit: 80,
+      // HeaterTypes is a fixed attribute advertising the heat sources the water heater can call on.
+      // Both immersion elements are declared because the simulation below drives immersionElement2 during boost.
+      heaterTypes: { immersionElement1: true, immersionElement2: true },
       tankPercentage: 85,
+      tankVolume: 200,
+      estimatedHeatRequired: 2_500_000,
       voltage: 220_000,
       current: 1_000,
       power: 220_000,
@@ -2657,6 +2664,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 3_000_000,
     });
     this.waterHeater = await this.addDevice(this.waterHeater);
+    await this.waterHeater?.getChildEndpointById('ElectricalSensor')?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.waterHeater.log);
 
     // *********************** Create an Evse ***************************
     this.evse = new Evse('Evse', 'EVS00045', {
@@ -2678,6 +2686,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 32_000_000, // 32 kWh
     });
     this.evse = await this.addDevice(this.evse);
+    await this.evse?.getChildEndpointById('ElectricalSensor')?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.evse.log);
 
     // *********************** Create a SolarPower **************************
     this.solarPower = new SolarPower('Solar Power', 'SOL00046', {
@@ -2694,6 +2703,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
     this.solarPower.addPanel('Panel 4', CommonNumberTag.Four);
 
     this.solarPower = await this.addDevice(this.solarPower);
+    await this.solarPower?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.solarPower.log);
 
     // *********************** Create a BatteryStorage **************************
     this.batteryStorage = new BatteryStorage('Battery Storage', 'BST00047', {
@@ -2708,6 +2718,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 3_000_000, // 3 kWh
     });
     this.batteryStorage = await this.addDevice(this.batteryStorage);
+    await this.batteryStorage?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.batteryStorage.log);
 
     // *********************** Create an HeatPump **************************
     this.heatPump = new HeatPump('Heat Pump', 'HPU00048', {
@@ -2719,6 +2730,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       absMaxPower: 3_000_000, // 3 kWh
     });
     this.heatPump = await this.addDevice(this.heatPump);
+    await this.heatPump?.setAttribute(ElectricalPowerMeasurement.id, 'frequency', 50_000, this.heatPump.log);
 
     // *********************** Create a LaundryWasher **************************
     this.laundryWasher = new LaundryWasher('Laundry Washer', 'LWA00049');
@@ -3743,6 +3755,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         async () => {
           let value = this.airQuality?.getAttribute(AirQuality, 'airQuality', this.airQuality?.log);
           if (isValidNumber(value, AirQuality.AirQualityEnum.Good, AirQuality.AirQualityEnum.ExtremelyPoor)) {
+            // oxlint-disable-next-line typescript/no-unsafe-enum-assignment
             value = value >= AirQuality.AirQualityEnum.ExtremelyPoor ? AirQuality.AirQualityEnum.Good : value + 1;
             await this.airQuality?.setAttribute(AirQuality, 'airQuality', value, this.airQuality.log);
             this.airQuality?.log.info(`Set air quality to ${value}`);
@@ -3787,6 +3800,70 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
         },
         60 * 1000 + 1900,
       );
+    }
+
+    if (this.config.useInterval) {
+      // Simulate EstimatedHeatRequired for Matter attribute reporting; these values are not a thermal calculation.
+      const estimatedHeatValues = [2_500_000, 2_000_000, 1_500_000];
+      let estimatedHeatIndex = 0;
+
+      // Per Matter 1.6.1 §9.5.7.2, HeatDemand reports the heat sources that are actually heating:
+      // - immersionElement1: primary stage, engaged while below target and the mode or boost calls for heating.
+      // - immersionElement2: secondary stage, engaged during an active boost while below target (§9.5.8).
+      // When the mode is Off and no boost is active, no heat source is reported.
+      this.addInterval(async () => {
+        if (this.waterHeater?.hasAttributeServer(WaterHeaterManagement.id, 'boostState')) {
+          const boostState = this.waterHeater.getAttribute(WaterHeaterManagement.id, 'boostState', this.waterHeater.log);
+
+          if (isValidNumber(boostState, 0, 1)) {
+            const boostActive = boostState === (WaterHeaterManagement.BoostState.Active as number);
+
+            const currentMode = this.waterHeater.getAttribute(WaterHeaterMode.id, 'currentMode', this.waterHeater.log);
+
+            const supportedModes = this.waterHeater.getAttribute(WaterHeaterMode.id, 'supportedModes', this.waterHeater.log);
+
+            const offMode = (Array.isArray(supportedModes) ? supportedModes : []).find((mode) =>
+              mode.modeTags?.some((tag: { value: number }) => tag.value === (WaterHeaterMode.ModeTag.Off as number)),
+            )?.mode;
+
+            const isOff = isValidNumber(currentMode) && isValidNumber(offMode) && currentMode === offMode;
+
+            const localTemperature = this.waterHeater.getAttribute(Thermostat.id, 'localTemperature', this.waterHeater.log);
+
+            const occupiedHeatingSetpoint = this.waterHeater.getAttribute(Thermostat.id, 'occupiedHeatingSetpoint', this.waterHeater.log);
+
+            const belowTarget = isValidNumber(localTemperature) && isValidNumber(occupiedHeatingSetpoint) ? localTemperature < occupiedHeatingSetpoint : true;
+
+            const heating = belowTarget && (boostActive || !isOff);
+
+            const heatDemand = {
+              immersionElement1: heating,
+              immersionElement2: heating && boostActive,
+              heatPump: false,
+              boiler: false,
+              other: false,
+            };
+
+            await this.waterHeater.setAttribute(WaterHeaterManagement.id, 'heatDemand', heatDemand, this.waterHeater.log);
+
+            // Update EstimatedHeatRequired to test Matter attribute reporting.
+            if (belowTarget) estimatedHeatIndex = (estimatedHeatIndex + 1) % estimatedHeatValues.length;
+            const estimatedHeatRequired = belowTarget ? estimatedHeatValues[estimatedHeatIndex] : 0;
+
+            await this.waterHeater.setAttribute(WaterHeaterManagement.id, 'estimatedHeatRequired', estimatedHeatRequired, this.waterHeater.log);
+
+            const stageInfo = heatDemand.immersionElement2
+              ? 'ImmersionElement1 + ImmersionElement2 (boost)'
+              : heatDemand.immersionElement1
+                ? 'ImmersionElement1 only (normal)'
+                : 'none (idle)';
+
+            this.waterHeater.log.info(
+              `BoostState: ${boostState}, Mode: ${currentMode}${isOff ? ' (Off)' : ''}, HeatDemand: ${stageInfo}, EstimatedHeatRequired: ${estimatedHeatRequired} mWh`,
+            );
+          }
+        }
+      }, 30 * 1000);
     }
   }
 

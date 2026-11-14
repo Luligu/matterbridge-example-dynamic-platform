@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/matterbridge-example-dynamic-platform.svg)](https://www.npmjs.com/package/matterbridge-example-dynamic-platform)
 [![npm downloads](https://img.shields.io/npm/dt/matterbridge-example-dynamic-platform.svg)](https://www.npmjs.com/package/matterbridge-example-dynamic-platform)
 [![Docker Version](https://img.shields.io/docker/v/luligu/matterbridge/latest?label=docker%20version)](https://hub.docker.com/r/luligu/matterbridge)
-[![Docker Pulls](https://img.shields.io/docker/pulls/luligu/matterbridge?label=docker%20pulls)](https://hub.docker.com/r/luligu/matterbridge)
+[![Docker Pulls](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/Luligu/b21088ab9c9f2b119b42c33f0fef218d/raw/docker.json)](https://hub.docker.com/r/luligu/matterbridge)
 ![Node.js CI](https://github.com/Luligu/matterbridge-example-dynamic-platform/actions/workflows/build.yml/badge.svg)
 ![CodeQL](https://github.com/Luligu/matterbridge-example-dynamic-platform/actions/workflows/codeql.yml/badge.svg)
 [![codecov](https://codecov.io/gh/Luligu/matterbridge-example-dynamic-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/Luligu/matterbridge-example-dynamic-platform)
@@ -29,7 +29,52 @@ If you like this project and find it useful, please consider giving it a star on
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="120"></a>
 
+---
+
 ## [3.1.1] - Dev branch
+
+### Added
+
+- [WaterHeater]: Add a 200 L tank and simulated estimated heat required, reporting zero at or above the target temperature.
+- [Energy]: Add 50 Hz frequency values to the WaterHeater, Evse, SolarPower, BatteryStorage and HeatPump examples.
+- [WaterHeater]: Simulate heat demand based on mode, water temperature and boost state, with a second heating element during boost.
+- [HeatPump]: Add regression tests for thermostat TagList support, semantic tags, User Label servers and example room labels.
+
+### Changed
+
+- [package]: Upgrade package.
+- [package]: Bump `@types/node` to v.26.6.6.
+- [package]: Bump `oxfmt` to v.0.75.0.
+- [package]: Bump `oxlint` to v.1.90.0.
+- [package]: Bump `oxlint-tsgolint` to v.7.0.2005.
+- [agents]: Update `.agents/rules/plugin-frontend.instructions.md`, `.claude/rules/plugin-frontend/plugin-frontend.instructions.md` and `.github/instructions/plugin-frontend/plugin-frontend.instructions.md` to v.1.0.2.
+- [codex]: Update `.codex/config.toml` to v.1.0.6.
+- [agents]: Update `.github/commit-message-instructions.md` to v.1.0.1.
+- [vscode]: Update `.vscode/settings.json` to v.1.0.17.
+- [vscode]: Update `.vscode/tasks.json`.
+- [agents]: Update `AGENTS.md` to v.1.0.9.
+- [config]: Update `CODE_OF_CONDUCT.md` to v.1.0.0.
+- [config]: Update `CONTRIBUTING.md` to v.1.0.1.
+- [scripts]: Update `scripts/downloads.mjs`.
+- [scripts]: Update `scripts/git-sync-dev.mjs`.
+- [scripts]: Update `scripts/prepublish-clean.mjs`.
+- [config]: Update `src/module.ts`.
+- [config]: Update `vitest/module.test.ts`.
+- [config]: Add `SHARED-AGENTS.md`.
+- [config]: Add `TOOLCHAIN.md` v.1.0.1.
+- [agents]: Update `.antigravity/settings.json` to v.1.0.6.
+- [agents]: Update `.claude/settings.json` to v.1.0.9.
+- [codex]: Update `.codex/rules/default.rules` to v.1.0.7.
+- [package]: Bump `@vitest/coverage-v8` to v.5.1.0.
+- [package]: Bump `vitest` to v.5.1.0.
+- [workflows]: Update `.github/workflows/build.yml` to v.2.0.8.
+- [workflows]: Update `.github/workflows/codecov.yml` to v.2.0.8.
+- [workflows]: Update `.github/workflows/codeql.yml` to v.2.0.0.
+- [workflows]: Update `.github/workflows/publish.yml` to v.2.0.7.
+- [config]: Update `.gitignore` to v.1.0.5.
+- [config]: Update `.oxfmtrc.json` to v.1.2.0.
+- [config]: Update `.oxlintrc.json` to v.1.2.0.
+- [config]: Update `vitest.config.ts` to v.2.0.9.
 
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
