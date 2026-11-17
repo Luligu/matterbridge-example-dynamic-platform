@@ -9,8 +9,7 @@
     "debug": false,
     "unregisterOnShutdown": false
   },
-  "yamlTests": [],
-  "phytonTests": [
+  "tests": [
     {
       "name": "Generic device basic composition",
       "test": "TC_DeviceBasicComposition.py"
