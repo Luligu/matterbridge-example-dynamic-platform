@@ -43,12 +43,15 @@ jobs:
       - name: Link matterbridge in the plugin
         run: npm link matterbridge --no-fund --no-audit
 
+      - name: Build the plugin
+        run: npm run build
+
       - name: Start the chip-test container
-        run: node scripts/run-chip-tests.mjs --start
+        run: node scripts/run-chip-test.mjs --start --plugin
 
       - name: Run the full CHIP test suite
-        run: node scripts/run-chip-tests.mjs
+        run: node scripts/run-chip-test.mjs
 
       - name: Stop the chip-test container
         if: always()
-        run: node scripts/run-chip-tests.mjs --stop
+        run: node scripts/run-chip-test.mjs --stop
