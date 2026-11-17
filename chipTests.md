@@ -31,7 +31,7 @@ In the shell:
 ```bash
 # Generic device composition and conformance
 python3 src/python_testing/TC_DeviceBasicComposition.py
-python3 src/python_testing/TC_DeviceConformance.py
+python3 src/python_testing/TC_DeviceConformance.py --bool-arg allow_provisional_test_event_only_disallowed_for_certification:true
 python3 src/python_testing/TC_DefaultWarnings.py --bool-arg pixit_allow_default_vendor_id:true
 ```
 

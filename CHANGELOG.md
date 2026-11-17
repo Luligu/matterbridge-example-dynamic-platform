@@ -42,6 +42,8 @@ If you like this project and find it useful, please consider giving it a star on
 
 ### Changed
 
+- [chip-test]: Skip the provisional Temperature Alarm cluster on the oven and refrigerator cabinets when `MATTERBRIDGE_CHIP_TEST=1`.
+- [chip-test]: Apply the `TC_DeviceBasicComposition.py` patch and allow provisional elements in `TC_DeviceConformance.py`.
 - [package]: Upgrade package.
 - [package]: Bump `@types/node` to v.26.6.6.
 - [package]: Bump `oxfmt` to v.0.79.0.

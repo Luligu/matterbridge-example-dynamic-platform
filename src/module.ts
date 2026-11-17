@@ -2671,7 +2671,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       phaseList: ['pre-heating', 'pre-heated', 'cooling down'],
     });
     // Enable the TemperatureAlarm OverTemperature feature directly on the cabinet endpoint.
-    ovenUpperCabinet.createDefaultTemperatureAlarmClusterServer(280_00);
+    // Provisional cluster (Matter 1.6.1) missing from the chip-test harness bindings: skipped in chip-test mode.
+    // v8 ignore else - provisional cluster not supported by the chip-test harness
+    if (process.env.MATTERBRIDGE_CHIP_TEST !== '1') {
+      ovenUpperCabinet.createDefaultTemperatureAlarmClusterServer(280_00);
+    }
     const ovenLowerCabinet = this.oven.addCabinet('Lower Cabinet', {
       tagList: [{ mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: CommonPositionTag.Bottom.label }],
       currentMode: 3,
@@ -2691,7 +2695,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       phaseList: ['pre-heating', 'pre-heated', 'cooling down'],
     });
     // Enable the TemperatureAlarm OverTemperature feature directly on the cabinet endpoint.
-    ovenLowerCabinet.createDefaultTemperatureAlarmClusterServer(280_00);
+    // Provisional cluster (Matter 1.6.1) missing from the chip-test harness bindings: skipped in chip-test mode.
+    // v8 ignore else - provisional cluster not supported by the chip-test harness
+    if (process.env.MATTERBRIDGE_CHIP_TEST !== '1') {
+      ovenLowerCabinet.createDefaultTemperatureAlarmClusterServer(280_00);
+    }
     this.oven = await this.addDevice(this.oven);
 
     // *********************** Create an Cooktop **************************
@@ -2736,7 +2744,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       currentTemperature: 1200,
     });
     // Enable the TemperatureAlarm UnderTemperature feature directly on the cabinet endpoint.
-    refrigeratorTopCabinet.createDefaultTemperatureAlarmClusterServer(20_00, 5_00);
+    // Provisional cluster (Matter 1.6.1) missing from the chip-test harness bindings: skipped in chip-test mode.
+    // v8 ignore else - provisional cluster not supported by the chip-test harness
+    if (process.env.MATTERBRIDGE_CHIP_TEST !== '1') {
+      refrigeratorTopCabinet.createDefaultTemperatureAlarmClusterServer(20_00, 5_00);
+    }
     const freezerBottomCabinet = refrigerator.addCabinet('Freezer Bottom', {
       tagList: [
         { mfgCode: null, namespaceId: CommonPositionTag.Bottom.namespaceId, tag: CommonPositionTag.Bottom.tag, label: 'Freezer Bottom' },
@@ -2749,7 +2761,11 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       currentTemperature: -1800,
     });
     // Enable the TemperatureAlarm UnderTemperature feature directly on the cabinet endpoint.
-    freezerBottomCabinet.createDefaultTemperatureAlarmClusterServer(-5_00, -30_00);
+    // Provisional cluster (Matter 1.6.1) missing from the chip-test harness bindings: skipped in chip-test mode.
+    // v8 ignore else - provisional cluster not supported by the chip-test harness
+    if (process.env.MATTERBRIDGE_CHIP_TEST !== '1') {
+      freezerBottomCabinet.createDefaultTemperatureAlarmClusterServer(-5_00, -30_00);
+    }
     this.refrigerator = await this.addDevice(refrigerator);
 
     // *********************** Create a airConditioner device ***********************
