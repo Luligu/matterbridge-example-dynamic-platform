@@ -5,17 +5,17 @@
 Run the `luligu/matterbridge:chip-test` docker image:
 
 - frontend on port 8585
-- plugin mapped to .
+- plugin copied to ~/Matterbridge/
 - container test logs directory mapped on ./temp directory
 
 ```shell
-node scripts/run-chip-tests.mjs --start
+node scripts/run-chip-test.mjs --start --plugin
 ```
 
 ### Run all configured tests inside the container
 
 ```shell
-node scripts/run-chip-tests.mjs
+node scripts/run-chip-test.mjs
 ```
 
 ### Manually run the tests inside the container
@@ -31,14 +31,12 @@ In the shell:
 ```bash
 # Generic device composition and conformance
 python3 src/python_testing/TC_DeviceBasicComposition.py
-python3 src/python_testing/TC_DeviceConformance.py
+python3 src/python_testing/TC_DeviceConformance.py --bool-arg allow_provisional_test_event_only_disallowed_for_certification:true
 python3 src/python_testing/TC_DefaultWarnings.py --bool-arg pixit_allow_default_vendor_id:true
 ```
 
 ### Stop the container
 
 ```shell
-node scripts/run-chip-tests.mjs --stop
+node scripts/run-chip-test.mjs --stop
 ```
-
-### Known Issues
