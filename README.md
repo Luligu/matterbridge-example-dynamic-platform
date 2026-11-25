@@ -92,8 +92,8 @@ It exposes 78 virtual devices:
 - a cooktop device (supported by SmartThings, Alexa and Home Assistant)
 - a water heater device (supported by SmartThings and Home Assistant)
 - a car charger device (supported by Home Assistant)
-- a solar power device
-- a battery storage device
+- a solar power device (supported by Home Assistant)
+- a battery storage device (supported by Home Assistant)
 - a heat pump device (supported by Home Assistant)
 - a basic video player (supported by SmartThings)
 - a speaker device (supported by SmartThings)
