@@ -1292,7 +1292,7 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
 
     this.scheduleLock = await this.addDevice(this.scheduleLock);
 
-    // Matter 1.6.0 § 5.2.6.18.8: ExpiringUser users and the ExpiringUserTimeout countdown are enforced by
+    // Matter 1.6.1 § 5.2.6.18.8 and § 5.2.9.36: ExpiringUser users and the ExpiringUserTimeout countdown are enforced by
     // @matter/node's DoorLockServer (matter.js >= 0.18.0), so no plugin-side tracking is needed.
     // The cluster attributes are set by MatterbridgeDoorLockServer
     this.scheduleLock?.addCommandHandler('Identify.identify', ({ request: { identifyTime } }) => {

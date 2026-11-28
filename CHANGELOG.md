@@ -33,6 +33,10 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [3.1.2] - Dev branch
 
+### Added
+
+- [platform]: `ScheduleLock` now sets the `expiringUserTimeout` parameter of `createUserPinDoorLockClusterServer()`, creating the `ExpiringUserTimeout` attribute (Matter 1.6.1 § 5.2.9.36) and enabling `DoorLock.UserType.ExpiringUser` temporary PIN users (Matter 1.6.1 § 5.2.6.18.8). The expiry itself is enforced by the matter.js `DoorLockServer` (matter.js 0.18.0 and later).
+
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
 ## [3.1.1] - 2026-11-28
@@ -115,7 +119,6 @@ If you like this project and find it useful, please consider giving it a star on
 - [Momentary switch]: Report `productId` `0x8000` on the composed `Momentary switch` bridged device, so Home Assistant's `(vendorId, productId)` allowlist can match the `ha_entitylabel` FixedLabels on `switch4`/`switch5`/`switch6` (requires matterbridge's `createDefaultBridgedDeviceBasicInformationClusterServer()` optional `productId` parameter).
 - [agents]: Add [`commit message instructions`](.github/commit-message-instructions.md) v.1.0.0 for the VS Code Copilot "Generate Commit Message" button (Conventional Commits).
 - [agents]: Add the Copilot `Matterbridge` custom agent (`.github/agents/matterbridge.agent.md`) that works without subagents.
-- [platform]: `ScheduleLock` now sets the `expiringUserTimeout` parameter of `createUserPinDoorLockClusterServer()`, creating the `ExpiringUserTimeout` attribute (Matter 1.6.0 § 5.2.6.18.8) and enabling `DoorLock.UserType.ExpiringUser` temporary PIN users. The expiry itself is enforced by the matter.js `DoorLockServer` (matter.js 0.18.0 and later).
 
 ### Fixed
 
