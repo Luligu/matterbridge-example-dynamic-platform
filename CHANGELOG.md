@@ -33,6 +33,10 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## [3.1.2] - Dev branch
 
+### Added
+
+- [platform]: `ScheduleLock` now sets the `expiringUserTimeout` parameter of `createUserPinDoorLockClusterServer()`, creating the `ExpiringUserTimeout` attribute (Matter 1.6.1 § 5.2.9.36) and enabling `DoorLock.UserType.ExpiringUser` temporary PIN users (Matter 1.6.1 § 5.2.6.18.8). The expiry itself is enforced by the matter.js `DoorLockServer` (matter.js 0.18.0 and later).
+
 <a href="https://www.buymeacoffee.com/luligugithub"><img src="https://matterbridge.io/assets/bmc-button.svg" alt="Buy me a coffee" width="80"></a>
 
 ## [3.1.1] - 2026-11-28

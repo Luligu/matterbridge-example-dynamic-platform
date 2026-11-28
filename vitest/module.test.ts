@@ -9,6 +9,7 @@ const MATTER_PORT = 8000;
 const MATTER_CREATE_ONLY = true;
 
 import { featuresFor, invokeSubscribeHandler, type PlatformMatterbridge } from 'matterbridge';
+import type { MatterbridgeDoorLockServer } from 'matterbridge/behaviors';
 import { MatterbridgeClosureControlServer } from 'matterbridge/devices';
 import { LogLevel } from 'matterbridge/logger';
 import { CommonAreaNamespaceTag, CommonNumberTag } from 'matterbridge/matter';
@@ -373,6 +374,24 @@ describe('TestPlatform', () => {
           userType: DoorLock.UserType.ScheduleRestrictedUser,
           credentialRule: DoorLock.CredentialRule.Single,
         });
+        await device.invokeBehaviorCommand(DoorLock, 'setUser', {
+          operationType: DoorLock.DataOperationType.Add,
+          userIndex: 2,
+          userName: 'Temporary Guest',
+          userUniqueId: 101,
+          userStatus: DoorLock.UserStatus.OccupiedEnabled,
+          userType: DoorLock.UserType.ExpiringUser,
+          credentialRule: DoorLock.CredentialRule.Single,
+        });
+        const scheduleLockServer = device.behaviors.supported.doorLock as typeof MatterbridgeDoorLockServer;
+        const guestUser = await device.act(async (agent) => agent.get(scheduleLockServer).getUser({ userIndex: 2 }));
+        // oxlint-disable-next-line vitest/no-conditional-expect
+        expect(guestUser).toMatchObject({
+          userName: 'Temporary Guest',
+          userUniqueId: 101,
+          userStatus: DoorLock.UserStatus.OccupiedEnabled,
+          userType: DoorLock.UserType.ExpiringUser,
+        });
         await device.invokeBehaviorCommand(DoorLock, 'setWeekDaySchedule', {
           weekDayIndex: 1,
           userIndex: 1,
@@ -395,6 +414,8 @@ describe('TestPlatform', () => {
         });
         await device.invokeBehaviorCommand(DoorLock, 'getHolidaySchedule', { holidayIndex: 1 });
         await device.invokeBehaviorCommand(DoorLock, 'clearHolidaySchedule', { holidayIndex: 1 });
+        await device.setAttribute(DoorLock, 'expiringUserTimeout', 15);
+        await device.setAttribute(DoorLock, 'expiringUserTimeout', 10);
       }
       if (device.id === 'RfidLock') {
         // oxlint-disable-next-line vitest/no-conditional-expect
@@ -522,6 +543,12 @@ describe('TestPlatform', () => {
       }
     }
   }, 60000);
+
+  it('should expose the ScheduleLock expiringUserTimeout attribute', () => {
+    const scheduleLock = dynamicPlatform.getDeviceByName('Lock with Schedules');
+    expect(scheduleLock).toBeDefined();
+    expect(scheduleLock?.getAttribute(DoorLock, 'expiringUserTimeout')).toBe(10);
+  });
 
   it('should set percent current to 50 when percent setting is null', async () => {
     const percentSettingSubscribers = [dynamicPlatform.airPurifier, dynamicPlatform.fanDefault, dynamicPlatform.fanComplete, dynamicPlatform.airConditioner];

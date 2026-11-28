@@ -1282,16 +1282,18 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       this.userPinLock.log,
     );
 
-    // *********************** Create a lock device with User, Pin and access schedule features ***********************
+    // *********************** Create a lock device with User, Pin and access schedule features, and an expiring user PIN (DoorLock.UserType.ExpiringUser) ***********************
     this.scheduleLock = new MatterbridgeEndpoint([doorLock, bridgedNode, powerSource], { id: 'ScheduleLock' }, this.config.debug)
       .createDefaultIdentifyClusterServer()
       .createDefaultBridgedDeviceBasicInformationClusterServer('Lock with Schedules', 'LSC00080', 0xfff1, 'Matterbridge', 'Matterbridge Lock')
-      .createUserPinDoorLockClusterServer(DoorLock.LockState.Locked, DoorLock.LockType.DeadBolt, 0, 4, 10, 2, 3, 4)
+      .createUserPinDoorLockClusterServer(DoorLock.LockState.Locked, DoorLock.LockType.DeadBolt, 0, 4, 10, 2, 3, 4, 10)
       .createDefaultPowerSourceRechargeableBatteryClusterServer(95)
       .addRequiredClusterServers();
 
     this.scheduleLock = await this.addDevice(this.scheduleLock);
 
+    // Matter 1.6.1 § 5.2.6.18.8 and § 5.2.9.36: ExpiringUser users and the ExpiringUserTimeout countdown are enforced by
+    // @matter/node's DoorLockServer (matter.js >= 0.18.0), so no plugin-side tracking is needed.
     // The cluster attributes are set by MatterbridgeDoorLockServer
     this.scheduleLock?.addCommandHandler('Identify.identify', ({ request: { identifyTime } }) => {
       this.scheduleLock?.log.info(`Command identify called identifyTime:${identifyTime}`);
@@ -1316,6 +1318,14 @@ export class ExampleMatterbridgeDynamicPlatform extends MatterbridgeDynamicPlatf
       'operatingMode',
       (value) => {
         this.scheduleLock?.log.info(`Subscribe operatingMode called with: ${getEnumDescription(DoorLock.OperatingMode, value)}`);
+      },
+      this.scheduleLock.log,
+    );
+    this.scheduleLock?.subscribeAttribute(
+      DoorLock,
+      'expiringUserTimeout',
+      (value) => {
+        this.scheduleLock?.log.info(`Subscribe expiringUserTimeout called with: ${value}`);
       },
       this.scheduleLock.log,
     );
